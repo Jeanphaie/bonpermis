@@ -1,265 +1,27 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" data-base="">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Le Bon Permis</title>
-<link rel="icon" href="favicon.ico" sizes="48x48">
-<link rel="icon" href="favicon.svg" type="image/svg+xml">
-<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<title>Le Bon Permis : déclaration préalable et permis de construire en ligne</title>
+<link rel="icon" href="/favicon.ico" sizes="48x48">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <meta name="description" content="Abri, piscine, extension, véranda : on prépare votre dossier de mairie, plans compris, et on vérifie les règles de votre commune. Prix connu en une minute, dossier prêt en 48 h.">
+<link rel="canonical" href="https://bonpermis.fr/">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="fr_FR">
+<meta property="og:site_name" content="Le Bon Permis">
+<meta property="og:title" content="Le Bon Permis : déclaration préalable et permis de construire en ligne">
+<meta property="og:description" content="Abri, piscine, extension, véranda : on prépare votre dossier de mairie, plans compris, et on vérifie les règles de votre commune. Prix connu en une minute, dossier prêt en 48 h.">
+<meta property="og:url" content="https://bonpermis.fr/">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..600;1,9..144,400..600&family=Geist:wght@300..700&display=swap">
-<style>
-:root{
-  color-scheme:light;
-  --paper:#FBF7F1; --surface:#FFFDFA; --warm:#F4EBDF; --ink:#1D1D1F; --muted:#5F6068; --line:#ECE3D6; --line-2:#DACDBC;
-  --accent:#2340D9; --accent-soft:#EAEDFB; --terra:#2340D9; --terra-soft:#EAEDFB; --good:#5E7E57; --good-soft:#E7EEE3;
-  --f-body:'Geist',system-ui,-apple-system,'Segoe UI',sans-serif; --f-mono:'Geist',system-ui,sans-serif; --f-display:'Fraunces',Georgia,'Times New Roman',serif;
-  --r:16px; --r-sm:12px; --wrap:1180px;
-}
-*{box-sizing:border-box}
-html{scroll-behavior:smooth}
-body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}
-img{max-width:100%;height:auto;display:block}
-a{color:inherit}
-.wrap{max-width:var(--wrap);margin:0 auto;padding:0 20px}
-h1,h2,h3{font-family:var(--f-display);font-weight:500;letter-spacing:-.015em;line-height:1.1;margin:0;font-optical-sizing:auto}
-.hero h1 .blue{font-style:italic}
-.tile,.svc,.verdict h3,.qtitle,.price h3,.extras h3,.guarantee h3,.group-h h3{font-family:var(--f-body)}
-h1{font-size:clamp(36px,5.6vw,64px)}
-h2{font-size:clamp(28px,3.6vw,42px)}
-h3{font-size:19px;letter-spacing:-.01em}
-p{margin:0}
-.lead{font-size:clamp(17px,1.6vw,19px);color:var(--muted);max-width:560px}
-.eyebrow{font:600 12px/1 var(--f-body);letter-spacing:.12em;text-transform:uppercase;color:var(--terra);margin-bottom:16px;display:block}
-.blue{color:var(--accent)}
-section{padding:96px 0}
-@media (max-width:720px){section{padding:64px 0}}
-
-/* boutons */
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;font:500 15px/1 var(--f-body);padding:16px 24px;border:1px solid var(--ink);background:var(--ink);color:#fff;cursor:pointer;text-decoration:none;border-radius:999px;transition:background .15s,border-color .15s,transform .15s}
-.btn:hover{background:var(--accent);border-color:var(--accent)}
-.btn.ghost{background:transparent;color:var(--ink)}
-.btn.ghost:hover{background:var(--ink);color:#fff}
-.btn.blue-btn{background:var(--accent);border-color:var(--accent)}
-.btn.blue-btn:hover{background:var(--ink);border-color:var(--ink)}
-.btn:focus-visible,.tile:focus-visible,.choice:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
-
-/* en-tête */
-header.top{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--paper) 90%,transparent);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
-header.top .wrap{display:flex;align-items:center;justify-content:space-between;height:68px;gap:16px}
-.logo{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink)}
-.logo svg{width:28px;height:28px}
-.logo b{font-size:20px;font-weight:600;letter-spacing:-.03em}
-.logo b i{font-style:normal;color:var(--accent)}
-nav.links{display:flex;gap:28px;font-size:14px}
-nav.links a{text-decoration:none;color:var(--muted)}
-nav.links a:hover{color:var(--ink)}
-header .btn{padding:12px 18px;font-size:14px}
-@media (max-width:860px){nav.links{display:none}}
-
-/* haut de page */
-.hero{padding:56px 0 40px}
-.hero-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:56px;align-items:center}
-.hero h1 .blue{display:block}
-.hero .lead{margin-top:22px}
-.hero-art{border-radius:var(--r);overflow:hidden;background:var(--surface);border:1px solid var(--line);aspect-ratio:4/5}
-.hero-art img{width:100%;height:100%;object-fit:cover}
-@media (max-width:900px){.hero-grid{grid-template-columns:1fr;gap:32px}.hero-art{aspect-ratio:16/11;order:-1}.hero-art img{object-position:center 30%}}
-
-.hero-cta{display:flex;flex-wrap:wrap;gap:12px;margin-top:32px}
-.chooser{padding-top:40px;scroll-margin-top:70px}
-.group{margin-top:32px}
-.group-h{display:flex;align-items:baseline;gap:12px;margin-bottom:12px;flex-wrap:wrap}
-.group-h h3{font-size:17px}
-.group-h small{color:var(--muted);font-size:14px}
-.chooser .tiles{grid-template-columns:repeat(8,1fr)}
-.chooser .tile{font-size:13.5px}
-.tile .ph{width:100%;aspect-ratio:1;border-radius:6px;background:#F7F5F1;display:grid;place-items:center}
-.tile .ph svg{width:62%;height:auto}
-.tile small{display:block;font-weight:400;color:var(--muted);font-size:12px;margin-top:2px}
-.svcs{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
-.svc{all:unset;box-sizing:border-box;cursor:pointer;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-sm);padding:16px 18px;display:flex;flex-direction:column;gap:4px;transition:border-color .15s,transform .15s}
-.svc:hover{border-color:var(--accent);transform:translateY(-2px)}
-.svc:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
-.svc b{font-weight:600;font-size:15px;line-height:1.3}
-.svc span{font-size:13px;color:var(--muted);line-height:1.4}
-.svc em{font-style:normal;font-weight:500;font-size:14px;color:var(--accent);margin-top:6px}
-@media (max-width:1080px){.chooser .tiles{grid-template-columns:repeat(6,1fr)}}
-@media (max-width:820px){.chooser .tiles{grid-template-columns:repeat(4,1fr)}.svcs{grid-template-columns:repeat(2,1fr)}}
-@media (max-width:520px){.chooser .tiles{grid-template-columns:repeat(3,1fr);gap:8px}.chooser .tile{font-size:12.5px;padding:6px 6px 10px}.svcs{grid-template-columns:1fr}}
-.ask-q{font-weight:600;font-size:18px;margin-bottom:14px;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
-.ask-q small{font-weight:400;color:var(--muted);font-size:14px}
-.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
-.tile{all:unset;box-sizing:border-box;cursor:pointer;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-sm);padding:8px 8px 12px;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;font-size:14px;font-weight:500;line-height:1.25;transition:border-color .15s,transform .15s,box-shadow .15s}
-.tile img{width:100%;height:auto;aspect-ratio:1;object-fit:cover;border-radius:8px;background:#F9F5F1}
-.tile:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 8px 24px -14px rgba(35,64,217,.45)}
-.tiles.more{margin-top:10px}
-.tiles.more[hidden]{display:none}
-.more-btn{all:unset;cursor:pointer;margin-top:14px;font-size:14px;color:var(--accent);font-weight:500;text-decoration:underline;text-underline-offset:3px}
-@media (max-width:560px){.tiles{grid-template-columns:repeat(2,1fr)}}
-
-.proof{display:flex;flex-wrap:wrap;gap:10px 22px;margin-top:28px;font-size:14px;color:var(--muted)}
-.proof span{display:flex;align-items:center;gap:8px}
-.proof svg{width:16px;height:16px;flex:none}
-
-/* sections */
-.head{max-width:680px;margin-bottom:48px}
-.head .lead{margin-top:16px}
-.split{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:center}
-@media (max-width:900px){.split{grid-template-columns:1fr;gap:32px}}
-.art{border-radius:var(--r);overflow:hidden;border:1px solid var(--line);background:var(--surface)}
-
-/* étapes */
-.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
-.step{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;display:flex;flex-direction:column}
-.step img{aspect-ratio:1;object-fit:cover;width:100%}
-.step .body{padding:18px 18px 22px}
-.step .n{font:600 12px/1 var(--f-body);color:var(--terra);letter-spacing:.1em}
-.step h3{margin:8px 0 6px}
-.step p{font-size:15px;color:var(--muted)}
-@media (max-width:980px){.steps{grid-template-columns:repeat(2,1fr)}}
-@media (max-width:520px){.steps{grid-template-columns:1fr}}
-
-/* pièces */
-.pieces{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-top:40px}
-.piece{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-sm);overflow:hidden}
-.piece img{aspect-ratio:4/3;object-fit:cover;width:100%;background:#F9F8F6}
-.piece div{padding:12px 14px 14px;font-size:14px;line-height:1.35}
-.piece small{display:block;color:var(--muted);font:400 12px/1.4 var(--f-mono);margin-top:4px}
-@media (max-width:980px){.pieces{grid-template-columns:repeat(3,1fr)}}
-@media (max-width:560px){.pieces{grid-template-columns:repeat(2,1fr)}}
-.checklist{list-style:none;padding:0;margin:24px 0 0;display:grid;gap:12px}
-.checklist li{display:flex;gap:12px;align-items:flex-start}
-.checklist svg{width:20px;height:20px;flex:none;margin-top:2px}
-
-/* comparatif */
-.compare{width:100%;border-collapse:separate;border-spacing:0;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;font-size:15px}
-.compare th,.compare td{padding:16px 18px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
-.compare tr:last-child td{border-bottom:0}
-.compare thead th{font-weight:600;background:var(--warm)}
-.compare th.us,.compare td.us{background:var(--accent-soft);color:var(--ink);font-weight:500}
-.compare td:first-child{color:var(--muted)}
-.compare-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
-.compare{min-width:640px}
-
-/* sombre */
-.dark{background:#16203F;color:#F2F4FA}
-.dark .lead{color:#B8C1DB}
-.dark .eyebrow{color:#9DB0FF}
-.dark .art{border-color:#2A365F}
-.dark ul{color:#DCE2F2}
-
-/* équipe */
-.team-quote{margin-top:24px;padding:20px 22px;border-left:3px solid var(--terra);font-family:var(--f-display);font-style:italic;font-size:19px;line-height:1.45;background:var(--surface);border-radius:0 var(--r-sm) var(--r-sm) 0;font-size:16px}
-
-/* tarifs */
-.prices{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
-.price{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:24px;display:flex;flex-direction:column;gap:10px;position:relative}
-.price.star{border-color:var(--terra);box-shadow:0 0 0 1px var(--terra)}
-.price .badge{position:absolute;top:-11px;left:22px;background:var(--terra);color:#fff;font:500 11px/1 var(--f-mono);padding:6px 9px;border-radius:999px;letter-spacing:.04em}
-.price img{width:84px;height:84px;object-fit:cover;border-radius:8px}
-.price .amount{font-family:var(--f-display);font-size:42px;font-weight:500;letter-spacing:-.02em;line-height:1}
-.price .amount small{font-family:var(--f-body);font-size:14px;font-weight:400;color:var(--muted);letter-spacing:0}
-.price p{font-size:14px;color:var(--muted)}
-.price .delay{font:500 12px/1 var(--f-mono);color:var(--good);background:var(--good-soft);padding:6px 8px;border-radius:6px;align-self:flex-start}
-@media (max-width:900px){.prices{grid-template-columns:1fr 1fr}}
-@media (max-width:560px){.prices{grid-template-columns:1fr}}
-.extras{margin-top:28px;display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
-@media (max-width:980px){.extras{grid-template-columns:1fr 1fr}}
-.extras > div{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:20px 22px}
-.extras h3{font-size:16px;margin-bottom:10px}
-.extras ul{list-style:none;padding:0;margin:0;font-size:15px}
-.extras li{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-top:1px solid var(--line)}
-.extras li:first-child{border-top:0}
-.extras li b{font-weight:500;white-space:nowrap}
-@media (max-width:720px){.extras{grid-template-columns:1fr}}
-
-/* garantie */
-.guarantee{display:grid;grid-template-columns:auto 1fr;gap:20px;align-items:start;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:28px}
-.guarantee .seal{width:64px;height:64px;border-radius:50%;background:var(--accent-soft);display:grid;place-items:center}
-.guarantee h3{font-size:22px;margin-bottom:8px}
-.guarantee p{color:var(--muted)}
-.guarantee small{display:block;margin-top:10px;font-size:13px;color:var(--muted)}
-
-/* FAQ */
-.faq{max-width:780px}
-.faq details{border-top:1px solid var(--line);padding:18px 0}
-.faq details:last-child{border-bottom:1px solid var(--line)}
-.faq summary{cursor:pointer;font-weight:500;font-size:17px;list-style:none;display:flex;justify-content:space-between;gap:16px}
-.faq summary::-webkit-details-marker{display:none}
-.faq summary::after{content:'+';color:var(--accent);font-size:22px;line-height:1}
-.faq details[open] summary::after{content:'–'}
-.faq details p{margin-top:10px;color:var(--muted)}
-
-/* fin */
-.final{background:var(--warm)}
-.final .art{border:0}
-footer{padding:40px 0 56px;font-size:13px;color:var(--muted);border-top:1px solid var(--line)}
-footer .wrap{display:flex;flex-wrap:wrap;gap:12px 28px;justify-content:space-between}
-footer a{color:var(--muted)}
-
-/* configurateur */
-.overlay{position:fixed;inset:0;z-index:50;background:rgba(20,18,15,.45);display:flex;align-items:center;justify-content:center;padding:16px}
-.overlay[hidden]{display:none}
-.panel{background:var(--paper);width:min(620px,100%);max-height:calc(100dvh - 32px);overflow:auto;border-radius:18px;box-shadow:0 30px 80px -30px rgba(0,0,0,.5)}
-.panel-top{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--paper);z-index:1}
-.panel-top .proj{display:flex;align-items:center;gap:10px;font-weight:600}
-.panel-top .proj img{width:40px;height:40px;border-radius:8px;object-fit:cover}
-.x{all:unset;cursor:pointer;width:36px;height:36px;display:grid;place-items:center;border-radius:50%;font-size:22px;color:var(--muted)}
-.x:hover{background:var(--line)}
-.bar{height:3px;background:var(--line)}
-.bar i{display:block;height:100%;background:var(--accent);transition:width .25s}
-.panel-body{padding:24px 20px 28px}
-.qtitle{font-size:22px;font-weight:600;letter-spacing:-.01em;line-height:1.25}
-.qhelp{color:var(--muted);font-size:14px;margin-top:6px}
-.choices{display:grid;gap:10px;margin-top:20px}
-.choice{all:unset;box-sizing:border-box;cursor:pointer;background:var(--surface);border:1px solid var(--line-2);border-radius:12px;padding:16px 18px;font-size:16px;display:flex;justify-content:space-between;align-items:center;gap:12px}
-.choice:hover{border-color:var(--accent);background:var(--accent-soft)}
-.choice small{color:var(--muted);font-size:13px}
-.back{all:unset;cursor:pointer;color:var(--muted);font-size:14px;margin-top:18px;display:inline-block}
-.back:hover{color:var(--ink)}
-.verdict{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px}
-.verdict .kind{font:500 12px/1 var(--f-mono);letter-spacing:.06em;color:var(--accent);text-transform:uppercase}
-.verdict h3{font-size:22px;margin:8px 0 4px}
-.need{margin-top:14px;background:var(--paper);border-radius:12px;padding:14px 16px}
-.need > b{display:block;font-size:12px;font-family:var(--f-mono);font-weight:500;letter-spacing:.04em;text-transform:uppercase;color:var(--accent)}
-.need small{display:block;color:var(--muted);font-size:13px;margin-top:2px}
-.need ul{list-style:none;padding:0;margin:10px 0 0;display:grid;gap:8px}
-.need li{font-size:14px;line-height:1.45;padding-left:22px;position:relative}
-.need li::before{content:'';position:absolute;left:2px;top:6px;width:10px;height:6px;border-left:2px solid var(--accent);border-bottom:2px solid var(--accent);transform:rotate(-45deg)}
-.need li i{font-style:normal;font-weight:600;display:block}
-.need p{font-size:13px;color:var(--accent);margin-top:10px}
-.do{font-size:14px;color:var(--muted);margin-top:12px}
-.do b{color:var(--ink);font-weight:600}
-.fn{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
-.fn div{background:var(--paper);border-radius:10px;padding:12px 14px;font-size:14px;line-height:1.45}
-.fn b{display:block;font-size:12px;font-family:var(--f-mono);font-weight:500;letter-spacing:.04em;text-transform:uppercase;color:var(--accent);margin-bottom:4px}
-@media (max-width:520px){.fn{grid-template-columns:1fr}}
-.lines{margin-top:16px;border-top:1px solid var(--line)}
-.lines div{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--line);font-size:15px}
-.lines div span:last-child{white-space:nowrap;font-weight:500}
-.opts{margin-top:18px;display:grid;gap:8px}
-.opt{display:flex;gap:12px;align-items:flex-start;padding:12px 14px;border:1px solid var(--line);border-radius:10px;background:var(--surface);cursor:pointer;font-size:15px}
-.opt input{margin-top:4px;accent-color:var(--accent);width:18px;height:18px;flex:none}
-.opt b{font-weight:500}
-.opt small{display:block;color:var(--muted);font-size:13px}
-.opt .p{margin-left:auto;white-space:nowrap;font-weight:500}
-.total{display:flex;justify-content:space-between;align-items:baseline;margin-top:18px;font-size:16px}
-.total b{font-size:30px;letter-spacing:-.02em}
-.small-note{font-size:13px;color:var(--muted);margin-top:8px}
-.panel .btn{width:100%;margin-top:20px}
-.field{display:block;margin-top:16px}
-.field span{display:block;font-size:14px;font-weight:500;margin-bottom:6px}
-.field input{width:100%;font:inherit;font-size:16px;padding:14px 16px;border:1px solid var(--line-2);border-radius:10px;background:var(--surface);color:var(--ink)}
-.field input:focus{outline:2px solid var(--accent);outline-offset:1px;border-color:var(--accent)}
-.done{text-align:center;padding:12px 0}
-.done .seal{width:64px;height:64px;border-radius:50%;background:var(--good-soft);display:grid;place-items:center;margin:0 auto 16px}
-.reassure{display:flex;gap:8px;align-items:center;font-size:13px;color:var(--muted);margin-top:12px;justify-content:center}
-@media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
-</style>
+<link rel="stylesheet" href="assets/style.css">
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "Organization", "@id": "https://bonpermis.fr/#org", "name": "Le Bon Permis", "url": "https://bonpermis.fr/", "description": "Dossiers de déclaration préalable et de permis de construire pour les particuliers, partout en France. Un service de LK Invest.", "parentOrganization": {"@type": "Organization", "name": "LK Invest"}, "areaServed": "FR"}</script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "WebSite", "name": "Le Bon Permis", "url": "https://bonpermis.fr/", "inLanguage": "fr-FR"}</script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "Déclaration de travaux ou permis de construire : comment savoir ?", "acceptedAnswer": {"@type": "Answer", "text": "Vous n'avez pas à le savoir, c'est notre travail. En général, une déclaration suffit jusqu'à 20 m² créés, ou 40 m² pour une extension en ville. Au-delà, il faut un permis."}}, {"@type": "Question", "name": "Est-ce que vous dessinez le projet, ou je dois tout vous donner ?", "acceptedAnswer": {"@type": "Answer", "text": "Pour les petits travaux, vous choisissez le modèle, on le place et on vérifie qu'il est autorisé. Pour un agrandissement, un croquis ou une description suffit. Si vous n'avez qu'une idée, l'option conception (690 €) vous apporte deux propositions, les plans intérieurs et une vue 3D."}}, {"@type": "Question", "name": "Mes travaux sont déjà faits. C'est trop tard ?", "acceptedAnswer": {"@type": "Answer", "text": "Non. On les déclare après coup, au même prix, à partir de photos de ce qui existe. Choisissez « Déclarer des travaux déjà faits » dans les projets."}}, {"@type": "Question", "name": "Combien de temps la mairie met-elle à répondre ?", "acceptedAnswer": {"@type": "Answer", "text": "Un mois pour une déclaration, deux mois pour un permis de maison, un mois de plus près d'un monument historique. À compter du dépôt du dossier complet."}}, {"@type": "Question", "name": "Est-ce qu'il me faut un architecte ?", "acceptedAnswer": {"@type": "Answer", "text": "Seulement si votre maison dépasse 150 m² après les travaux. Dans ce cas, on vous met en relation avec un architecte partenaire."}}, {"@type": "Question", "name": "Le paiement est-il sécurisé ?", "acceptedAnswer": {"@type": "Answer", "text": "Oui. Vous payez par carte, Apple Pay, Google Pay ou PayPal, sur une page sécurisée. Vos données bancaires ne passent jamais par nous."}}, {"@type": "Question", "name": "Qui êtes-vous ?", "acceptedAnswer": {"@type": "Answer", "text": "Le Bon Permis est un service de LK Invest, société installée à Paris. On prépare des dossiers de mairie pour les particuliers, partout en France. Entreprise privée, sans lien avec les administrations."}}]}</script>
 </head>
 <body>
 
@@ -274,8 +36,8 @@ footer a{color:var(--muted)}
       <b>bon<i>permis</i></b>
     </a>
     <nav class="links" aria-label="Sections">
+      <a href="#projets">Projets</a>
       <a href="#comment">Comment ça marche</a>
-      <a href="#dossier">Le dossier</a>
       <a href="#tarifs">Tarifs</a>
       <a href="#faq">Questions</a>
     </nav>
@@ -316,7 +78,7 @@ footer a{color:var(--muted)}
       <h2>Qu'est-ce que vous voulez faire ?</h2>
       <p class="lead">Deux ou trois questions, et vous savez ce qu'il vous faut et ce que ça coûte.</p>
     </div>
-    <div id="groups"></div>
+    <div id="groups"><div class="group"><div class="group-h"><h3>Jardin et extérieur</h3><small>Dès 149 €</small></div><div class="tiles"><a class="tile" href="abri-de-jardin/" data-p="abri"><img src="img/13-abri-jardin.webp" alt="" loading="lazy" width="480" height="480"><span>Abri de jardin</span></a><a class="tile" href="annexe-garage-studio/" data-p="annexe"><img src="img/35-annexe.webp" alt="" loading="lazy" width="480" height="480"><span>Annexe neuve<small>Garage, studio, pool-house</small></span></a><a class="tile" href="carport/" data-p="carport"><img src="img/11-carport.webp" alt="" loading="lazy" width="480" height="480"><span>Carport</span></a><a class="tile" href="pergola/" data-p="pergola"><img src="img/12-pergola.webp" alt="" loading="lazy" width="480" height="480"><span>Pergola</span></a><a class="tile" href="piscine/" data-p="piscine"><img src="img/14-piscine.webp" alt="" loading="lazy" width="480" height="480"><span>Piscine</span></a><a class="tile" href="terrasse-mur-climatisation/" data-p="terrasse"><img src="img/36-terrasse-clim.webp" alt="" loading="lazy" width="480" height="480"><span>Terrasse, mur, clim</span></a><a class="tile" href="cloture/" data-p="cloture"><img src="img/15-cloture.webp" alt="" loading="lazy" width="480" height="480"><span>Clôture</span></a><a class="tile" href="portail/" data-p="portail"><img src="img/16-portail.webp" alt="" loading="lazy" width="480" height="480"><span>Portail</span></a></div></div><div class="group"><div class="group-h"><h3>Agrandir</h3><small>Dès 349 €</small></div><div class="tiles"><a class="tile" href="extension-maison/" data-p="extension"><img src="img/21-extension.webp" alt="" loading="lazy" width="480" height="480"><span>Extension</span></a><a class="tile" href="veranda/" data-p="veranda"><img src="img/22-veranda.webp" alt="" loading="lazy" width="480" height="480"><span>Véranda</span></a><a class="tile" href="amenagement-combles/" data-p="combles"><img src="img/32-combles.webp" alt="" loading="lazy" width="480" height="480"><span>Combles aménagés</span></a><a class="tile" href="surelevation/" data-p="surelevation"><img src="img/33-surelevation.webp" alt="" loading="lazy" width="480" height="480"><span>Surélévation</span></a><a class="tile" href="transformation-garage/" data-p="garage"><img src="img/25-garage-amenage.webp" alt="" loading="lazy" width="480" height="480"><span>Garage aménagé</span></a></div></div><div class="group"><div class="group-h"><h3>Modifier la maison</h3><small>Dès 149 €</small></div><div class="tiles"><a class="tile" href="fenetres-portes-volets/" data-p="menuiseries"><img src="img/18-menuiseries.webp" alt="" loading="lazy" width="480" height="480"><span>Fenêtres, portes, volets</span></a><a class="tile" href="fenetre-de-toit/" data-p="velux"><img src="img/19-fenetre-toit.webp" alt="" loading="lazy" width="480" height="480"><span>Fenêtre de toit</span></a><a class="tile" href="lucarne/" data-p="lucarne"><img src="img/23-lucarne.webp" alt="" loading="lazy" width="480" height="480"><span>Lucarne</span></a><a class="tile" href="toiture/" data-p="toiture"><img src="img/24-toiture.webp" alt="" loading="lazy" width="480" height="480"><span>Toiture</span></a><a class="tile" href="facade/" data-p="facade"><img src="img/20-facade.webp" alt="" loading="lazy" width="480" height="480"><span>Façade</span></a><a class="tile" href="panneaux-solaires/" data-p="solaire"><img src="img/17-panneaux-solaires.webp" alt="" loading="lazy" width="480" height="480"><span>Panneaux solaires</span></a></div></div><div class="group"><div class="group-h"><h3>Construire ou transformer</h3><small>Dès 149 €</small></div><div class="tiles"><a class="tile" href="permis-de-construire-maison/" data-p="maison"><img src="img/26-maison-neuve.webp" alt="" loading="lazy" width="480" height="480"><span>Maison neuve</span></a><a class="tile" href="transformer-en-logement/" data-p="usage"><img src="img/34-changement-usage.webp" alt="" loading="lazy" width="480" height="480"><span>Transformer en logement<small>Grange, local, bureau</small></span></a><a class="tile" href="permis-de-demolir/" data-p="demolition"><img src="img/37-demolition.webp" alt="" loading="lazy" width="480" height="480"><span>Démolition</span></a></div></div><div class="group"><div class="group-h"><h3>Les autres démarches</h3><small>Avant, pendant ou après les travaux</small></div><div class="svcs"><a class="svc" href="regularisation-travaux/" data-p="regul"><b>Déclarer des travaux déjà faits</b><span>Un abri, une extension ou une véranda construits sans autorisation. On met tout en règle.</span><em>Même prix que le projet</em></a><a class="svc" href="certificat-urbanisme/" data-p="cu"><b>Savoir ce qu&#x27;on peut construire</b><span>Avant d&#x27;acheter un terrain ou de vous lancer : la mairie vous confirme les règles par écrit.</span><em>Dès 89 €</em></a><a class="svc" href="permis-modificatif/" data-p="modif"><b>Modifier un permis accordé</b><span>Votre projet a changé après l&#x27;accord de la mairie.</span><em>249 €</em></a><a class="svc" href="declaration-achevement-travaux/" data-p="daact"><b>Déclarer la fin des travaux</b><span>Le document à envoyer à la mairie une fois le chantier terminé.</span><em>49 €</em></a></div></div></div>
   </div>
 </section>
 
@@ -496,8 +258,11 @@ footer a{color:var(--muted)}
 
 <footer>
   <div class="wrap">
-    <span>© 2026 Le Bon Permis, un service de LK Invest. Entreprise privée, sans lien avec les administrations.</span>
-    <span><a href="#">Mentions légales</a> · <a href="#">CGV</a> · <a href="#">Confidentialité</a> · Maquette, paiement non branché</span>
+    <nav class="plan" aria-label="Tous les projets"><div><b>Jardin et extérieur</b><ul><li><a href="abri-de-jardin/">Abri de jardin</a></li><li><a href="annexe-garage-studio/">Annexe neuve</a></li><li><a href="carport/">Carport</a></li><li><a href="pergola/">Pergola</a></li><li><a href="piscine/">Piscine</a></li><li><a href="terrasse-mur-climatisation/">Terrasse, mur, clim</a></li><li><a href="cloture/">Clôture</a></li><li><a href="portail/">Portail</a></li></ul></div><div><b>Agrandir</b><ul><li><a href="extension-maison/">Extension</a></li><li><a href="veranda/">Véranda</a></li><li><a href="amenagement-combles/">Combles aménagés</a></li><li><a href="surelevation/">Surélévation</a></li><li><a href="transformation-garage/">Garage aménagé</a></li></ul></div><div><b>Modifier la maison</b><ul><li><a href="fenetres-portes-volets/">Fenêtres, portes, volets</a></li><li><a href="fenetre-de-toit/">Fenêtre de toit</a></li><li><a href="lucarne/">Lucarne</a></li><li><a href="toiture/">Toiture</a></li><li><a href="facade/">Façade</a></li><li><a href="panneaux-solaires/">Panneaux solaires</a></li></ul></div><div><b>Construire ou transformer</b><ul><li><a href="permis-de-construire-maison/">Maison neuve</a></li><li><a href="transformer-en-logement/">Transformer en logement</a></li><li><a href="permis-de-demolir/">Démolition</a></li></ul></div><div><b>Les autres démarches</b><ul><li><a href="regularisation-travaux/">Déclarer des travaux déjà faits</a></li><li><a href="certificat-urbanisme/">Certificat d&#x27;urbanisme</a></li><li><a href="permis-modificatif/">Permis modificatif</a></li><li><a href="declaration-achevement-travaux/">Déclaration d&#x27;achèvement</a></li></ul></div></nav>
+    <div class="legal">
+      <span>© 2026 Le Bon Permis, un service de LK Invest. Entreprise privée, sans lien avec les administrations.</span>
+      <span><a href="#">Mentions légales</a> · <a href="#">CGV</a> · <a href="#">Confidentialité</a> · Maquette, paiement non branché</span>
+    </div>
   </div>
 </footer>
 
@@ -512,281 +277,7 @@ footer a{color:var(--muted)}
     <div class="panel-body" id="panelBody"></div>
   </div>
 </div>
-
-<script>
-(() => {
-  const P = {
-    abri:{n:'Abri de jardin',img:'13-abri-jardin',cat:'petits',size:'abri'},
-    annexe:{n:'Annexe neuve',sub:'Garage, studio, pool-house',img:'35-annexe',cat:'petits',size:'abri'},
-    carport:{n:'Carport',img:'11-carport',cat:'petits',size:'annexe'},
-    pergola:{n:'Pergola',img:'12-pergola',cat:'petits',size:'annexe'},
-    piscine:{n:'Piscine',img:'14-piscine',cat:'petits',size:'piscine'},
-    terrasse:{n:'Terrasse, mur, clim',img:'36-terrasse-clim',cat:'ext'},
-    cloture:{n:'Clôture',img:'15-cloture',cat:'petits'},
-    portail:{n:'Portail',img:'16-portail',cat:'petits'},
-    extension:{n:'Extension',img:'21-extension',cat:'agrandir'},
-    veranda:{n:'Véranda',img:'22-veranda',cat:'agrandir'},
-    combles:{n:'Combles aménagés',img:'32-combles',cat:'agrandir'},
-    surelevation:{n:'Surélévation',img:'33-surelevation',cat:'agrandir'},
-    garage:{n:'Garage aménagé',img:'25-garage-amenage',cat:'garage'},
-    menuiseries:{n:'Fenêtres, portes, volets',img:'18-menuiseries',cat:'petits',copro:true},
-    velux:{n:'Fenêtre de toit',img:'19-fenetre-toit',cat:'petits',copro:true},
-    lucarne:{n:'Lucarne',img:'23-lucarne',cat:'toit',copro:true},
-    toiture:{n:'Toiture',img:'24-toiture',cat:'toit',copro:true},
-    facade:{n:'Façade',img:'20-facade',cat:'petits',copro:true},
-    solaire:{n:'Panneaux solaires',img:'17-panneaux-solaires',cat:'petits'},
-    maison:{n:'Maison neuve',img:'26-maison-neuve',cat:'maison'},
-    usage:{n:'Transformer en logement',sub:'Grange, local, bureau',img:'34-changement-usage',cat:'usage',copro:true},
-    demolition:{n:'Démolition',img:'37-demolition',cat:'demol'},
-    cu:{n:'Certificat d\'urbanisme',img:'27-plan-situation',cat:'cu',svc:true},
-    modif:{n:'Permis modificatif',img:'30-plan-facades',cat:'modif',svc:true},
-    daact:{n:'Déclaration d\'achèvement',img:'28-plan-masse',cat:'daact',svc:true}
-  };
-  const GROUPS = [
-    {t:'Jardin et extérieur', s:'Dès 149 €', k:['abri','annexe','carport','pergola','piscine','terrasse','cloture','portail']},
-    {t:'Agrandir', s:'Dès 349 €', k:['extension','veranda','combles','surelevation','garage']},
-    {t:'Modifier la maison', s:'Dès 149 €', k:['menuiseries','velux','lucarne','toiture','facade','solaire']},
-    {t:'Construire ou transformer', s:'Dès 149 €', k:['maison','usage','demolition']}
-  ];
-  const SVCS = [
-    {k:'regul', n:'Déclarer des travaux déjà faits', d:'Un abri, une extension ou une véranda construits sans autorisation. On met tout en règle.', p:'Même prix que le projet'},
-    {k:'cu', n:'Savoir ce qu\'on peut construire', d:'Avant d\'acheter un terrain ou de vous lancer : la mairie vous confirme les règles par écrit.', p:'Dès 89 €'},
-    {k:'modif', n:'Modifier un permis accordé', d:'Votre projet a changé après l\'accord de la mairie.', p:'249 €'},
-    {k:'daact', n:'Déclarer la fin des travaux', d:'Le document à envoyer à la mairie une fois le chantier terminé.', p:'49 €'}
-  ];
-  const PH = '<span class="ph"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M10 54V30L30 14l20 16v24z" fill="none" stroke="#9A968F" stroke-width="1.6"/><path d="M36 54V38h14v16" fill="none" stroke="var(--accent)" stroke-width="2" stroke-dasharray="3 2.5"/><path d="M4 54h56" stroke="#9A968F" stroke-width="1.6"/></svg></span>';
-  const pic = k => P[k].img ? `<img src="img/${P[k].img}.webp" alt="" loading="lazy" width="480" height="480">` : PH;
-  const tile = k => `<button class="tile" type="button" data-p="${k}">${pic(k)}<span>${P[k].n}${P[k].sub?`<small>${P[k].sub}</small>`:''}</span></button>`;
-  document.getElementById('groups').innerHTML = GROUPS.map(g => `<div class="group"><div class="group-h"><h3>${g.t}</h3><small>${g.s}</small></div><div class="tiles">${g.k.map(tile).join('')}</div></div>`).join('')
-    + `<div class="group"><div class="group-h"><h3>Les autres démarches</h3><small>Avant, pendant ou après les travaux</small></div><div class="svcs">${SVCS.map(x => `<button class="svc" type="button" data-p="${x.k}"><b>${x.n}</b><span>${x.d}</span><em>${x.p}</em></button>`).join('')}</div></div>`;
-
-  const ov = document.getElementById('overlay'), body = document.getElementById('panelBody'), bar = document.getElementById('barFill');
-  const euro = n => n.toLocaleString('fr-FR') + ' €';
-  let S = {}, lastFocus = null;
-
-  const PH4 = 'Quatre photos : ce qui va changer, la maison vue de la rue, le terrain vu de loin, les abords proches';
-  const NEED = {
-    abri:['Le modèle choisi (fiche ou devis) : dimensions, hauteur, matériau, couleur','La distance entre l\'abri et les limites du terrain les plus proches', PH4],
-    annexe:['Ce que vous voulez construire : usage, dimensions, hauteur, matériaux, ou le devis du fabricant','La distance aux limites du terrain les plus proches', PH4],
-    carport:['Le modèle choisi (fiche ou devis) : dimensions, hauteur, matériau, couleur','La distance aux limites du terrain, et s\'il s\'appuie sur la maison', PH4],
-    pergola:['Le modèle choisi (fiche ou devis) : dimensions, hauteur, matériau, couleur, toile ou lames','La distance aux limites du terrain, et s\'il s\'appuie sur la maison', PH4],
-    piscine:['Le bassin : longueur, largeur, type (enterrée ou hors-sol), couleur du revêtement et des margelles, abri éventuel','La distance entre le bassin et les limites du terrain', PH4],
-    terrasse:['Terrasse ou mur : dimensions, hauteur, matériau. Climatisation : la fiche du groupe extérieur','La hauteur par rapport au sol et la distance aux limites du terrain', PH4],
-    cloture:['Le modèle choisi : hauteur, longueur, matériau, couleur (fiche ou devis)','La longueur de la clôture et sa position sur le terrain', 'Trois photos : la limite concernée, la maison vue de la rue, la rue'],
-    portail:['Le modèle choisi : largeur, hauteur, matériau, couleur (fiche ou devis)','La largeur de l\'entrée', 'Trois photos : l\'entrée actuelle, la maison vue de la rue, la rue'],
-    extension:['Un croquis ou une description : surface, longueur et largeur, hauteur, type de toit, ouvertures, matériaux et couleurs','La largeur de la façade concernée et la distance aux limites du terrain', PH4],
-    veranda:['Le devis ou la fiche de votre vérandaliste : dimensions, couleur des profilés, type de toit. Pas encore de devis ? Une description suffit','La largeur de la façade, la hauteur sous la gouttière, la distance à la limite la plus proche', PH4],
-    combles:['La surface à aménager et les fenêtres de toit ou lucarnes souhaitées (nombre, taille)','La hauteur sous le faîtage et la longueur des combles','Quatre photos : la toiture côté rue et côté jardin, l\'intérieur des combles, la maison vue de loin'],
-    surelevation:['Ce que vous voulez ajouter : surface, nombre de pièces, type de toit, matériaux','La hauteur actuelle de la maison et ses dimensions au sol','Une photo de chaque façade, la rue, la maison vue de loin'],
-    garage:['Ce que devient le garage (chambre, bureau…) et ce qui remplace la porte de garage','Les dimensions intérieures du garage','Trois photos : la façade du garage, l\'intérieur, la maison vue de la rue'],
-    menuiseries:['Pour chaque fenêtre, porte ou volet : dimensions, matériau, couleur (le devis du menuisier suffit)','Rien de plus si le devis est complet','Une photo de chaque façade concernée et la maison vue de la rue'],
-    velux:['Le modèle et la taille de la fenêtre de toit, et leur nombre (fiche ou devis)','Sa position approximative sur le toit','Trois photos : le pan de toit concerné, la façade dessous, la maison vue de la rue'],
-    lucarne:['La lucarne souhaitée : forme, largeur, hauteur, matériaux, ou une photo d\'inspiration','La largeur du pan de toit concerné','Trois photos : le pan de toit, la façade dessous, la maison vue de la rue'],
-    toiture:['Le nouveau toit : matériau, couleur, pente, et ce qui change (fenêtres, débords)','Rien de plus si la forme ne change pas','Une photo de chaque pan de toit et la maison vue de la rue'],
-    facade:['Le nouvel enduit, bardage ou peinture : matériau et teinte (référence du nuancier)','Rien de plus','Une photo de chaque façade concernée et la maison vue de la rue'],
-    solaire:['Le devis de l\'installateur : nombre de panneaux, dimensions, couleur, pose (intégrée ou sur le toit)','Le pan de toit concerné','Trois photos : le pan de toit, la maison vue de la rue, la maison vue de loin'],
-    maison:['Les plans de la maison (constructeur, architecte ou les vôtres) et les matériaux prévus','Le plan ou les références du terrain, et son relief s\'il est en pente','Quatre photos du terrain : vu de la rue, depuis le fond, les voisins, vu de loin'],
-    usage:['Ce que devient le local, et les changements de façade s\'il y en a (ouvertures, portes)','Les surfaces actuelles','Une photo de chaque façade, l\'intérieur, la rue'],
-    demolition:['Ce qui est démoli : bâtiment entier ou partie','Les dimensions du bâtiment démoli','Trois photos : le bâtiment, la maison vue de la rue, le terrain vu de loin'],
-    cu:['L\'adresse du terrain. Pour un projet précis : sa description en quelques lignes','Rien de plus','Aucune photo nécessaire'],
-    modif:['Le permis accordé (arrêté et plans) et les changements souhaités','Les nouvelles dimensions si elles changent','Des photos seulement si les travaux ont commencé'],
-    daact:['L\'arrêté du permis ou de la déclaration, et la date de fin des travaux','Rien de plus','Aucune photo nécessaire']
-  };
-  const QUESTIONS = {
-    abri:{id:'size',t:'Quelle taille fera votre abri ?',h:'La surface au sol, toit compris. Une estimation suffit.',c:[['moins5','Moins de 5 m²'],['dp','Entre 5 et 20 m²'],['pc','Plus de 20 m²'],['nsp','Je ne sais pas']]},
-    piscine:{id:'size',t:'Quelle taille fera le bassin ?',h:'La surface de l\'eau seulement, sans les plages autour.',c:[['moins10','Moins de 10 m²'],['dp','Entre 10 et 100 m²'],['pc','Plus de 100 m², ou couverte haute'],['nsp','Je ne sais pas']]},
-    annexe:{id:'size',t:'Quelle surface au sol ?',h:'Toit compris. Une estimation suffit.',c:[['dp','Jusqu\'à 20 m²'],['pc','Plus de 20 m²'],['nsp','Je ne sais pas']]},
-    agrandir:{id:'size',t:'Combien de mètres carrés ajoutez-vous ?',h:'Une estimation suffit, on affinera avec vos mesures.',c:[['dp','Moins de 20 m²'],['dp40','Entre 20 et 40 m²'],['pc','Plus de 40 m²'],['nsp','Je ne sais pas']]},
-    total150:{id:'total',t:'Une fois les travaux faits, la maison fera-t-elle plus de 150 m² ?',h:'Toute la maison, extension comprise. C\'est la limite au-delà de laquelle la loi impose un architecte.',c:[['non','Non'],['oui','Oui'],['nsp','Je ne sais pas']]},
-    maison:{id:'size',t:'Quelle surface fera la maison ?',h:'Tous les niveaux additionnés.',c:[['ok','Jusqu\'à 150 m²'],['archi','Plus de 150 m²'],['nsp','Je ne sais pas']]},
-    plans:{id:'plans',t:'Avez-vous déjà les plans de la maison ?',h:'Ceux d\'un constructeur, d\'un architecte, ou les vôtres, même faits à la main.',c:[['oui','Oui, j\'ai des plans'],['non','Non, tout est à dessiner']]},
-    abf:{id:'abf',t:'Êtes-vous près d\'un monument historique, ou dans un quartier protégé ?',h:'Une vieille église, un château, un centre ancien… Si vous ne savez pas, pas d\'inquiétude : on le vérifie avec votre adresse.',c:[['non','Non'],['oui','Oui'],['nsp','Je ne sais pas']]},
-    terrasse:{id:'type',t:'De quoi s\'agit-il ?',h:'Choisissez ce qui ressemble le plus à votre projet.',c:[['plain','Terrasse de plain-pied'],['haute','Terrasse surélevée de plus de 60 cm'],['mur','Mur ou muret de plus de 2 m'],['clim','Climatisation ou pompe à chaleur extérieure']]},
-    usage:{id:'facade',t:'Touchez-vous à la façade ou à la structure ?',h:'Par exemple une nouvelle fenêtre, un mur porteur abattu, la toiture modifiée.',c:[['non','Non, seulement l\'intérieur'],['oui','Oui'],['nsp','Je ne sais pas']]},
-    cu:{id:'cutype',t:'Que voulez-vous savoir ?',h:'C\'est la mairie qui répond, par écrit. On prépare la demande pour vous.',c:[['a','Les règles qui s\'appliquent à mon terrain'],['b','Si mon projet précis est réalisable']]},
-    modif:{id:'accorde',t:'La mairie a-t-elle déjà accordé votre permis ?',h:'Si elle l\'étudie encore, pas besoin de permis modificatif.',c:[['oui','Oui, il est accordé'],['non','Non, il est en cours d\'instruction']]},
-    copro:{id:'copro',t:'Êtes-vous en copropriété ?',h:'Un immeuble ou une résidence avec un syndic. Il faudra l\'accord des autres copropriétaires.',c:[['non','Non'],['oui','Oui']]}
-  };
-
-  function flow(p){
-    const c = P[p].cat, q = [];
-    if (c==='petits' && P[p].size) q.push(QUESTIONS[P[p].size]);
-    if (c==='agrandir'){ q.push(QUESTIONS.agrandir); q.push(QUESTIONS.total150); }
-    if (c==='maison'){ q.push(QUESTIONS.maison); q.push(QUESTIONS.plans); }
-    if (c==='ext') q.push(QUESTIONS.terrasse);
-    if (c==='usage') q.push(QUESTIONS.usage);
-    if (c==='cu') q.push(QUESTIONS.cu);
-    if (c==='modif') q.push(QUESTIONS.modif);
-    if (!P[p].svc) q.push(QUESTIONS.abf);
-    if (P[p].copro) q.push(QUESTIONS.copro);
-    return q;
-  }
-
-  function verdict(){
-    const p = P[S.p], a = S.a, c = p.cat;
-    const small = a.size==='moins5' || a.size==='moins10' || a.type==='plain';
-    if (small && a.abf!=='oui') return {kind:'none'};
-    if (c==='modif' && a.accorde==='non') return {kind:'call', title:'Tant que la mairie étudie votre dossier, on peut encore le modifier.', text:'Pas besoin de permis modificatif. On reprend les pièces concernées. Laissez-nous votre numéro, on vous rappelle pour voir ce qui change.'};
-    if (c==='maison' && (a.size==='archi')) return {kind:'archi'};
-    if (c==='maison' && a.plans==='non') return {kind:'conception'};
-    if (c==='agrandir' && a.total==='oui' && a.size==='pc') return {kind:'archi'};
-    let v;
-    if (small) v = {kind:'dp',base:149,label:'Petits travaux en quartier protégé'};
-    else if (c==='ext') v = {kind:'dp',base:149,label:'Terrasse, mur ou climatisation'};
-    else if (c==='usage') v = (a.facade==='oui') ? {kind:'pc',base:490,label:'Transformation avec travaux de façade'} : {kind:'dp',base:349,label:'Transformation en logement'};
-    else if (c==='demol') v = {kind:'pd',base:149,label:'Permis de démolir'};
-    else if (c==='cu') v = (a.cutype==='b') ? {kind:'svc',base:149,label:'Certificat d\'urbanisme pour votre projet',title:'Certificat d\'urbanisme',h3:'On demande à la mairie si votre projet est possible.'} : {kind:'svc',base:89,label:'Certificat d\'urbanisme',title:'Certificat d\'urbanisme',h3:'On demande à la mairie les règles de votre terrain.'};
-    else if (c==='modif') v = {kind:'svc',base:249,label:'Permis modificatif',title:'Permis modificatif',h3:'On prépare la modification de votre permis.'};
-    else if (c==='daact') v = {kind:'svc',base:49,label:'Déclaration de fin de travaux',title:'Fin de travaux',h3:'On prépare votre déclaration de fin de travaux.'};
-    if (v) {} else if (c==='petits') v = (a.size==='pc') ? {kind:'pc',base:490,label:'Permis de construire'} : {kind:'dp',base:149,label:'Petits travaux'};
-    if (c==='agrandir') v = (a.size==='pc') ? {kind:'pc',base:490,label:'Permis d\'extension'} : {kind:'dp',base:349,label:'Agrandissement'};
-    if (c==='toit') v = {kind:'dp',base:349,label:'Travaux sur le toit'};
-    if (c==='garage') v = {kind:'dp',base:319,label:'Garage transformé'};
-    if (c==='maison') v = {kind:'pc',base:590,label:'Maison neuve',re:159};
-    v.note = [];
-    if (small) v.note.push('Dans un quartier protégé, même les petites constructions demandent une déclaration. On le vérifie avec votre adresse avant de commencer.');
-    if (c==='usage' && a.facade==='nsp') v.note.push('Si la façade ou la structure change, il faut un permis à 490 €. On le vérifie sur vos photos et on vous prévient avant de commencer.');
-    if (c==='demol') v.note.push('Il n\'est obligatoire que dans un quartier protégé, ou si votre commune l\'a décidé. On le vérifie avec votre adresse et on vous le dit avant de commencer.');
-    if (c==='daact') v.note.push('Pour une maison neuve, la mairie demande aussi une attestation énergétique de fin de chantier. On vous met en relation avec un bureau d\'études.');
-    if (c==='combles' || P[S.p].n==='Combles aménagés') v.note.push('Les fenêtres de toit sont comprises dans le dossier.');
-    if (S.regul) v.note.unshift('Travaux déjà faits : le dossier décrit ce qui existe. Vous nous envoyez des photos de ce qui est construit.');
-    if (a.size==='nsp') v.note.push('Pas de souci si vous ne connaissez pas la surface : on la calcule avec vos mesures. S\'il faut un permis plutôt qu\'une déclaration, on vous prévient avant de commencer.');
-    if (a.size==='dp40') v.note.push('Entre 20 et 40 m², une déclaration suffit si votre terrain est en zone urbaine. Sinon, il faut un permis à 490 €. On le vérifie avec votre adresse et on vous prévient avant de commencer.');
-    if (a.total==='oui' && c==='agrandir' && v.kind==='dp') v.note.push('Comme la maison dépassera 150 m², un architecte devra signer si un permis s\'avère nécessaire. On vous prévient avant de commencer.');
-    if (a.total==='nsp') v.note.push('Si la maison dépasse 150 m² après les travaux, un architecte devient obligatoire. On le vérifie et on vous prévient.');
-    v.abf = a.abf==='oui' ? 149 : 0;
-    if (a.abf==='nsp') v.note.push('On vérifie avec votre adresse si vous êtes en quartier protégé. Les 149 € ne sont ajoutés que si c\'est le cas, et avec votre accord.');
-    v.copro = a.copro==='oui' ? 99 : 0;
-    return v;
-  }
-
-  const pimg = document.getElementById('projImg');
-  function showPanel(title, img){ if (img) { pimg.src = `img/${img}.webp`; pimg.hidden = false; } else { pimg.removeAttribute('src'); pimg.hidden = true; } document.getElementById('panelTitle').textContent = title; ov.hidden = false; document.body.style.overflow = 'hidden'; }
-  function openRegul(opener){
-    lastFocus = opener || lastFocus;
-    showPanel('Travaux déjà faits', '38-regularisation');
-    bar.style.width = '0%';
-    const ks = GROUPS.flatMap(g => g.k).filter(k => k!=='demolition');
-    body.innerHTML = `<div class="qtitle" tabindex="-1">Qu'avez-vous construit ?</div><p class="qhelp">On prépare le dossier comme si les travaux étaient à venir, au même prix, à partir de photos de ce qui existe.</p><div class="choices">${ks.map(k => `<button class="choice" type="button" data-k="${k}">${P[k].n}<span aria-hidden="true">→</span></button>`).join('')}</div>`;
-    body.querySelectorAll('[data-k]').forEach(b => b.addEventListener('click', () => open(b.dataset.k, null, true)));
-    body.querySelector('.qtitle').focus();
-  }
-  function open(p, opener, regul){
-    if (p==='regul') return openRegul(opener);
-    if (opener) lastFocus = opener;
-    S = {p, a:{}, i:0, q:flow(p), opt:{depot:false, express:false, visio:false, concept:false, d3:false}, regul:!!regul};
-    if (!S.q.length) S.stage = 'v';
-    showPanel((regul?'Travaux déjà faits · ':'') + P[p].n, P[p].img);
-    render();
-  }
-  function close(){ ov.hidden = true; document.body.style.overflow = ''; const h = location.hash.slice(1); if (P[h] || h==='regul') { try { history.replaceState(null, '', location.pathname + location.search); } catch(e){} } if (lastFocus) lastFocus.focus(); }
-
-  function progress(){
-    const total = (S.q||[]).length + 2;
-    const at = S.stage==='q' ? S.i : S.stage==='v' ? S.q.length : S.stage==='c' ? S.q.length + 1 : total;
-    bar.style.width = Math.round(at / total * 100) + '%';
-  }
-
-  function render(){
-    if (S.i < S.q.length && S.stage!=='v' && S.stage!=='c' && S.stage!=='done') S.stage = 'q';
-    progress();
-    if (S.stage==='q'){
-      const q = S.q[S.i];
-      body.innerHTML = `<div class="qtitle" tabindex="-1">${q.t}</div><p class="qhelp">${q.h}</p><div class="choices">${q.c.map(([v,l]) => `<button class="choice" type="button" data-v="${v}">${l}<span aria-hidden="true">→</span></button>`).join('')}</div>${S.i>0?'<button class="back" type="button" data-back>← Question précédente</button>':''}`;
-      body.querySelectorAll('.choice').forEach(b => b.addEventListener('click', () => { S.a[q.id] = b.dataset.v; S.i++; if (S.i >= S.q.length) S.stage = 'v'; render(); }));
-      const bk = body.querySelector('[data-back]'); if (bk) bk.addEventListener('click', () => { S.i--; render(); });
-      body.querySelector('.qtitle').focus();
-      return;
-    }
-    if (S.stage==='v') return renderVerdict();
-    if (S.stage==='c') return renderCheckout();
-    if (S.stage==='done') return renderDone();
-  }
-
-  const CONCEPT = ['agrandir','garage','toit','usage'];
-  function total(v){ return v.base + (v.re||0) + (v.abf||0) + (v.copro||0) + (S.opt.concept?690:0) + (S.opt.concept&&S.opt.d3?190:0) + (S.opt.depot?69:0) + (S.opt.express&&v.kind==='dp'?49:0) + (S.opt.visio?49:0); }
-
-  function renderVerdict(){
-    const v = verdict(); S.v = v;
-    const back = '<button class="back" type="button" data-back>← Changer mes réponses</button>';
-    if (v.kind==='none'){
-      body.innerHTML = `<div class="verdict"><span class="kind">Bonne nouvelle</span><h3>Vous n'avez aucune démarche à faire.</h3><p class="qhelp">Pour des travaux de cette taille, la loi ne demande pas d'autorisation, sauf dans un quartier protégé ou si votre commune a une règle particulière. Vous ne nous devez rien.</p></div>${back}`;
-    } else if (v.kind==='call'){
-      body.innerHTML = `<div class="verdict"><span class="kind">On s'en occupe</span><h3>${v.title}</h3><p class="qhelp">${v.text}</p></div><button class="btn" type="button" data-call>Être rappelé</button>${back}`;
-      body.querySelector('[data-call]').addEventListener('click', () => { S.stage='c'; S.call=true; render(); });
-    } else if (v.kind==='archi' || v.kind==='conception'){
-      body.innerHTML = `<div class="verdict"><span class="kind">${v.kind==='archi'?'Il vous faut un architecte':'Un projet à dessiner de zéro'}</span><h3>${v.kind==='archi'?'Au-delà de 150 m², la loi impose qu\'un architecte signe le permis.':'Votre maison est encore à concevoir.'}</h3><p class="qhelp">${v.kind==='archi'?'On vous met en relation avec un architecte partenaire, et on prépare le dossier avec lui. Laissez-nous votre numéro, on vous rappelle.':'C\'est un vrai travail de conception, qu\'on préfère chiffrer après vous avoir parlé. Laissez-nous votre numéro, on vous rappelle.'}</p></div><button class="btn" type="button" data-call>Être rappelé</button>${back}`;
-      body.querySelector('[data-call]').addEventListener('click', () => { S.stage='c'; S.call=true; render(); });
-    } else {
-      const dp = v.kind==='dp';
-      const c = P[S.p].cat, canC = CONCEPT.includes(c);
-      if (!canC) { S.opt.concept = false; S.opt.d3 = false; }
-      const delay = v.kind==='pc' ? '5 jours ouvrés' : (dp && S.opt.express ? '24 h ouvrées' : '48 h ouvrées');
-      const nd = NEED[S.p] || NEED.extension;
-      const ndP = S.opt.concept ? 'Ce que vous voulez : la surface, à quoi ça servira (chambre, salon…), le style qui vous plaît, et une photo d\'inspiration si vous en avez' : nd[0];
-      const DO = S.opt.concept ? 'On vous propose deux projets, avec les plans de l\'intérieur et une vue 3D. Vous choisissez, on ajuste, puis on prépare tout le dossier.'
-        : canC ? 'On dessine votre projet en respectant les règles de votre commune, on l\'ajuste avec vous, puis on prépare tout le dossier.'
-        : c==='maison' ? 'On prépare tout le dossier de permis à partir de vos plans, on le vérifie avec les règles de votre commune, et on fait établir l\'attestation énergétique.'
-        : v.kind==='svc' ? 'On prépare et on remplit tout. Il ne vous reste qu\'à envoyer.'
-        : 'On place votre projet au bon endroit, on vérifie qu\'il respecte les règles de votre commune, et on dessine tous les plans.';
-      const KIND = {dp:['Déclaration de travaux','Une déclaration de travaux suffit.'], pc:['Permis de construire','Il vous faut un permis de construire.'], pd:['Permis de démolir','Il vous faudra peut-être un permis de démolir.'], svc:[v.title, v.h3]}[v.kind];
-      body.innerHTML = `<div class="verdict"><span class="kind">${S.regul?'Travaux déjà faits · ':''}${KIND[0]}</span><h3>${KIND[1]}</h3><p class="qhelp">${S.opt.concept ? 'Vous recevez une première proposition sous 5 jours. Une fois validée, votre dossier est prêt en ' + delay + '.' : (v.kind==='svc'?'Prêt':'Votre dossier est prêt') + ' en ' + delay + ' après réception de vos photos.'}</p>
-        <div class="need"><b>Ce qu'on vous demandera</b><small>Après le paiement, depuis votre téléphone. Un guide vous accompagne photo par photo.</small>
-          <ul><li><i>Le projet</i>${ndP}</li><li><i>Les mesures</i>${nd[1]}</li><li><i>Les photos</i>${nd[2]}</li></ul>
-          ${canC&&!S.opt.concept?'<p>Vous n\'avez encore qu\'une idée, sans croquis ni devis ? L\'option conception, juste en dessous, est faite pour ça.</p>':''}
-        </div>
-        <p class="do"><b>Ce qu'on fait pour vous :</b> ${DO}</p>
-        <div class="lines"><div><span>${v.label}</span><span>${euro(v.base)}</span></div>${v.re?`<div><span>Attestation énergétique, obligatoire pour une maison neuve</span><span>+ ${euro(v.re)}</span></div>`:''}${v.abf?`<div><span>Près d'un monument ou en quartier protégé</span><span>+ ${euro(v.abf)}</span></div>`:''}${v.copro?`<div><span>Copropriété : les documents pour le vote</span><span>+ ${euro(v.copro)}</span></div>`:''}</div>
-        ${v.note.map(n=>`<p class="small-note">${n}</p>`).join('')}
-        <div class="opts">
-          ${canC?`<label class="opt"><input type="checkbox" data-o="concept" ${S.opt.concept?'checked':''}><span><b>On conçoit votre projet avec vous</b><small>Vous nous dites ce que vous voulez, on dessine : 2 propositions, les plans de l'intérieur, une vue 3D, et 2 tours d'ajustements</small></span><span class="p">+ 690 €</span></label>`:''}
-          ${canC&&S.opt.concept?`<label class="opt"><input type="checkbox" data-o="d3" ${S.opt.d3?'checked':''}><span><b>Vue 3D de l'intérieur</b><small>Pour vous projeter dans vos futures pièces</small></span><span class="p">+ 190 €</span></label>`:''}
-          ${dp?`<label class="opt"><input type="checkbox" data-o="express" ${S.opt.express?'checked':''}><span><b>Dossier prêt en 24 h</b><small>Au lieu de 48 h</small></span><span class="p">+ 49 €</span></label>`:''}
-          <label class="opt"><input type="checkbox" data-o="depot" ${S.opt.depot?'checked':''}><span><b>On dépose le dossier à votre place</b><small>Sur le site de votre mairie, avec votre accord écrit</small></span><span class="p">+ 69 €</span></label>
-          <label class="opt"><input type="checkbox" data-o="visio" ${S.opt.visio?'checked':''}><span><b>20 minutes en visio avec nous</b><small>Pour parler de votre projet avant qu'on commence</small></span><span class="p">+ 49 €</span></label>
-        </div>
-        <div class="total"><span>Total TTC</span><b>${euro(total(v))}</b></div>
-        <p class="small-note">Tout compris : plans, formulaire, relecture, pièces demandées par la mairie. Refus de notre fait : on redépose sans frais.</p>
-        </div><button class="btn blue-btn" type="button" data-next>Continuer</button>${back}`;
-      body.querySelectorAll('[data-o]').forEach(cb => cb.addEventListener('change', () => { S.opt[cb.dataset.o] = cb.checked; renderVerdict(); }));
-      body.querySelector('[data-next]').addEventListener('click', () => { S.stage='c'; S.call=false; render(); });
-    }
-    body.querySelector('[data-back]').addEventListener('click', () => { if (!S.q.length) { close(); return; } S.i = S.q.length - 1; S.stage='q'; render(); });
-  }
-
-  function renderCheckout(){
-    const v = S.v, call = S.call;
-    body.innerHTML = `<div class="qtitle" tabindex="-1">${call?'Comment vous joindre ?':'Encore deux choses, et c\'est parti'}</div><p class="qhelp">${call?'On vous rappelle dans la journée, ou le lendemain matin au plus tard.':'Juste après, vous confirmerez votre terrain sur une carte. Pas de compte à créer, pas de mot de passe.'}</p>
-      <form id="co" novalidate>
-        <label class="field"><span>L'adresse des travaux</span><input name="adr" autocomplete="street-address" placeholder="12 rue des Lilas, 44800 Saint-Herblain" required></label>
-        <label class="field"><span>${call?'Votre téléphone':'Votre e-mail, pour recevoir le dossier'}</span><input name="mail" type="${call?'tel':'email'}" autocomplete="${call?'tel':'email'}" required></label>
-        <button class="btn blue-btn" type="submit">${call?'Me faire rappeler':'Payer '+euro(total(v))+' et lancer mon dossier'}</button>
-        ${call?'':'<div class="reassure"><svg width="14" height="14" viewBox="0 0 14 14"><rect x="2.5" y="6" width="9" height="6.5" rx="1.5" fill="none" stroke="currentColor"/><path d="M4.5 6V4.5a2.5 2.5 0 015 0V6" fill="none" stroke="currentColor"/></svg>Paiement sécurisé par Stripe · Carte, Apple Pay, Google Pay</div>'}
-      </form><button class="back" type="button" data-back>← Retour</button>`;
-    body.querySelector('#co').addEventListener('submit', e => { e.preventDefault(); const f = e.target; if (!f.adr.value.trim() || !f.mail.value.trim()) { (f.adr.value.trim()?f.mail:f.adr).focus(); return; } S.stage='done'; render(); });
-    body.querySelector('[data-back]').addEventListener('click', () => { S.stage='v'; render(); });
-    body.querySelector('.qtitle').focus();
-  }
-
-  function renderDone(){
-    body.innerHTML = `<div class="done"><div class="seal"><svg width="30" height="30" viewBox="0 0 30 30"><path d="M8 15.5l4.5 4.5L22 10" fill="none" stroke="var(--good)" stroke-width="3"/></svg></div><div class="qtitle" tabindex="-1">Ceci est une maquette</div><p class="qhelp" style="max-width:420px;margin:10px auto 0">Le paiement sera activé au lancement du site. Rien n'a été enregistré ni débité.</p></div><button class="btn ghost" type="button" data-close>Fermer</button>`;
-    body.querySelector('[data-close]').addEventListener('click', close);
-    bar.style.width = '100%';
-    body.querySelector('.qtitle').focus();
-  }
-
-  document.addEventListener('click', e => {
-    const t = e.target.closest('.tile, .svc'); if (t) { open(t.dataset.p, t); return; }
-    const s = e.target.closest('.js-start');
-    if (s) { e.preventDefault(); const a = document.getElementById('projets'); a.scrollIntoView({behavior:'smooth', block:'start'}); setTimeout(() => { const f = a.querySelector('.tile'); if (f) f.focus({preventScroll:true}); }, 400); }
-  });
-  // Accès direct : bonpermis.fr/#extension ouvre directement le projet
-  const fromHash = () => { const k = decodeURIComponent(location.hash.slice(1)); if (P[k] || k==='regul') open(k, null); };
-  window.addEventListener('hashchange', fromHash); fromHash();
-  document.getElementById('closeBtn').addEventListener('click', close);
-  ov.addEventListener('click', e => { if (e.target === ov) close(); });
-  document.addEventListener('keydown', e => { if (e.key==='Escape' && !ov.hidden) close(); });
-})();
-</script>
+<script src="assets/data.js"></script>
+<script src="assets/app.js"></script>
 </body>
 </html>

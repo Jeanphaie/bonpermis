@@ -4,7 +4,8 @@ Dépôt du site **Le Bon Permis** (https://bonpermis.fr) : plans et dossiers pou
 
 ## Contenu
 
-- `site/` : le site statique servi en production (`index.html` + `img/`).
+- `src/` : la source du site. `data.json` (projets et textes du simulateur), `pages.json` (une page par projet : règles, sources officielles, prix), `accueil.html`, `style.css`, `app.js`, et `build.py` qui génère `site/`.
+- `site/` : le site statique servi en production, **généré** par `python3 src/build.py` (ne pas modifier à la main, sauf `img/` et les favicons). Accueil + 26 pages projet (`/pergola/`, `/veranda/`…), `sitemap.xml`, `robots.txt`.
 - `deploy/` : configuration serveur (Nginx, bloc Docker Compose pour Traefik, timer de mise à jour).
 
 ## Hébergement

@@ -1,0 +1,275 @@
+{
+ "_maj": "2026-11-07",
+ "_sources": {
+  "DP": ["Déclaration préalable de travaux", "https://www.service-public.gouv.fr/particuliers/vosdroits/F17578"],
+  "PC": ["Permis de construire", "https://www.service-public.gouv.fr/particuliers/vosdroits/F1986"],
+  "ANNEXE": ["Pergola, carport, abri : quelle autorisation", "https://www.service-public.gouv.fr/particuliers/vosdroits/F36773"],
+  "PISC": ["Installation d'une piscine privative", "https://www.service-public.gouv.fr/particuliers/vosdroits/F35108"],
+  "CU": ["Certificat d'urbanisme", "https://www.service-public.gouv.fr/particuliers/vosdroits/F1633"],
+  "PD": ["Permis de démolir", "https://www.service-public.gouv.fr/particuliers/vosdroits/F17669"],
+  "MODIF": ["Permis modificatif", "https://www.service-public.gouv.fr/particuliers/vosdroits/F19450"],
+  "DAACT": ["Déclaration d'achèvement des travaux", "https://www.service-public.gouv.fr/particuliers/vosdroits/F1997"]
+ },
+ "pages": {
+  "abri": {
+   "slug": "abri-de-jardin",
+   "titre": "Abri de jardin : faut-il déclarer en 2026 ? Dossier dès 149 €",
+   "desc": "Abri de jardin de plus de 5 m² : déclaration préalable jusqu'à 20 m², permis au-delà. On prépare le dossier, plans compris, prêt en 48 h pour 149 €.",
+   "h1": "Abri de jardin : déclaration ou permis ?",
+   "chapo": "Jusqu'à 5 m² au sol, en général rien à déclarer. De 5 à 20 m², une déclaration préalable. Au-delà, un permis de construire.",
+   "regles": [["Moins de 5 m² au sol", "Aucune démarche, sauf en secteur protégé"], ["De 5 à 20 m²", "Déclaration préalable"], ["Plus de 20 m²", "Permis de construire"], ["En secteur protégé, jusqu'à 20 m²", "Déclaration préalable, même sous 5 m²"]],
+   "note": "La surface qui compte est l'emprise au sol : le toit et ses débords compris. Le plan local d'urbanisme de votre commune peut aussi imposer une distance aux limites, une hauteur ou une couleur.",
+   "prix": "149 €", "delai": "48 h", "sources": ["ANNEXE", "DP"], "liens": ["annexe", "carport", "pergola", "piscine"]
+  },
+  "annexe": {
+   "slug": "annexe-garage-studio",
+   "titre": "Garage, studio, pool-house : quelle autorisation en 2026 ?",
+   "desc": "Construire une annexe dans le jardin (garage, studio, pool-house) : déclaration préalable jusqu'à 20 m², permis au-delà. Dossier prêt en 48 h dès 149 €.",
+   "h1": "Garage, studio ou pool-house : déclaration ou permis ?",
+   "chapo": "Une annexe séparée de la maison suit la même règle qu'un abri : déclaration préalable de 5 à 20 m² au sol, permis de construire au-delà.",
+   "regles": [["Moins de 5 m² au sol", "Aucune démarche, sauf en secteur protégé"], ["De 5 à 20 m²", "Déclaration préalable"], ["Plus de 20 m²", "Permis de construire"]],
+   "note": "Si l'annexe est collée à la maison, c'est une extension : le seuil peut alors monter à 40 m² en zone urbaine. Si elle sert de logement (studio loué, par exemple), on vérifie aussi les règles de stationnement et de raccordement de votre commune.",
+   "prix": "149 € (490 € si un permis est nécessaire)", "delai": "48 h", "sources": ["ANNEXE", "DP", "PC"], "liens": ["abri", "extension", "garage", "carport"]
+  },
+  "carport": {
+   "slug": "carport",
+   "titre": "Carport : faut-il une autorisation en 2026 ? Dossier dès 149 €",
+   "desc": "Un carport de plus de 5 m² demande une déclaration préalable, un permis au-delà de 20 m². On prépare le dossier de mairie, plans compris, en 48 h.",
+   "h1": "Carport : déclaration ou permis ?",
+   "chapo": "Un carport d'une place fait souvent entre 12 et 18 m² au sol : c'est une déclaration préalable. Au-delà de 20 m², il faut un permis de construire.",
+   "regles": [["Moins de 5 m² au sol", "Aucune démarche, sauf s'il est accolé à la maison et change son aspect"], ["De 5 à 20 m²", "Déclaration préalable"], ["Plus de 20 m²", "Permis de construire, ou déclaration jusqu'à 40 m² s'il est accolé à la maison en zone urbaine"]],
+   "note": "Même sans murs, un carport a une emprise au sol : c'est la surface couverte par son toit. Les poteaux suffisent à la créer.",
+   "prix": "149 €", "delai": "48 h", "sources": ["ANNEXE", "DP"], "liens": ["pergola", "abri", "portail", "annexe"]
+  },
+  "pergola": {
+   "slug": "pergola",
+   "titre": "Pergola : faut-il déclarer en 2026 ? Dossier dès 149 €",
+   "desc": "Pergola de plus de 5 m² : déclaration préalable, permis au-delà de 20 m² (40 m² accolée en zone urbaine). Dossier de mairie prêt en 48 h pour 149 €.",
+   "h1": "Pergola : faut-il une déclaration préalable ?",
+   "chapo": "Oui, dès que la pergola dépasse 5 m² au sol, ce qui est presque toujours le cas. Jusqu'à 20 m², une déclaration préalable suffit.",
+   "regles": [["Moins de 5 m² au sol", "Aucune démarche, sauf si elle est accolée et change l'aspect de la maison"], ["De 5 à 20 m²", "Déclaration préalable"], ["De 20 à 40 m², accolée, en zone urbaine", "Déclaration préalable"], ["Au-delà", "Permis de construire"]],
+   "note": "Bioclimatique, à lames, à toile ou en bois : la règle est la même. C'est la surface au sol, poteaux compris, qui compte, pas le type de toit.",
+   "prix": "149 €", "delai": "48 h", "sources": ["ANNEXE", "DP"], "liens": ["carport", "terrasse", "veranda", "abri"]
+  },
+  "piscine": {
+   "slug": "piscine",
+   "titre": "Piscine : déclaration préalable ou permis en 2026 ? Dès 149 €",
+   "desc": "Piscine de 10 à 100 m² : déclaration préalable. Au-delà, ou sous un abri haut, permis de construire. Dossier de mairie prêt en 48 h pour 149 €.",
+   "h1": "Piscine : déclaration ou permis ?",
+   "chapo": "La plupart des piscines familiales font entre 10 et 100 m² de bassin : une déclaration préalable suffit. Sous 10 m², en général rien à déclarer.",
+   "regles": [["Bassin de moins de 10 m²", "Aucune démarche, sauf en secteur protégé"], ["Bassin de 10 à 100 m², sans abri ou abri de moins de 1,80 m", "Déclaration préalable"], ["Bassin de plus de 100 m²", "Permis de construire"], ["Abri de plus de 1,80 m de haut", "Permis de construire dès 10 m² de bassin"]],
+   "note": "La surface qui compte est celle de l'eau, sans les plages autour. Une piscine hors-sol suit la même règle si elle reste installée plus de 3 mois par an.",
+   "prix": "149 €", "delai": "48 h", "sources": ["PISC", "DP"], "liens": ["abri", "annexe", "terrasse", "cloture"]
+  },
+  "terrasse": {
+   "slug": "terrasse-mur-climatisation",
+   "titre": "Terrasse, mur, climatisation : quelle déclaration en 2026 ?",
+   "desc": "Terrasse surélevée, mur de plus de 2 m, groupe de climatisation en façade : ce qu'il faut déclarer. Dossier prêt en 48 h pour 149 €.",
+   "h1": "Terrasse, mur ou climatisation : faut-il déclarer ?",
+   "chapo": "Une terrasse de plain-pied, en général non. Une terrasse surélevée, un mur de 2 m ou plus, ou un groupe de climatisation visible en façade : une déclaration préalable.",
+   "regles": [["Terrasse de plain-pied", "Aucune démarche, sauf en secteur protégé"], ["Terrasse surélevée de plus de 60 cm", "Déclaration préalable"], ["Mur de 2 m ou plus", "Déclaration préalable"], ["Climatisation ou pompe à chaleur en façade", "Déclaration préalable, car elle change l'aspect de la maison"]],
+   "note": "Beaucoup de communes encadrent aussi le bruit et l'emplacement des groupes extérieurs. On vérifie ces règles avant de placer l'appareil sur les plans.",
+   "prix": "149 €", "delai": "48 h", "sources": ["DP"], "liens": ["pergola", "facade", "cloture", "piscine"]
+  },
+  "cloture": {
+   "slug": "cloture",
+   "titre": "Clôture : faut-il une déclaration préalable en 2026 ?",
+   "desc": "Une clôture se déclare si votre commune l'impose ou en secteur protégé, ce qui est fréquent. On vérifie et on prépare le dossier en 48 h pour 149 €.",
+   "h1": "Clôture : faut-il déclarer ?",
+   "chapo": "Ça dépend de votre commune. La loi ne l'impose qu'en secteur protégé, mais beaucoup de communes ont décidé de soumettre toutes les clôtures à déclaration.",
+   "regles": [["Commune qui l'a décidé", "Déclaration préalable"], ["Secteur protégé (monument, site classé)", "Déclaration préalable"], ["Ailleurs", "Aucune démarche, mais les règles du PLU s'appliquent quand même (hauteur, matériaux)"]],
+   "note": "Même sans déclaration, une clôture doit respecter le plan local d'urbanisme. On vérifie les deux avec votre adresse : faut-il déclarer, et quelle hauteur et quels matériaux sont autorisés.",
+   "prix": "149 €", "delai": "48 h", "sources": ["DP"], "liens": ["portail", "terrasse", "facade", "carport"]
+  },
+  "portail": {
+   "slug": "portail",
+   "titre": "Portail : faut-il une autorisation en 2026 ? Dossier 149 €",
+   "desc": "Un portail fait partie de la clôture : il se déclare si votre commune l'impose ou en secteur protégé. On vérifie et on prépare le dossier en 48 h.",
+   "h1": "Portail : faut-il déclarer ?",
+   "chapo": "Un portail suit la règle des clôtures : déclaration préalable si votre commune l'a décidé ou si vous êtes en secteur protégé.",
+   "regles": [["Commune qui l'a décidé", "Déclaration préalable"], ["Secteur protégé", "Déclaration préalable"], ["Ailleurs", "Aucune démarche, dans le respect du PLU"]],
+   "note": "Un nouvel accès sur la rue peut aussi demander une autorisation de la commune pour le trottoir. On vous le signale si c'est le cas.",
+   "prix": "149 €", "delai": "48 h", "sources": ["DP"], "liens": ["cloture", "carport", "facade", "menuiseries"]
+  },
+  "extension": {
+   "slug": "extension-maison",
+   "titre": "Extension de maison : déclaration ou permis en 2026 ? Dès 349 €",
+   "desc": "Extension jusqu'à 20 m² (40 m² en zone urbaine) : déclaration préalable. Au-delà, permis d'extension. Dossier dès 349 €, permis 490 €.",
+   "h1": "Extension de maison : déclaration ou permis ?",
+   "chapo": "Jusqu'à 20 m², une déclaration préalable. Jusqu'à 40 m² si votre maison est en zone urbaine d'un PLU. Au-delà, un permis de construire.",
+   "regles": [["De 5 à 20 m² créés", "Déclaration préalable"], ["De 20 à 40 m², en zone urbaine d'un PLU", "Déclaration préalable"], ["Au-delà", "Permis de construire"], ["Maison de plus de 150 m² après travaux", "Permis signé par un architecte"]],
+   "note": "Entre 20 et 40 m², une déclaration ne suffit que si la maison reste sous 150 m² une fois agrandie. Sinon, c'est un permis, et un architecte doit le signer.",
+   "prix": "349 € (permis d'extension : 490 €)", "delai": "48 h, 5 jours pour un permis", "sources": ["DP", "PC"], "liens": ["veranda", "surelevation", "combles", "garage"]
+  },
+  "veranda": {
+   "slug": "veranda",
+   "titre": "Véranda : déclaration ou permis en 2026 ? Dossier dès 349 €",
+   "desc": "Véranda jusqu'à 20 m² (40 m² en zone urbaine) : déclaration préalable. Au-delà : permis. Dossier de mairie avec plans dès 349 €.",
+   "h1": "Véranda : déclaration ou permis ?",
+   "chapo": "Une véranda est une extension : déclaration préalable jusqu'à 20 m², 40 m² en zone urbaine d'un PLU, permis de construire au-delà.",
+   "regles": [["De 5 à 20 m²", "Déclaration préalable"], ["De 20 à 40 m², en zone urbaine d'un PLU", "Déclaration préalable"], ["Au-delà", "Permis de construire"], ["Maison de plus de 150 m² après travaux", "Permis signé par un architecte"]],
+   "note": "Votre vérandaliste vous fournit les dimensions et la couleur des profilés : ça suffit pour démarrer. Pas encore de devis ? Une description fait l'affaire.",
+   "prix": "349 € (permis : 490 €)", "delai": "48 h, 5 jours pour un permis", "sources": ["DP", "PC"], "liens": ["extension", "pergola", "combles", "surelevation"]
+  },
+  "combles": {
+   "slug": "amenagement-combles",
+   "titre": "Aménagement de combles : quelle autorisation en 2026 ?",
+   "desc": "Aménager des combles crée de la surface : déclaration préalable au-delà de 5 m², permis au-delà de 20 ou 40 m². Fenêtres de toit comprises. Dès 349 €.",
+   "h1": "Aménager ses combles : déclaration ou permis ?",
+   "chapo": "Dès que l'aménagement crée plus de 5 m² de surface habitable ou ajoute des fenêtres de toit, il faut une déclaration préalable. Au-delà de 20 m² (40 m² en zone urbaine), un permis.",
+   "regles": [["Plus de 5 m² créés, jusqu'à 20 m²", "Déclaration préalable"], ["De 20 à 40 m², en zone urbaine d'un PLU", "Déclaration préalable"], ["Au-delà", "Permis de construire"], ["Fenêtres de toit ou lucarnes ajoutées", "Comprises dans le même dossier"]],
+   "note": "Seule compte la surface où l'on tient debout : plus de 1,80 m sous plafond. On la calcule à partir de vos mesures.",
+   "prix": "349 € (permis : 490 €)", "delai": "48 h, 5 jours pour un permis", "sources": ["DP", "PC"], "liens": ["velux", "lucarne", "surelevation", "extension"]
+  },
+  "surelevation": {
+   "slug": "surelevation",
+   "titre": "Surélévation de maison : déclaration ou permis en 2026 ?",
+   "desc": "Surélever sa maison : déclaration préalable jusqu'à 20 m² créés (40 m² en zone urbaine), permis au-delà. Dossier dès 349 €, permis 490 €.",
+   "h1": "Surélévation : déclaration ou permis ?",
+   "chapo": "Une surélévation suit les seuils d'une extension : déclaration jusqu'à 20 m² créés, 40 m² en zone urbaine. En pratique, un étage complet demande souvent un permis.",
+   "regles": [["Jusqu'à 20 m² créés", "Déclaration préalable"], ["De 20 à 40 m², en zone urbaine d'un PLU", "Déclaration préalable"], ["Au-delà", "Permis de construire"], ["Maison de plus de 150 m² après travaux", "Permis signé par un architecte"]],
+   "note": "Le PLU fixe souvent une hauteur maximale. C'est la première chose qu'on vérifie, avant de dessiner.",
+   "prix": "349 € (permis : 490 €)", "delai": "48 h, 5 jours pour un permis", "sources": ["DP", "PC"], "liens": ["extension", "combles", "toiture", "lucarne"]
+  },
+  "garage": {
+   "slug": "transformation-garage",
+   "titre": "Transformer un garage en pièce : quelle démarche en 2026 ?",
+   "desc": "Garage transformé en chambre ou bureau, porte remplacée par une fenêtre : déclaration préalable. Dossier complet, nouvelle façade comprise, 319 €.",
+   "h1": "Transformer son garage en pièce de vie",
+   "chapo": "Si vous remplacez la porte de garage par une fenêtre ou un mur, la façade change : il faut une déclaration préalable. Au-delà de 20 m² transformés, la mairie peut demander un permis.",
+   "regles": [["Façade modifiée (porte remplacée)", "Déclaration préalable"], ["Plus de 20 m² de surface créée (40 m² en zone urbaine)", "Permis de construire"], ["Aucun changement extérieur", "En général aucune démarche d'urbanisme"]],
+   "note": "Le PLU impose souvent des places de stationnement. Supprimer le garage peut poser problème : on le vérifie avant de commencer.",
+   "prix": "319 €", "delai": "48 h", "sources": ["DP", "PC"], "liens": ["usage", "extension", "menuiseries", "facade"]
+  },
+  "menuiseries": {
+   "slug": "fenetres-portes-volets",
+   "titre": "Changer fenêtres, portes, volets : faut-il déclarer en 2026 ?",
+   "desc": "Changer de couleur, de matériau ou de forme de fenêtres, portes ou volets demande une déclaration préalable. Dossier prêt en 48 h pour 149 €.",
+   "h1": "Fenêtres, portes, volets : faut-il déclarer ?",
+   "chapo": "À l'identique (même forme, même couleur, même matériau), non. Dès que l'aspect change, ou si vous créez une ouverture, oui : une déclaration préalable.",
+   "regles": [["Remplacement à l'identique", "Aucune démarche, sauf en secteur protégé"], ["Couleur, matériau ou dessin différents", "Déclaration préalable"], ["Nouvelle ouverture ou ouverture agrandie", "Déclaration préalable"]],
+   "note": "Passer du bois au PVC, ou du blanc au gris anthracite, c'est changer l'aspect. En copropriété, il faut aussi l'accord de l'assemblée générale.",
+   "prix": "149 €", "delai": "48 h", "sources": ["DP"], "liens": ["facade", "velux", "toiture", "garage"]
+  },
+  "velux": {
+   "slug": "fenetre-de-toit",
+   "titre": "Fenêtre de toit : faut-il une déclaration préalable en 2026 ?",
+   "desc": "Poser une fenêtre de toit modifie l'aspect de la maison : déclaration préalable. On prépare le dossier, plans du toit compris, en 48 h pour 149 €.",
+   "h1": "Fenêtre de toit : faut-il déclarer ?",
+   "chapo": "Oui. Ajouter une fenêtre de toit change l'aspect extérieur de la maison : il faut une déclaration préalable.",
+   "regles": [["Nouvelle fenêtre de toit", "Déclaration préalable"], ["Remplacement à l'identique", "Aucune démarche, sauf en secteur protégé"], ["Avec aménagement des combles", "Un seul dossier pour les deux"]],
+   "note": "Près d'un monument historique, l'architecte des Bâtiments de France demande souvent des fenêtres encastrées et alignées sur celles de la façade.",
+   "prix": "149 €", "delai": "48 h", "sources": ["DP"], "liens": ["combles", "lucarne", "toiture", "solaire"]
+  },
+  "lucarne": {
+   "slug": "lucarne",
+   "titre": "Créer une lucarne : déclaration ou permis en 2026 ?",
+   "desc": "Une lucarne modifie le toit et crée souvent de la surface : déclaration préalable dans la plupart des cas. Dossier complet dès 349 €.",
+   "h1": "Lucarne : déclaration ou permis ?",
+   "chapo": "Une lucarne change l'aspect du toit : il faut au moins une déclaration préalable. Si elle s'accompagne de plus de 20 m² créés (40 m² en zone urbaine), un permis.",
+   "regles": [["Lucarne seule", "Déclaration préalable"], ["Avec aménagement des combles jusqu'à 20 m² (40 m² en zone urbaine)", "Déclaration préalable"], ["Au-delà", "Permis de construire"]],
+   "note": "Forme, largeur et matériaux de la lucarne sont souvent encadrés par le PLU, et plus encore en secteur protégé. On choisit un dessin qui a toutes les chances d'être accepté.",
+   "prix": "349 €", "delai": "48 h", "sources": ["DP", "PC"], "liens": ["combles", "velux", "toiture", "surelevation"]
+  },
+  "toiture": {
+   "slug": "toiture",
+   "titre": "Refaire sa toiture : faut-il une déclaration préalable en 2026 ?",
+   "desc": "Changer de matériau, de couleur ou de forme de toit demande une déclaration préalable. À l'identique, en général non. Dossier dès 349 €.",
+   "h1": "Toiture : faut-il déclarer ?",
+   "chapo": "Une réfection à l'identique, en général non. Un changement de matériau, de couleur, de pente ou de débords, oui : une déclaration préalable.",
+   "regles": [["Réfection à l'identique", "Aucune démarche, sauf en secteur protégé"], ["Matériau, couleur ou forme modifiés", "Déclaration préalable"], ["Isolation par l'extérieur qui rehausse le toit", "Déclaration préalable"]],
+   "note": "Les couleurs de tuiles et d'ardoises sont souvent imposées par le PLU. On vérifie la liste avant de valider votre choix.",
+   "prix": "349 €", "delai": "48 h", "sources": ["DP"], "liens": ["solaire", "velux", "lucarne", "facade"]
+  },
+  "facade": {
+   "slug": "facade",
+   "titre": "Ravalement, enduit, bardage : faut-il déclarer en 2026 ?",
+   "desc": "Changer la couleur ou le matériau d'une façade demande une déclaration préalable. Un ravalement à l'identique, seulement si la commune l'impose. Dès 149 €.",
+   "h1": "Façade : faut-il une déclaration ?",
+   "chapo": "Changer la couleur, l'enduit ou poser un bardage modifie l'aspect : déclaration préalable. Un ravalement à l'identique ne se déclare que si votre commune l'impose ou en secteur protégé.",
+   "regles": [["Nouvelle couleur, enduit ou bardage", "Déclaration préalable"], ["Isolation par l'extérieur", "Déclaration préalable"], ["Ravalement à l'identique", "Déclaration seulement si la commune l'impose ou en secteur protégé"]],
+   "note": "Beaucoup de communes ont un nuancier : la teinte doit en faire partie. Donnez-nous la référence exacte de la couleur choisie.",
+   "prix": "149 €", "delai": "48 h", "sources": ["DP"], "liens": ["menuiseries", "toiture", "terrasse", "garage"]
+  },
+  "solaire": {
+   "slug": "panneaux-solaires",
+   "titre": "Panneaux solaires sur le toit : quelle déclaration en 2026 ?",
+   "desc": "Des panneaux solaires sur le toit demandent une déclaration préalable. On prépare le dossier, plans et insertion compris, en 48 h pour 149 €.",
+   "h1": "Panneaux solaires : faut-il déclarer ?",
+   "chapo": "Oui. Poser des panneaux solaires sur le toit modifie l'aspect de la maison : il faut une déclaration préalable.",
+   "regles": [["Panneaux sur le toit", "Déclaration préalable"], ["Panneaux au sol", "Selon la puissance et la hauteur, souvent une déclaration"], ["Près d'un monument historique", "Avis de l'architecte des Bâtiments de France, délai d'un mois de plus"]],
+   "note": "Votre installateur vous fournit le nombre de panneaux, leurs dimensions et leur couleur : c'est tout ce qu'il nous faut avec quelques photos.",
+   "prix": "149 €", "delai": "48 h", "sources": ["DP"], "liens": ["toiture", "velux", "facade", "terrasse"]
+  },
+  "maison": {
+   "slug": "permis-de-construire-maison",
+   "titre": "Permis de construire une maison neuve : dossier dès 590 €",
+   "desc": "Permis de construire de maison individuelle jusqu'à 150 m², à partir de vos plans ou de ceux du constructeur. Dossier complet en 5 jours, 590 €.",
+   "h1": "Permis de construire pour une maison neuve",
+   "chapo": "Toute maison neuve demande un permis de construire. Jusqu'à 150 m², vous n'êtes pas obligé de passer par un architecte. La mairie a deux mois pour répondre.",
+   "regles": [["Maison jusqu'à 150 m²", "Permis de construire, sans architecte obligatoire"], ["Maison de plus de 150 m²", "Permis signé par un architecte"], ["Délai de réponse", "2 mois, 3 mois près d'un monument historique"]],
+   "note": "Une attestation énergétique (réglementation environnementale) est obligatoire avec le dossier : elle est établie par un bureau d'études thermiques, à 159 €.",
+   "prix": "590 € + 159 € d'attestation énergétique", "delai": "5 jours", "sources": ["PC"], "liens": ["extension", "annexe", "demolition", "cu"]
+  },
+  "usage": {
+   "slug": "transformer-en-logement",
+   "titre": "Transformer une grange ou un local en logement : quelle démarche ?",
+   "desc": "Changement de destination : déclaration préalable sans travaux de façade, permis de construire avec. On prépare le dossier dès 349 €.",
+   "h1": "Transformer une grange, un local ou un bureau en logement",
+   "chapo": "C'est un changement de destination. Sans toucher à la façade ni à la structure : une déclaration préalable. Avec : un permis de construire.",
+   "regles": [["Changement de destination sans travaux extérieurs", "Déclaration préalable"], ["Avec modification de la façade ou de la structure", "Permis de construire"], ["En copropriété", "Accord de l'assemblée générale en plus"]],
+   "note": "Le PLU peut interdire certains changements de destination, surtout en zone agricole ou naturelle. On le vérifie avant toute chose.",
+   "prix": "349 € (permis : 490 €)", "delai": "48 h, 5 jours pour un permis", "sources": ["DP", "PC"], "liens": ["garage", "cu", "facade", "extension"]
+  },
+  "demolition": {
+   "slug": "permis-de-demolir",
+   "titre": "Permis de démolir : est-il obligatoire chez vous en 2026 ?",
+   "desc": "Le permis de démolir n'est obligatoire qu'en secteur protégé ou si la commune l'a décidé. On vérifie avec votre adresse et on prépare le dossier, 149 €.",
+   "h1": "Permis de démolir : est-il obligatoire ?",
+   "chapo": "Pas partout. Il est obligatoire en secteur protégé, et dans les communes qui l'ont décidé. Ailleurs, vous pouvez démolir sans autorisation.",
+   "regles": [["Secteur protégé", "Permis de démolir"], ["Commune qui l'a instauré", "Permis de démolir"], ["Ailleurs", "Aucune démarche"], ["Démolition liée à un projet de construction", "Demandée dans le même permis de construire"]],
+   "note": "La mairie a deux mois pour répondre. On vous dit avant de commencer si votre commune l'impose.",
+   "prix": "149 €", "delai": "48 h", "sources": ["PD"], "liens": ["maison", "annexe", "abri", "cu"]
+  },
+  "cu": {
+   "slug": "certificat-urbanisme",
+   "titre": "Certificat d'urbanisme : demande préparée dès 89 €",
+   "desc": "Savoir ce qu'on peut construire sur un terrain avant d'acheter : certificat d'urbanisme d'information (89 €) ou opérationnel (149 €).",
+   "h1": "Certificat d'urbanisme : savoir ce qu'on peut construire",
+   "chapo": "Le certificat d'urbanisme vous dit, par écrit, les règles qui s'appliquent à un terrain, ou si votre projet précis y est réalisable. Ce n'est pas une autorisation de construire.",
+   "regles": [["Certificat d'information : les règles du terrain", "Réponse en 1 mois"], ["Certificat opérationnel : votre projet est-il possible ?", "Réponse en 2 mois"], ["Durée de validité", "18 mois, prolongeable"]],
+   "note": "Pendant sa validité, les règles indiquées ne peuvent pas être changées à votre détriment. C'est une vraie sécurité avant d'acheter.",
+   "prix": "89 € (opérationnel : 149 €)", "delai": "48 h", "sources": ["CU"], "liens": ["maison", "usage", "extension", "annexe"]
+  },
+  "modif": {
+   "slug": "permis-modificatif",
+   "titre": "Permis modificatif : modifier un permis accordé, 249 €",
+   "desc": "Votre projet a changé après l'accord de la mairie : on prépare la demande de permis modificatif, pièces modifiées comprises, pour 249 €.",
+   "h1": "Permis modificatif : changer un projet déjà accordé",
+   "chapo": "Votre permis est accordé mais le projet a changé : une fenêtre déplacée, une surface ajustée, un matériau différent. Tant que les changements restent limités, un permis modificatif suffit.",
+   "regles": [["Changements limités (façade, surface, matériaux)", "Permis modificatif"], ["Projet profondément changé", "Nouveau permis de construire"], ["Moment", "Avant la déclaration d'achèvement des travaux"]],
+   "note": "La mairie n'examine que ce qui change. Le reste du permis reste acquis.",
+   "prix": "249 €", "delai": "48 h", "sources": ["MODIF"], "liens": ["daact", "maison", "extension", "regul"]
+  },
+  "daact": {
+   "slug": "declaration-achevement-travaux",
+   "titre": "Déclaration d'achèvement des travaux (DAACT) : 49 €",
+   "desc": "Travaux terminés après une déclaration préalable ou un permis : la déclaration d'achèvement est obligatoire. On la prépare pour 49 €.",
+   "h1": "Déclarer la fin de vos travaux",
+   "chapo": "Une fois les travaux terminés, vous devez envoyer à la mairie une déclaration attestant l'achèvement et la conformité des travaux. C'est obligatoire après une déclaration préalable ou un permis.",
+   "regles": [["Après une déclaration préalable ou un permis", "Déclaration d'achèvement obligatoire"], ["Maison neuve", "Avec l'attestation énergétique de fin de chantier"], ["Contrôle de la mairie", "Elle dispose d'un délai pour contester la conformité"]],
+   "note": "C'est aussi la pièce qu'on vous demandera pour vendre ou assurer le bien. Mieux vaut ne pas l'oublier.",
+   "prix": "49 €", "delai": "48 h", "sources": ["DAACT"], "liens": ["modif", "regul", "maison", "extension"]
+  },
+  "regul": {
+   "slug": "regularisation-travaux",
+   "titre": "Régulariser des travaux faits sans autorisation : même prix",
+   "desc": "Abri, extension ou véranda construits sans autorisation : on prépare le dossier de régularisation à partir de photos de l'existant, au même prix.",
+   "h1": "Déclarer des travaux déjà faits",
+   "chapo": "Un abri, une véranda ou une extension construits sans autorisation peuvent être régularisés : on dépose le dossier qui aurait dû l'être, à partir de ce qui existe.",
+   "regles": [["Travaux conformes aux règles actuelles", "Dossier de régularisation, même démarche qu'avant travaux"], ["Travaux non conformes", "On vous le dit avant de commencer, et ce qu'il faudrait modifier"], ["Avant une vente", "Le notaire le demandera souvent"]],
+   "note": "La mairie juge le dossier avec les règles d'aujourd'hui, pas celles de l'époque des travaux.",
+   "prix": "Même prix que le projet (dès 149 €)", "delai": "48 h", "sources": ["DP", "PC"], "liens": ["abri", "veranda", "extension", "daact"]
+  }
+ }
+}
