@@ -16,7 +16,8 @@ Dépôt du site **Oui Permis** (ouipermis.fr) : plans et dossiers pour déposer 
 
 ```bash
 git clone https://github.com/Jeanphaie/ouipermis /opt/apps/ouipermis-src
-# coller deploy/service-ouipermis.yml dans /opt/apps/docker-compose.yml (lire l'en-tête du fichier)
+# insérer deploy/service-ouipermis.yml dans /opt/apps/docker-compose.yml, juste avant le service lki-frontend
+# (mêmes réglages Traefik que LKI : entrypoint websecure, certresolver letsencrypt, réseau web, middleware security-headers@file)
 cd /opt/apps && docker compose up -d ouipermis
 ```
 

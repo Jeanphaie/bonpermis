@@ -1,15 +1,3 @@
-# Bloc à coller dans /opt/apps/docker-compose.yml, sous `services:` (indentation de 2 espaces).
-#
-# ⚠ AVANT de coller : aligne les 3 valeurs marquées <À ALIGNER> sur celles du service
-#    lki-frontend du même fichier. Pour les voir :
-#      grep -n -A25 "lki-frontend:" /opt/apps/docker-compose.yml
-#    - le nom de l'entrypoint HTTPS de Traefik  (souvent websecure)
-#    - le nom du certresolver Let's Encrypt     (souvent letsencrypt ou le)
-#    - le réseau partagé avec Traefik           (s'il y en a un déclaré)
-#
-# Le site est servi tel quel depuis le clone du dépôt : un `git pull` suffit à le mettre à jour,
-# sans reconstruire d'image ni redémarrer le conteneur.
-
   ouipermis:
     image: nginx:1.27-alpine
     restart: unless-stopped
@@ -19,8 +7,10 @@
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.ouipermis.rule=Host(`ouipermis.fr`) || Host(`www.ouipermis.fr`)"
-      - "traefik.http.routers.ouipermis.entrypoints=websecure"              # <À ALIGNER>
-      - "traefik.http.routers.ouipermis.tls.certresolver=letsencrypt"       # <À ALIGNER>
+      - "traefik.http.routers.ouipermis.entrypoints=websecure"
+      - "traefik.http.routers.ouipermis.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.ouipermis.middlewares=security-headers@file"
       - "traefik.http.services.ouipermis.loadbalancer.server.port=80"
-    # networks:                                                             # <À ALIGNER>
-    #   - <réseau de traefik, s'il y en a un sur lki-frontend>
+    networks:
+      - web
+
