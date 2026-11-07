@@ -1,0 +1,10 @@
+# Toutes les 2 minutes. Le conteneur nginx lit site/ directement : aucun redémarrage.
+[Unit]
+Description=Oui Permis : mise à jour automatique du site
+
+[Timer]
+OnBootSec=1min
+OnUnitActiveSec=2min
+
+[Install]
+WantedBy=timers.target

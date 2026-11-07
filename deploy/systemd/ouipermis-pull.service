@@ -1,0 +1,8 @@
+# Met à jour le site Oui Permis depuis GitHub. Lancé par ouipermis-pull.timer.
+# Installé une fois par JP ; ne touche qu'à /opt/apps/ouipermis-src (fast-forward seulement).
+[Unit]
+Description=Oui Permis : git pull du site
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/git -C /opt/apps/ouipermis-src pull -q --ff-only origin main
