@@ -4,7 +4,7 @@ Dépôt du site **Oui Permis** (ouipermis.fr) : plans et dossiers pour déposer 
 
 ## Contenu
 
-- `site/` : le site statique servi en production (`index.html` + `img/`, 31 illustrations). Source : artifact « Oui Permis » v18.
+- `site/` : le site statique servi en production (`index.html` + `img/`, 38 illustrations). Source : artifact « Oui Permis » v27.
 - `deploy/` : configuration serveur (Nginx + bloc Docker Compose pour Traefik).
 
 ## Hébergement
