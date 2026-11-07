@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Oui Permis</title>
+<meta name="description" content="Votre déclaration préalable ou votre permis de construire, dessiné et vérifié pour vous. 149 €, en 48 h ouvrées.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@300..700&family=Geist+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  color-scheme:light;
+  --paper:#FAFAF9; --surface:#FFFFFF; --warm:#F6F1EA; --ink:#1A1A1A; --muted:#62615E; --line:#E6E3DE; --line-2:#CFCAC2;
+  --accent:#2340D9; --accent-soft:#E9EDFC; --good:#1E7A4C; --good-soft:#E6F3EC;
+  --f-body:'Geist',system-ui,-apple-system,'Segoe UI',sans-serif; --f-mono:'Geist Mono',ui-monospace,monospace;
+  --r:14px; --r-sm:10px; --wrap:1180px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}
+img{max-width:100%;height:auto;display:block}
+a{color:inherit}
+.wrap{max-width:var(--wrap);margin:0 auto;padding:0 20px}
+h1,h2,h3{font-weight:600;letter-spacing:-.02em;line-height:1.12;margin:0}
+h1{font-size:clamp(36px,5.6vw,64px)}
+h2{font-size:clamp(28px,3.6vw,42px)}
+h3{font-size:19px;letter-spacing:-.01em}
+p{margin:0}
+.lead{font-size:clamp(17px,1.6vw,19px);color:var(--muted);max-width:560px}
+.eyebrow{font:500 12px/1 var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-bottom:16px;display:block}
+.blue{color:var(--accent)}
+section{padding:96px 0}
+@media (max-width:720px){section{padding:64px 0}}
+
+/* boutons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;font:500 15px/1 var(--f-body);padding:16px 24px;border:1px solid var(--ink);background:var(--ink);color:#fff;cursor:pointer;text-decoration:none;border-radius:999px;transition:background .15s,border-color .15s,transform .15s}
+.btn:hover{background:var(--accent);border-color:var(--accent)}
+.btn.ghost{background:transparent;color:var(--ink)}
+.btn.ghost:hover{background:var(--ink);color:#fff}
+.btn.blue-btn{background:var(--accent);border-color:var(--accent)}
+.btn.blue-btn:hover{background:var(--ink);border-color:var(--ink)}
+.btn:focus-visible,.tile:focus-visible,.choice:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+
+/* en-tête */
+header.top{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--paper) 90%,transparent);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+header.top .wrap{display:flex;align-items:center;justify-content:space-between;height:68px;gap:16px}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink)}
+.logo svg{width:28px;height:28px}
+.logo b{font-size:20px;font-weight:600;letter-spacing:-.03em}
+.logo b i{font-style:normal;color:var(--accent)}
+nav.links{display:flex;gap:28px;font-size:14px}
+nav.links a{text-decoration:none;color:var(--muted)}
+nav.links a:hover{color:var(--ink)}
+header .btn{padding:12px 18px;font-size:14px}
+@media (max-width:860px){nav.links{display:none}}
+
+/* haut de page */
+.hero{padding:56px 0 40px}
+.hero-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:56px;align-items:center}
+.hero h1 .blue{display:block}
+.hero .lead{margin-top:22px}
+.hero-art{border-radius:var(--r);overflow:hidden;background:var(--surface);border:1px solid var(--line);aspect-ratio:4/5}
+.hero-art img{width:100%;height:100%;object-fit:cover}
+@media (max-width:900px){.hero-grid{grid-template-columns:1fr;gap:32px}.hero-art{aspect-ratio:16/11;order:-1}.hero-art img{object-position:center 30%}}
+
+.ask{margin-top:36px}
+.ask-q{font-weight:600;font-size:18px;margin-bottom:14px;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.ask-q small{font-weight:400;color:var(--muted);font-size:14px}
+.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.tile{all:unset;box-sizing:border-box;cursor:pointer;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-sm);padding:8px 8px 12px;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;font-size:14px;font-weight:500;line-height:1.25;transition:border-color .15s,transform .15s,box-shadow .15s}
+.tile img{width:100%;height:auto;aspect-ratio:1;object-fit:cover;border-radius:6px}
+.tile:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 8px 24px -14px rgba(35,64,217,.45)}
+.tiles.more{margin-top:10px}
+.tiles.more[hidden]{display:none}
+.more-btn{all:unset;cursor:pointer;margin-top:14px;font-size:14px;color:var(--accent);font-weight:500;text-decoration:underline;text-underline-offset:3px}
+@media (max-width:560px){.tiles{grid-template-columns:repeat(2,1fr)}}
+
+.proof{display:flex;flex-wrap:wrap;gap:10px 22px;margin-top:28px;font-size:14px;color:var(--muted)}
+.proof span{display:flex;align-items:center;gap:8px}
+.proof svg{width:16px;height:16px;flex:none}
+
+/* sections */
+.head{max-width:680px;margin-bottom:48px}
+.head .lead{margin-top:16px}
+.split{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:center}
+@media (max-width:900px){.split{grid-template-columns:1fr;gap:32px}}
+.art{border-radius:var(--r);overflow:hidden;border:1px solid var(--line);background:var(--surface)}
+
+/* étapes */
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+.step{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;display:flex;flex-direction:column}
+.step img{aspect-ratio:1;object-fit:cover;width:100%}
+.step .body{padding:18px 18px 22px}
+.step .n{font:500 12px/1 var(--f-mono);color:var(--accent);letter-spacing:.06em}
+.step h3{margin:8px 0 6px}
+.step p{font-size:15px;color:var(--muted)}
+@media (max-width:980px){.steps{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:520px){.steps{grid-template-columns:1fr}}
+
+/* pièces */
+.pieces{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-top:40px}
+.piece{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-sm);overflow:hidden}
+.piece img{aspect-ratio:4/3;object-fit:cover;width:100%;background:#F9F8F7}
+.piece div{padding:12px 14px 14px;font-size:14px;line-height:1.35}
+.piece small{display:block;color:var(--muted);font:400 12px/1.4 var(--f-mono);margin-top:4px}
+@media (max-width:980px){.pieces{grid-template-columns:repeat(3,1fr)}}
+@media (max-width:560px){.pieces{grid-template-columns:repeat(2,1fr)}}
+.checklist{list-style:none;padding:0;margin:24px 0 0;display:grid;gap:12px}
+.checklist li{display:flex;gap:12px;align-items:flex-start}
+.checklist svg{width:20px;height:20px;flex:none;margin-top:2px}
+
+/* comparatif */
+.compare{width:100%;border-collapse:separate;border-spacing:0;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;font-size:15px}
+.compare th,.compare td{padding:16px 18px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+.compare tr:last-child td{border-bottom:0}
+.compare thead th{font-weight:600;background:#FBFAF8}
+.compare th.us,.compare td.us{background:var(--accent-soft);color:var(--ink);font-weight:500}
+.compare td:first-child{color:var(--muted)}
+.compare-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.compare{min-width:640px}
+
+/* sombre */
+.dark{background:#121212;color:#F3F1ED}
+.dark .lead{color:#B9B5AE}
+.dark .eyebrow{color:#8EA0FF}
+.dark .art{border-color:#2A2A2A}
+.dark ul{color:#DAD6CF}
+
+/* équipe */
+.team-quote{margin-top:24px;padding:20px 22px;border-left:3px solid var(--accent);background:var(--surface);border-radius:0 var(--r-sm) var(--r-sm) 0;font-size:16px}
+
+/* tarifs */
+.prices{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.price{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:24px;display:flex;flex-direction:column;gap:10px;position:relative}
+.price.star{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.price .badge{position:absolute;top:-11px;left:22px;background:var(--accent);color:#fff;font:500 11px/1 var(--f-mono);padding:6px 9px;border-radius:999px;letter-spacing:.04em}
+.price img{width:84px;height:84px;object-fit:cover;border-radius:8px}
+.price .amount{font-size:38px;font-weight:600;letter-spacing:-.03em;line-height:1}
+.price .amount small{font-size:14px;font-weight:400;color:var(--muted);letter-spacing:0}
+.price p{font-size:14px;color:var(--muted)}
+.price .delay{font:500 12px/1 var(--f-mono);color:var(--good);background:var(--good-soft);padding:6px 8px;border-radius:6px;align-self:flex-start}
+@media (max-width:900px){.prices{grid-template-columns:1fr 1fr}}
+@media (max-width:560px){.prices{grid-template-columns:1fr}}
+.extras{margin-top:28px;display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+.extras > div{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:20px 22px}
+.extras h3{font-size:16px;margin-bottom:10px}
+.extras ul{list-style:none;padding:0;margin:0;font-size:15px}
+.extras li{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-top:1px solid var(--line)}
+.extras li:first-child{border-top:0}
+.extras li b{font-weight:500;white-space:nowrap}
+@media (max-width:720px){.extras{grid-template-columns:1fr}}
+
+/* garantie */
+.guarantee{display:grid;grid-template-columns:auto 1fr;gap:20px;align-items:start;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:28px}
+.guarantee .seal{width:64px;height:64px;border-radius:50%;background:var(--accent-soft);display:grid;place-items:center}
+.guarantee h3{font-size:22px;margin-bottom:8px}
+.guarantee p{color:var(--muted)}
+.guarantee small{display:block;margin-top:10px;font-size:13px;color:var(--muted)}
+
+/* FAQ */
+.faq{max-width:780px}
+.faq details{border-top:1px solid var(--line);padding:18px 0}
+.faq details:last-child{border-bottom:1px solid var(--line)}
+.faq summary{cursor:pointer;font-weight:500;font-size:17px;list-style:none;display:flex;justify-content:space-between;gap:16px}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::after{content:'+';color:var(--accent);font-size:22px;line-height:1}
+.faq details[open] summary::after{content:'–'}
+.faq details p{margin-top:10px;color:var(--muted)}
+
+/* fin */
+.final{background:var(--warm)}
+.final .art{border:0}
+footer{padding:40px 0 56px;font-size:13px;color:var(--muted);border-top:1px solid var(--line)}
+footer .wrap{display:flex;flex-wrap:wrap;gap:12px 28px;justify-content:space-between}
+footer a{color:var(--muted)}
+
+/* configurateur */
+.overlay{position:fixed;inset:0;z-index:50;background:rgba(20,18,15,.45);display:flex;align-items:center;justify-content:center;padding:16px}
+.overlay[hidden]{display:none}
+.panel{background:var(--paper);width:min(620px,100%);max-height:calc(100dvh - 32px);overflow:auto;border-radius:18px;box-shadow:0 30px 80px -30px rgba(0,0,0,.5)}
+.panel-top{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--paper);z-index:1}
+.panel-top .proj{display:flex;align-items:center;gap:10px;font-weight:600}
+.panel-top .proj img{width:40px;height:40px;border-radius:8px;object-fit:cover}
+.x{all:unset;cursor:pointer;width:36px;height:36px;display:grid;place-items:center;border-radius:50%;font-size:22px;color:var(--muted)}
+.x:hover{background:var(--line)}
+.bar{height:3px;background:var(--line)}
+.bar i{display:block;height:100%;background:var(--accent);transition:width .25s}
+.panel-body{padding:24px 20px 28px}
+.qtitle{font-size:22px;font-weight:600;letter-spacing:-.01em;line-height:1.25}
+.qhelp{color:var(--muted);font-size:14px;margin-top:6px}
+.choices{display:grid;gap:10px;margin-top:20px}
+.choice{all:unset;box-sizing:border-box;cursor:pointer;background:var(--surface);border:1px solid var(--line-2);border-radius:12px;padding:16px 18px;font-size:16px;display:flex;justify-content:space-between;align-items:center;gap:12px}
+.choice:hover{border-color:var(--accent);background:var(--accent-soft)}
+.choice small{color:var(--muted);font-size:13px}
+.back{all:unset;cursor:pointer;color:var(--muted);font-size:14px;margin-top:18px;display:inline-block}
+.back:hover{color:var(--ink)}
+.verdict{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px}
+.verdict .kind{font:500 12px/1 var(--f-mono);letter-spacing:.06em;color:var(--accent);text-transform:uppercase}
+.verdict h3{font-size:22px;margin:8px 0 4px}
+.lines{margin-top:16px;border-top:1px solid var(--line)}
+.lines div{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--line);font-size:15px}
+.lines div span:last-child{white-space:nowrap;font-weight:500}
+.opts{margin-top:18px;display:grid;gap:8px}
+.opt{display:flex;gap:12px;align-items:flex-start;padding:12px 14px;border:1px solid var(--line);border-radius:10px;background:var(--surface);cursor:pointer;font-size:15px}
+.opt input{margin-top:4px;accent-color:var(--accent);width:18px;height:18px}
+.opt b{font-weight:500}
+.opt small{display:block;color:var(--muted);font-size:13px}
+.opt .p{margin-left:auto;white-space:nowrap;font-weight:500}
+.total{display:flex;justify-content:space-between;align-items:baseline;margin-top:18px;font-size:16px}
+.total b{font-size:30px;letter-spacing:-.02em}
+.small-note{font-size:13px;color:var(--muted);margin-top:8px}
+.panel .btn{width:100%;margin-top:20px}
+.field{display:block;margin-top:16px}
+.field span{display:block;font-size:14px;font-weight:500;margin-bottom:6px}
+.field input{width:100%;font:inherit;font-size:16px;padding:14px 16px;border:1px solid var(--line-2);border-radius:10px;background:var(--surface);color:var(--ink)}
+.field input:focus{outline:2px solid var(--accent);outline-offset:1px;border-color:var(--accent)}
+.done{text-align:center;padding:12px 0}
+.done .seal{width:64px;height:64px;border-radius:50%;background:var(--good-soft);display:grid;place-items:center;margin:0 auto 16px}
+.reassure{display:flex;gap:8px;align-items:center;font-size:13px;color:var(--muted);margin-top:12px;justify-content:center}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <a class="logo" href="#top" aria-label="Oui Permis, accueil">
+      <svg viewBox="0 0 32 32" aria-hidden="true">
+        <path d="M1 1 H31 V31 H17" fill="none" stroke="var(--ink)" stroke-width="2"/>
+        <path d="M1 1 V31 H3" fill="none" stroke="var(--ink)" stroke-width="2"/>
+        <path d="M8 17 L14 23 L25 9" fill="none" stroke="var(--accent)" stroke-width="4" stroke-linecap="square"/>
+      </svg>
+      <b>oui<i>permis</i></b>
+    </a>
+    <nav class="links" aria-label="Sections">
+      <a href="#comment">Comment ça marche</a>
+      <a href="#dossier">Le dossier</a>
+      <a href="#tarifs">Tarifs</a>
+      <a href="#faq">Questions</a>
+    </nav>
+    <a class="btn" href="#top">Commencer</a>
+  </div>
+</header>
+
+<main id="top">
+
+<!-- HAUT DE PAGE -->
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <span class="eyebrow">Déclaration préalable · Permis de construire</span>
+      <h1>Votre dossier mairie, <span class="blue">dessiné et vérifié pour vous.</span></h1>
+      <p class="lead">Dites-nous ce que vous voulez construire : on vous dit tout de suite quelle autorisation il vous faut et combien ça coûte. Vous envoyez vos photos, on s'occupe du reste.</p>
+
+      <div class="ask">
+        <div class="ask-q">Quel est votre projet ? <small>Un clic, prix exact en moins d'une minute</small></div>
+        <div class="tiles" id="tilesMain"></div>
+        <div class="tiles more" id="tilesMore" hidden></div>
+        <button class="more-btn" id="moreBtn" type="button" aria-expanded="false" aria-controls="tilesMore">Voir les 16 projets</button>
+      </div>
+
+      <div class="proof">
+        <span><svg viewBox="0 0 16 16"><path d="M3 8.5l3 3 7-7" fill="none" stroke="var(--accent)" stroke-width="2"/></svg>Déclaration en 48 h ouvrées</span>
+        <span><svg viewBox="0 0 16 16"><path d="M3 8.5l3 3 7-7" fill="none" stroke="var(--accent)" stroke-width="2"/></svg>Règles de votre commune vérifiées</span>
+        <span><svg viewBox="0 0 16 16"><path d="M3 8.5l3 3 7-7" fill="none" stroke="var(--accent)" stroke-width="2"/></svg>Redépôt gratuit si refus</span>
+      </div>
+    </div>
+    <div class="hero-art"><img src="img/01-atelier.webp" alt="Un atelier lumineux où plusieurs personnes dessinent et vérifient des plans de maisons" width="1000" height="1250" fetchpriority="high"></div>
+  </div>
+</section>
+
+<!-- COMMENT ÇA MARCHE -->
+<section id="comment" style="background:var(--surface);border-top:1px solid var(--line);border-bottom:1px solid var(--line)">
+  <div class="wrap">
+    <div class="head">
+      <span class="eyebrow">Comment ça marche</span>
+      <h2>Vous envoyez, nous dessinons, vous déposez.</h2>
+      <p class="lead">Quatre étapes, aucune connaissance technique demandée. Vous n'avez rien à dessiner.</p>
+    </div>
+    <div class="steps">
+      <article class="step"><img src="img/03-commandez.webp" alt="Un couple sur son canapé commande depuis son téléphone" loading="lazy" width="760" height="760"><div class="body"><span class="n">01 · 1 MINUTE</span><h3>Vous commandez</h3><p>Trois questions, votre prix exact, le paiement. Pas de devis, pas de compte à créer.</p></div></article>
+      <article class="step"><img src="img/04-envoyez.webp" alt="Une personne photographie la façade de sa maison depuis le jardin" loading="lazy" width="760" height="760"><div class="body"><span class="n">02 · 10 MINUTES</span><h3>Vous envoyez vos photos</h3><p>Quelques photos et une ou deux mesures, depuis votre téléphone. On vous guide pas à pas.</p></div></article>
+      <article class="step"><img src="img/05-dessinons.webp" alt="Trois personnes travaillent sur des plans autour d'une table d'atelier" loading="lazy" width="760" height="760"><div class="body"><span class="n">03 · 48 H</span><h3>Nous dessinons et vérifions</h3><p>On lit les règles de votre commune, on dessine toutes les pièces, on relit tout avant l'envoi.</p></div></article>
+      <article class="step"><img src="img/06-deposez.webp" alt="Une personne envoie son dossier depuis son ordinateur, à la table de sa cuisine" loading="lazy" width="760" height="760"><div class="body"><span class="n">04 · 10 MINUTES</span><h3>Vous déposez</h3><p>En ligne sur le site de votre mairie, avec notre guide. Ou on le dépose pour vous.</p></div></article>
+    </div>
+  </div>
+</section>
+
+<!-- LE DOSSIER -->
+<section id="dossier">
+  <div class="wrap">
+    <div class="split">
+      <div class="art"><img src="img/02-relecture.webp" alt="Deux personnes relisent ensemble un dossier de plans étalé sur une table" loading="lazy" width="1400" height="788"></div>
+      <div>
+        <span class="eyebrow">Ce que vous recevez</span>
+        <h2>Un dossier complet, prêt à déposer.</h2>
+        <p class="lead" style="margin-top:16px">Toutes les pièces que votre mairie demande, dessinées pour votre maison et relues avant l'envoi.</p>
+        <ul class="checklist">
+          <li><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="10" fill="var(--accent-soft)"/><path d="M6 10.5l2.5 2.5L14 7.5" fill="none" stroke="var(--accent)" stroke-width="2"/></svg><span><b>Les règles de votre commune vérifiées</b> avant le dessin : hauteurs, distances aux voisins, surfaces.</span></li>
+          <li><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="10" fill="var(--accent-soft)"/><path d="M6 10.5l2.5 2.5L14 7.5" fill="none" stroke="var(--accent)" stroke-width="2"/></svg><span><b>Le formulaire officiel rempli</b>, il ne vous reste qu'à signer.</span></li>
+          <li><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="10" fill="var(--accent-soft)"/><path d="M6 10.5l2.5 2.5L14 7.5" fill="none" stroke="var(--accent)" stroke-width="2"/></svg><span><b>Les pièces demandées par la mairie offertes</b> pendant toute l'instruction.</span></li>
+        </ul>
+      </div>
+    </div>
+    <div class="pieces">
+      <div class="piece"><img src="img/27-plan-situation.webp" alt="" loading="lazy" width="700" height="525"><div>Où se trouve votre terrain dans la commune<small>Plan de situation</small></div></div>
+      <div class="piece"><img src="img/28-plan-masse.webp" alt="" loading="lazy" width="700" height="525"><div>Votre terrain vu du dessus, avec le projet<small>Plan de masse</small></div></div>
+      <div class="piece"><img src="img/29-plan-rdc.webp" alt="" loading="lazy" width="700" height="525"><div>L'intérieur, pièce par pièce<small>Plan des niveaux</small></div></div>
+      <div class="piece"><img src="img/30-plan-facades.webp" alt="" loading="lazy" width="700" height="525"><div>La maison vue de chaque côté, avant et après<small>Façades</small></div></div>
+      <div class="piece"><img src="img/31-plan-coupe.webp" alt="" loading="lazy" width="700" height="525"><div>La maison coupée en deux, avec les hauteurs<small>Plan en coupe</small></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- COMPARATIF -->
+<section style="background:var(--surface);border-top:1px solid var(--line);border-bottom:1px solid var(--line)">
+  <div class="wrap">
+    <div class="head">
+      <span class="eyebrow">Pourquoi nous</span>
+      <h2>Le sérieux d'un bureau d'études, au prix d'un générateur.</h2>
+    </div>
+    <div class="compare-scroll">
+      <table class="compare">
+        <thead><tr><th></th><th>Générateur en ligne</th><th>Bureau d'études classique</th><th class="us">Oui Permis</th></tr></thead>
+        <tbody>
+          <tr><td>Qui dessine ?</td><td>Vous, avec un outil</td><td>Un dessinateur</td><td class="us">Nous</td></tr>
+          <tr><td>Règles de la commune</td><td>À vérifier vous-même</td><td>Vérifiées</td><td class="us">Vérifiées avant le dessin</td></tr>
+          <tr><td>Relecture avant l'envoi</td><td>Non</td><td>Oui</td><td class="us">Oui, systématique</td></tr>
+          <tr><td>Prix d'une déclaration</td><td>39 à 89 €</td><td>190 à 590 €</td><td class="us">149 €</td></tr>
+          <tr><td>Délai</td><td>Immédiat</td><td>5 à 15 jours</td><td class="us">48 h ouvrées</td></tr>
+          <tr><td>Si la mairie refuse</td><td>À refaire vous-même</td><td>Variable</td><td class="us">Corrigé et redéposé gratuitement</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- DOSSIERS DIFFICILES -->
+<section class="dark">
+  <div class="wrap split">
+    <div>
+      <span class="eyebrow">Monuments historiques, copropriété, centre ancien</span>
+      <h2>Les dossiers qui bloquent, c'est notre métier.</h2>
+      <p class="lead" style="margin-top:16px">Près d'une église, dans un village classé ou en copropriété, les règles se durcissent. On prépare le dossier pour l'architecte des Bâtiments de France et l'accord de votre copropriété.</p>
+      <ul style="margin-top:20px;padding-left:18px;line-height:1.9">
+        <li>Matériaux, couleurs et menuiseries choisis pour passer</li>
+        <li>Notice rédigée pour l'architecte des Bâtiments de France</li>
+        <li>Documents prêts pour le vote en assemblée générale</li>
+      </ul>
+    </div>
+    <div class="art"><img src="img/07-dossiers-difficiles.webp" alt="Deux personnes observent une maison de village en pierre près d'une église, une lucarne en projet dessinée en bleu" loading="lazy" width="1400" height="788"></div>
+  </div>
+</section>
+
+<!-- ÉQUIPE -->
+<section>
+  <div class="wrap split">
+    <div class="art"><img src="img/09-equipe.webp" alt="Une équipe réunie dans un atelier lumineux, plans et tasses de café à la main" loading="lazy" width="1400" height="788"></div>
+    <div>
+      <span class="eyebrow">Qui prépare votre dossier</span>
+      <h2>Des personnes, pas un robot.</h2>
+      <p class="lead" style="margin-top:16px">Une équipe à taille humaine, spécialisée en urbanisme et en dessin de bâtiment. Chaque dossier est relu par un expert avant de vous être envoyé.</p>
+      <p class="team-quote">« Vous avez une question sur votre dossier ? Vous parlez à la personne qui le prépare, par message ou en visio. »</p>
+    </div>
+  </div>
+</section>
+
+<!-- TARIFS -->
+<section id="tarifs" style="background:var(--surface);border-top:1px solid var(--line);border-bottom:1px solid var(--line)">
+  <div class="wrap">
+    <div class="head">
+      <span class="eyebrow">Tarifs</span>
+      <h2>Un prix fixe, connu avant de payer.</h2>
+      <p class="lead">Tout compris : vérification des règles, dessin, formulaire, relecture, pièces demandées par la mairie. Prix TTC.</p>
+    </div>
+    <div class="prices">
+      <div class="price star"><span class="badge">LE PLUS DEMANDÉ</span><img src="img/13-abri-jardin.webp" alt="" loading="lazy"><h3>Petits travaux</h3><div class="amount">149 €</div><p>Abri, carport, pergola, piscine, clôture, portail, fenêtres, façade, panneaux solaires.</p><span class="delay">48 H OUVRÉES</span></div>
+      <div class="price"><img src="img/21-extension.webp" alt="" loading="lazy"><h3>Agrandissement</h3><div class="amount">349 €</div><p>Extension, véranda, lucarne ou toiture, en déclaration préalable.</p><span class="delay">48 H OUVRÉES</span></div>
+      <div class="price"><img src="img/25-garage-amenage.webp" alt="" loading="lazy"><h3>Garage en pièce à vivre</h3><div class="amount">319 €</div><p>Chambre, bureau ou salon dans votre garage, façade comprise.</p><span class="delay">48 H OUVRÉES</span></div>
+      <div class="price"><img src="img/22-veranda.webp" alt="" loading="lazy"><h3>Permis d'extension</h3><div class="amount">490 €</div><p>Extension ou véranda de plus de 40 m², ou hors zone urbaine.</p><span class="delay">5 JOURS OUVRÉS</span></div>
+      <div class="price"><img src="img/26-maison-neuve.webp" alt="" loading="lazy"><h3>Maison neuve</h3><div class="amount">590 € <small>+ 159 € attestation RE2020</small></div><p>Permis de construire à partir de vos plans, jusqu'à 150 m².</p><span class="delay">5 JOURS OUVRÉS</span></div>
+      <div class="price" style="justify-content:center;background:var(--paper)"><h3>Vous ne savez pas ?</h3><p style="font-size:15px">Choisissez votre projet : trois questions suffisent pour connaître l'autorisation et le prix exact.</p><a class="btn ghost" href="#top" style="margin-top:8px">Trouver mon prix</a></div>
+    </div>
+    <div class="extras">
+      <div><h3>Ajouté seulement si nécessaire</h3><ul>
+        <li><span>Près d'un monument historique ou en secteur protégé</span><b>+ 149 €</b></li>
+        <li><span>Logement en copropriété (documents pour l'AG)</span><b>+ 99 €</b></li>
+      </ul></div>
+      <div><h3>Options</h3><ul>
+        <li><span>Livraison en 24 h ouvrées (déclaration)</span><b>+ 49 €</b></li>
+        <li><span>Dépôt en mairie par nos soins</span><b>+ 69 €</b></li>
+        <li><span>Visio de 20 minutes avec un expert</span><b>49 €</b></li>
+      </ul></div>
+    </div>
+  </div>
+</section>
+
+<!-- GARANTIE -->
+<section>
+  <div class="wrap">
+    <div class="guarantee">
+      <div class="seal"><svg width="30" height="30" viewBox="0 0 30 30"><path d="M8 15.5l4.5 4.5L22 10" fill="none" stroke="var(--accent)" stroke-width="3"/></svg></div>
+      <div>
+        <h3>Refusé ? On corrige et on redépose, gratuitement.</h3>
+        <p>Si la mairie refuse votre dossier ou demande des pièces à cause d'une erreur de notre part, on corrige et on redépose sans rien vous facturer. Les pièces complémentaires demandées pendant l'instruction sont toujours offertes.</p>
+        <small>Une reprise par dossier, dans les 6 mois suivant la décision. Non couvert : projet modifié après la commande, photos ou mesures inexactes, refus portant sur le projet lui-même alors qu'on vous avait prévenu avant le dépôt. La décision finale appartient à la mairie.</small>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section id="faq" style="padding-top:0">
+  <div class="wrap">
+    <div class="head"><span class="eyebrow">Questions fréquentes</span><h2>Ce qu'on nous demande le plus.</h2></div>
+    <div class="faq">
+      <details><summary>Déclaration préalable ou permis de construire : comment savoir ?</summary><p>Vous n'avez pas à le savoir. Choisissez votre projet et répondez à trois questions : on vous dit ce qu'il faut. En général, une déclaration suffit jusqu'à 20 m² créés, ou 40 m² pour une extension en zone urbaine. Au-delà, c'est un permis.</p></details>
+      <details><summary>Que dois-je vous envoyer ?</summary><p>Quelques photos de votre maison et du terrain, et une ou deux mesures. On vous envoie un lien avec la liste exacte, adaptée à votre projet. Si vous avez des plans, envoyez-les aussi, mais ce n'est pas obligatoire.</p></details>
+      <details><summary>Combien de temps la mairie met-elle à répondre ?</summary><p>Un mois pour une déclaration préalable, deux mois pour le permis d'une maison individuelle. Un mois de plus près d'un monument historique. Ces délais courent à partir du dépôt d'un dossier complet.</p></details>
+      <details><summary>Et si la mairie refuse ?</summary><p>Si le refus ou la demande de pièces vient d'une erreur de notre part, on corrige et on redépose gratuitement. Les pièces complémentaires demandées pendant l'instruction sont toujours offertes.</p></details>
+      <details><summary>Faut-il un architecte ?</summary><p>Pour un particulier, seulement si la surface totale de la maison dépasse 150 m² après travaux. Dans ce cas, on vous oriente vers un architecte partenaire inscrit à l'Ordre.</p></details>
+      <details><summary>Qui dépose le dossier ?</summary><p>Vous, en ligne sur le site de votre mairie, en 10 minutes avec notre guide. Ou nous, avec l'option dépôt à 69 €.</p></details>
+      <details><summary>Le paiement est-il sécurisé ?</summary><p>Oui. Le paiement par carte, Apple Pay ou Google Pay passe par Stripe. Nous ne voyons jamais vos données bancaires.</p></details>
+      <details><summary>Qui êtes-vous ?</summary><p>Oui Permis est un service de LK Invest, à Paris (18e), spécialisé dans les dossiers d'urbanisme pour les particuliers, partout en France. Service privé, indépendant des administrations.</p></details>
+    </div>
+  </div>
+</section>
+
+<!-- FIN -->
+<section class="final">
+  <div class="wrap split">
+    <div>
+      <span class="eyebrow">C'est accordé</span>
+      <h2>Il ne vous reste qu'à construire.</h2>
+      <p class="lead" style="margin-top:16px">Choisissez votre projet : vous connaîtrez l'autorisation qu'il vous faut et son prix exact en moins d'une minute.</p>
+      <a class="btn blue-btn" href="#top" style="margin-top:28px">Trouver mon prix</a>
+    </div>
+    <div class="art"><img src="img/10-accorde.webp" alt="Une famille devant sa maison agrandie serre la main de la personne qui a suivi son dossier" loading="lazy" width="900" height="1080"></div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>© 2026 Oui Permis, un service de LK Invest · Service privé, indépendant des administrations.</span>
+    <span><a href="#">Mentions légales</a> · <a href="#">CGV</a> · <a href="#">Confidentialité</a> · Maquette, paiement non branché</span>
+  </div>
+</footer>
+
+<!-- CONFIGURATEUR -->
+<div class="overlay" id="overlay" hidden>
+  <div class="panel" role="dialog" aria-modal="true" aria-labelledby="panelTitle">
+    <div class="panel-top">
+      <div class="proj"><img id="projImg" src="" alt=""><span id="panelTitle"></span></div>
+      <button class="x" id="closeBtn" type="button" aria-label="Fermer">×</button>
+    </div>
+    <div class="bar"><i id="barFill" style="width:0"></i></div>
+    <div class="panel-body" id="panelBody"></div>
+  </div>
+</div>
+
+<script>
+(() => {
+  const P = {
+    abri:{n:'Abri de jardin',img:'13-abri-jardin',cat:'petits',size:'abri'},
+    piscine:{n:'Piscine',img:'14-piscine',cat:'petits',size:'piscine'},
+    pergola:{n:'Pergola',img:'12-pergola',cat:'petits',size:'annexe'},
+    carport:{n:'Carport',img:'11-carport',cat:'petits',size:'annexe'},
+    extension:{n:'Extension',img:'21-extension',cat:'agrandir'},
+    veranda:{n:'Véranda',img:'22-veranda',cat:'agrandir'},
+    garage:{n:'Garage aménagé',img:'25-garage-amenage',cat:'garage'},
+    maison:{n:'Maison neuve',img:'26-maison-neuve',cat:'maison'},
+    cloture:{n:'Clôture',img:'15-cloture',cat:'petits'},
+    portail:{n:'Portail',img:'16-portail',cat:'petits'},
+    solaire:{n:'Panneaux solaires',img:'17-panneaux-solaires',cat:'petits'},
+    menuiseries:{n:'Fenêtres, portes, volets',img:'18-menuiseries',cat:'petits',copro:true},
+    velux:{n:'Fenêtre de toit',img:'19-fenetre-toit',cat:'petits',copro:true},
+    facade:{n:'Façade',img:'20-facade',cat:'petits',copro:true},
+    lucarne:{n:'Lucarne',img:'23-lucarne',cat:'toit',copro:true},
+    toiture:{n:'Toiture',img:'24-toiture',cat:'toit',copro:true}
+  };
+  const MAIN = ['abri','piscine','pergola','extension','veranda','garage','carport','maison'];
+  const MORE = ['cloture','portail','solaire','menuiseries','velux','facade','lucarne','toiture'];
+  const tile = k => `<button class="tile" type="button" data-p="${k}"><img src="img/${P[k].img}.webp" alt="" loading="lazy" width="480" height="480">${P[k].n}</button>`;
+  document.getElementById('tilesMain').innerHTML = MAIN.map(tile).join('');
+  document.getElementById('tilesMore').innerHTML = MORE.map(tile).join('');
+  const moreBtn = document.getElementById('moreBtn'), more = document.getElementById('tilesMore');
+  moreBtn.addEventListener('click', () => { const open = more.hidden; more.hidden = !open; moreBtn.setAttribute('aria-expanded', open); moreBtn.textContent = open ? 'Voir moins de projets' : 'Voir les 16 projets'; });
+
+  const ov = document.getElementById('overlay'), body = document.getElementById('panelBody'), bar = document.getElementById('barFill');
+  const euro = n => n.toLocaleString('fr-FR') + ' €';
+  let S = {}, lastFocus = null;
+
+  const QUESTIONS = {
+    abri:{id:'size',t:'Quelle surface au sol ?',h:'Mesurez l\'emprise du toit, débords compris.',c:[['moins5','Moins de 5 m²'],['dp','Entre 5 et 20 m²'],['pc','Plus de 20 m²'],['nsp','Je ne sais pas']]},
+    piscine:{id:'size',t:'Quelle taille de bassin ?',h:'Surface de l\'eau, sans les plages.',c:[['moins10','Moins de 10 m²'],['dp','Entre 10 et 100 m²'],['pc','Plus de 100 m², ou couverte haute'],['nsp','Je ne sais pas']]},
+    annexe:{id:'size',t:'Quelle surface au sol ?',h:'Mesurez l\'emprise du toit, débords compris.',c:[['dp','Jusqu\'à 20 m²'],['pc','Plus de 20 m²'],['nsp','Je ne sais pas']]},
+    agrandir:{id:'size',t:'Combien de m² ajoutez-vous ?',h:'Une estimation suffit.',c:[['dp','Moins de 20 m²'],['dp40','Entre 20 et 40 m²'],['pc','Plus de 40 m²'],['nsp','Je ne sais pas']]},
+    total150:{id:'total',t:'Après travaux, la maison dépassera-t-elle 150 m² au total ?',h:'Surface de plancher de toute la maison, extension comprise.',c:[['non','Non'],['oui','Oui'],['nsp','Je ne sais pas']]},
+    maison:{id:'size',t:'Quelle surface pour la maison ?',h:'Surface de plancher totale.',c:[['ok','Jusqu\'à 150 m²'],['archi','Plus de 150 m²'],['nsp','Je ne sais pas']]},
+    plans:{id:'plans',t:'Avez-vous déjà les plans de la maison ?',h:'Plans d\'un constructeur, d\'un architecte ou les vôtres, même sommaires.',c:[['oui','Oui'],['non','Non, il faut la concevoir']]},
+    abf:{id:'abf',t:'Votre maison est-elle près d\'un monument historique ou dans un secteur protégé ?',h:'Église ancienne, château, centre classé… On le vérifie de toute façon avec votre adresse.',c:[['non','Non'],['oui','Oui'],['nsp','Je ne sais pas']]},
+    copro:{id:'copro',t:'Le logement est-il en copropriété ?',h:'Un immeuble ou une résidence avec un syndic.',c:[['non','Non'],['oui','Oui']]}
+  };
+
+  function flow(p){
+    const c = P[p].cat, q = [];
+    if (c==='petits' && P[p].size) q.push(QUESTIONS[P[p].size]);
+    if (c==='agrandir'){ q.push(QUESTIONS.agrandir); q.push(QUESTIONS.total150); }
+    if (c==='maison'){ q.push(QUESTIONS.maison); q.push(QUESTIONS.plans); }
+    q.push(QUESTIONS.abf);
+    if (P[p].copro) q.push(QUESTIONS.copro);
+    return q;
+  }
+
+  function verdict(){
+    const p = P[S.p], a = S.a, c = p.cat;
+    if (a.size==='moins5' || a.size==='moins10') return {kind:'none'};
+    if (c==='maison' && (a.size==='archi')) return {kind:'archi'};
+    if (c==='maison' && a.plans==='non') return {kind:'conception'};
+    if (c==='agrandir' && a.total==='oui' && a.size==='pc') return {kind:'archi'};
+    let v;
+    if (c==='petits') v = (a.size==='pc') ? {kind:'pc',base:490,label:'Permis de construire'} : {kind:'dp',base:149,label:'Petits travaux'};
+    if (c==='agrandir') v = (a.size==='pc') ? {kind:'pc',base:490,label:'Permis d\'extension'} : {kind:'dp',base:349,label:'Agrandissement'};
+    if (c==='toit') v = {kind:'dp',base:349,label:'Travaux sur la toiture'};
+    if (c==='garage') v = {kind:'dp',base:319,label:'Garage en pièce à vivre'};
+    if (c==='maison') v = {kind:'pc',base:590,label:'Maison neuve',re:159};
+    v.note = [];
+    if (a.size==='nsp') v.note.push('Vous ne connaissez pas la surface : on la vérifie avec vos mesures. Si un permis est nécessaire, on vous prévient avant de commencer.');
+    if (a.size==='dp40') v.note.push('Entre 20 et 40 m², une déclaration suffit si votre terrain est en zone urbaine. Sinon, il faut un permis (490 €) : on le vérifie avec votre adresse et on vous prévient avant de commencer.');
+    if (a.total==='oui' && c==='agrandir' && v.kind==='dp') v.note.push('Si un permis s\'avère nécessaire, la maison dépassant 150 m², un architecte devra le signer : on vous prévient avant de commencer.');
+    if (a.total==='nsp') v.note.push('Si la maison dépasse 150 m² après travaux, un architecte devient obligatoire : on le vérifie et on vous prévient.');
+    v.abf = a.abf==='oui' ? 149 : 0;
+    if (a.abf==='nsp') v.note.push('Secteur protégé : on le vérifie avec votre adresse. Les 149 € ne sont ajoutés que si c\'est le cas, avec votre accord.');
+    v.copro = a.copro==='oui' ? 99 : 0;
+    return v;
+  }
+
+  function open(p, opener){
+    lastFocus = opener || null;
+    S = {p, a:{}, i:0, q:flow(p), opt:{depot:false, express:false, visio:false}};
+    document.getElementById('projImg').src = `img/${P[p].img}.webp`;
+    document.getElementById('panelTitle').textContent = P[p].n;
+    ov.hidden = false; document.body.style.overflow = 'hidden';
+    render();
+  }
+  function close(){ ov.hidden = true; document.body.style.overflow = ''; if (lastFocus) lastFocus.focus(); }
+
+  function progress(){
+    const total = S.q.length + 2;
+    const at = S.stage==='q' ? S.i : S.stage==='v' ? S.q.length : S.stage==='c' ? S.q.length + 1 : total;
+    bar.style.width = Math.round(at / total * 100) + '%';
+  }
+
+  function render(){
+    if (S.i < S.q.length && S.stage!=='v' && S.stage!=='c' && S.stage!=='done') S.stage = 'q';
+    progress();
+    if (S.stage==='q'){
+      const q = S.q[S.i];
+      body.innerHTML = `<div class="qtitle" tabindex="-1">${q.t}</div><p class="qhelp">${q.h}</p><div class="choices">${q.c.map(([v,l]) => `<button class="choice" type="button" data-v="${v}">${l}<span aria-hidden="true">→</span></button>`).join('')}</div>${S.i>0?'<button class="back" type="button" data-back>← Question précédente</button>':''}`;
+      body.querySelectorAll('.choice').forEach(b => b.addEventListener('click', () => { S.a[q.id] = b.dataset.v; S.i++; if (S.i >= S.q.length) S.stage = 'v'; render(); }));
+      const bk = body.querySelector('[data-back]'); if (bk) bk.addEventListener('click', () => { S.i--; render(); });
+      body.querySelector('.qtitle').focus();
+      return;
+    }
+    if (S.stage==='v') return renderVerdict();
+    if (S.stage==='c') return renderCheckout();
+    if (S.stage==='done') return renderDone();
+  }
+
+  function total(v){ return v.base + (v.re||0) + v.abf + v.copro + (S.opt.depot?69:0) + (S.opt.express&&v.kind==='dp'?49:0) + (S.opt.visio?49:0); }
+
+  function renderVerdict(){
+    const v = verdict(); S.v = v;
+    const back = '<button class="back" type="button" data-back>← Modifier mes réponses</button>';
+    if (v.kind==='none'){
+      body.innerHTML = `<div class="verdict"><span class="kind">Bonne nouvelle</span><h3>Aucune démarche n'est nécessaire.</h3><p class="qhelp">En dessous de cette taille, la loi ne demande pas d'autorisation, sauf en secteur protégé ou si le règlement de votre commune en impose une. Vous n'avez rien à nous payer.</p></div>${back}`;
+    } else if (v.kind==='archi' || v.kind==='conception'){
+      body.innerHTML = `<div class="verdict"><span class="kind">${v.kind==='archi'?'Architecte obligatoire':'Projet à concevoir'}</span><h3>${v.kind==='archi'?'Au-delà de 150 m², un architecte doit signer le permis.':'Il faut d\'abord concevoir votre maison.'}</h3><p class="qhelp">${v.kind==='archi'?'On vous met en relation avec un architecte partenaire inscrit à l\'Ordre, et on prépare avec lui les pièces du dossier.':'On vous rappelle pour comprendre votre projet et vous envoyer un prix ferme.'}</p></div><button class="btn" type="button" data-call>Être rappelé</button>${back}`;
+      body.querySelector('[data-call]').addEventListener('click', () => { S.stage='c'; S.call=true; render(); });
+    } else {
+      const dp = v.kind==='dp';
+      const delay = dp ? (S.opt.express ? '24 h ouvrées' : '48 h ouvrées') : '5 jours ouvrés';
+      body.innerHTML = `<div class="verdict"><span class="kind">${dp?'Déclaration préalable':'Permis de construire'}</span><h3>Il vous faut ${dp?'une déclaration préalable':'un permis de construire'}.</h3><p class="qhelp">Dossier complet, prêt à déposer, en ${delay} après réception de vos photos.</p>
+        <div class="lines"><div><span>${v.label}</span><span>${euro(v.base)}</span></div>${v.re?`<div><span>Attestation RE2020 (obligatoire pour une maison neuve)</span><span>+ ${euro(v.re)}</span></div>`:''}${v.abf?`<div><span>Monument historique ou secteur protégé</span><span>+ ${euro(v.abf)}</span></div>`:''}${v.copro?`<div><span>Copropriété : documents pour l'assemblée générale</span><span>+ ${euro(v.copro)}</span></div>`:''}</div>
+        ${v.note.map(n=>`<p class="small-note">${n}</p>`).join('')}
+        <div class="opts">
+          ${dp?`<label class="opt"><input type="checkbox" data-o="express" ${S.opt.express?'checked':''}><span><b>Livraison en 24 h ouvrées</b><small>Au lieu de 48 h</small></span><span class="p">+ 49 €</span></label>`:''}
+          <label class="opt"><input type="checkbox" data-o="depot" ${S.opt.depot?'checked':''}><span><b>On dépose pour vous</b><small>Sur le site de votre mairie, avec votre mandat</small></span><span class="p">+ 69 €</span></label>
+          <label class="opt"><input type="checkbox" data-o="visio" ${S.opt.visio?'checked':''}><span><b>Visio de 20 minutes avec un expert</b><small>Avant le lancement du dossier</small></span><span class="p">+ 49 €</span></label>
+        </div>
+        <div class="total"><span>Total TTC</span><b>${euro(total(v))}</b></div>
+        <p class="small-note">Inclus : règles de la commune vérifiées, toutes les pièces, formulaire rempli, relecture, pièces demandées par la mairie, redépôt gratuit si refus de notre fait.</p>
+        </div><button class="btn blue-btn" type="button" data-next>Continuer</button>${back}`;
+      body.querySelectorAll('[data-o]').forEach(cb => cb.addEventListener('change', () => { S.opt[cb.dataset.o] = cb.checked; renderVerdict(); }));
+      body.querySelector('[data-next]').addEventListener('click', () => { S.stage='c'; S.call=false; render(); });
+    }
+    body.querySelector('[data-back]').addEventListener('click', () => { S.i = S.q.length - 1; S.stage='q'; render(); });
+  }
+
+  function renderCheckout(){
+    const v = S.v, call = S.call;
+    body.innerHTML = `<div class="qtitle" tabindex="-1">${call?'Où pouvons-nous vous joindre ?':'Votre adresse et votre e-mail'}</div><p class="qhelp">${call?'On vous rappelle sous 24 h ouvrées.':'Vous confirmerez la parcelle sur une carte juste après. Pas de compte à créer.'}</p>
+      <form id="co" novalidate>
+        <label class="field"><span>Adresse du terrain</span><input name="adr" autocomplete="street-address" placeholder="12 rue des Lilas, 44800 Saint-Herblain" required></label>
+        <label class="field"><span>${call?'Téléphone':'E-mail'}</span><input name="mail" type="${call?'tel':'email'}" autocomplete="${call?'tel':'email'}" required></label>
+        <button class="btn blue-btn" type="submit">${call?'Être rappelé':'Payer '+euro(total(v))+' et commencer'}</button>
+        ${call?'':'<div class="reassure"><svg width="14" height="14" viewBox="0 0 14 14"><rect x="2.5" y="6" width="9" height="6.5" rx="1.5" fill="none" stroke="currentColor"/><path d="M4.5 6V4.5a2.5 2.5 0 015 0V6" fill="none" stroke="currentColor"/></svg>Paiement sécurisé par Stripe · Carte, Apple Pay, Google Pay</div>'}
+      </form><button class="back" type="button" data-back>← Retour</button>`;
+    body.querySelector('#co').addEventListener('submit', e => { e.preventDefault(); const f = e.target; if (!f.adr.value.trim() || !f.mail.value.trim()) { (f.adr.value.trim()?f.mail:f.adr).focus(); return; } S.stage='done'; render(); });
+    body.querySelector('[data-back]').addEventListener('click', () => { S.stage='v'; render(); });
+    body.querySelector('.qtitle').focus();
+  }
+
+  function renderDone(){
+    body.innerHTML = `<div class="done"><div class="seal"><svg width="30" height="30" viewBox="0 0 30 30"><path d="M8 15.5l4.5 4.5L22 10" fill="none" stroke="var(--good)" stroke-width="3"/></svg></div><div class="qtitle" tabindex="-1">Maquette du site</div><p class="qhelp" style="max-width:420px;margin:10px auto 0">Le paiement et l'envoi seront branchés au lancement. Rien n'a été enregistré ni débité.</p></div><button class="btn ghost" type="button" data-close>Fermer</button>`;
+    body.querySelector('[data-close]').addEventListener('click', close);
+    bar.style.width = '100%';
+    body.querySelector('.qtitle').focus();
+  }
+
+  document.addEventListener('click', e => { const t = e.target.closest('.tile'); if (t) open(t.dataset.p, t); });
+  document.getElementById('closeBtn').addEventListener('click', close);
+  ov.addEventListener('click', e => { if (e.target === ov) close(); });
+  document.addEventListener('keydown', e => { if (e.key==='Escape' && !ov.hidden) close(); });
+})();
+</script>
+</body>
+</html>

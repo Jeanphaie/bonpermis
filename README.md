@@ -1,2 +1,29 @@
 # ouipermis
-Depot pour le site ouipermis
+
+Dépôt du site **Oui Permis** (ouipermis.fr) : plans et dossiers pour déposer une déclaration préalable ou un permis de construire.
+
+## Contenu
+
+- `site/` : le site statique servi en production (`index.html` + `img/`, 31 illustrations). Source : artifact « Oui Permis » v18.
+- `deploy/` : configuration serveur (Nginx + bloc Docker Compose pour Traefik).
+
+## Hébergement
+
+- Serveur Hetzner `95.217.60.216`, même Docker Compose que LKI (`/opt/apps`), HTTPS par Traefik / Let's Encrypt.
+- DNS chez Hostinger : `A @ -> 95.217.60.216`, `CNAME www -> ouipermis.fr`.
+
+## Première mise en ligne (une seule fois, sur le serveur)
+
+```bash
+git clone https://github.com/Jeanphaie/ouipermis /opt/apps/ouipermis-src
+# coller deploy/service-ouipermis.yml dans /opt/apps/docker-compose.yml (lire l'en-tête du fichier)
+cd /opt/apps && docker compose up -d ouipermis
+```
+
+## Mettre à jour le site
+
+```bash
+cd /opt/apps/ouipermis-src && git pull
+```
+
+Rien d'autre : le conteneur lit le dossier `site/` directement.
