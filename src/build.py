@@ -66,7 +66,6 @@ def head(titre, desc, chemin, base, jsonld):
 <meta property="og:title" content="{e(titre)}">
 <meta property="og:description" content="{e(desc)}">
 <meta property="og:url" content="{url}">
-<link rel="preload" href="{base}assets/fonts/fraunces.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="{base}assets/fonts/geist.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="{base}assets/style.css">
 {ld}
@@ -80,12 +79,7 @@ def entete(base, accueil):
     return f'''<header class="top">
   <div class="wrap">
     <a class="logo" href="{logo}" aria-label="Le Bon Permis, accueil">
-      <svg viewBox="0 0 32 32" aria-hidden="true">
-        <path d="M1 1 H31 V31 H17" fill="none" stroke="var(--ink)" stroke-width="2"/>
-        <path d="M1 1 V31 H3" fill="none" stroke="var(--ink)" stroke-width="2"/>
-        <path d="M8 17 L14 23 L25 9" fill="none" stroke="var(--accent)" stroke-width="4" stroke-linecap="square"/>
-      </svg>
-      <b>bon<i>permis</i></b>
+      <img src="/img/logo-le-bon-permis.svg" alt="Le Bon Permis" width="180" height="22">
     </a>
     <nav class="links" aria-label="Sections">
       <a href="{a}#projets">Projets</a>
