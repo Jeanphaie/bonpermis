@@ -17,6 +17,8 @@ from pathlib import Path
 SRC = Path(__file__).resolve().parent
 SITE = SRC.parent / 'site'
 DOMAINE = 'https://bonpermis.fr'
+EMAIL = 'jpk@lk-invest.fr'
+LEGAL = [('mentions-legales', 'Mentions légales'), ('cgv', 'Conditions générales de vente'), ('confidentialite', 'Politique de confidentialité')]
 
 D = json.loads((SRC / 'data.json').read_text(encoding='utf-8'))
 PG = json.loads((SRC / 'pages.json').read_text(encoding='utf-8'))
@@ -111,7 +113,7 @@ def pied(base):
     <nav class="plan" aria-label="Tous les projets">{blocs}</nav>
     <div class="legal">
       <span>© 2026 Le Bon Permis, un service de LK Invest. Entreprise privée, sans lien avec les administrations.</span>
-      <span><a href="#">Mentions légales</a> · <a href="#">CGV</a> · <a href="#">Confidentialité</a> · Maquette, paiement non branché</span>
+      <span><a href="mailto:{EMAIL}">{EMAIL}</a> · <a href="{base}mentions-legales/">Mentions légales</a> · <a href="{base}cgv/">CGV</a> · <a href="{base}confidentialite/">Confidentialité</a></span>
     </div>
   </div>
 </footer>
@@ -259,6 +261,24 @@ def page(k):
     return head(titre, c['desc'], slug + '/', base, ld) + f'<body data-page="{k}">\n\n' + entete(base, False) + '\n' + corps + '\n' + pied(base) + OVERLAY + scripts(base)
 
 
+def legale(slug, titre):
+    base = '../'
+    corps = (SRC / 'legal' / f'{slug}.html').read_text(encoding='utf-8').replace('{{EMAIL}}', EMAIL)
+    html_ = f'''<main id="top">
+<section class="page-sec legal-page">
+  <div class="wrap narrow">
+    <nav class="crumbs" aria-label="Fil d'Ariane"><a href="../">Accueil</a> › <span>{e(titre)}</span></nav>
+    <h1>{e(titre)}</h1>
+    <p class="rules-src">Mis à jour le {MAJ_TXT}.</p>
+    {corps}
+  </div>
+</section>
+</main>
+'''
+    desc = f"{titre} du site Le Bon Permis (bonpermis.fr), service de LK Invest."
+    return head(f'{titre} | Le Bon Permis', desc, slug + '/', base, []) + '<body data-page="legal">\n\n' + entete(base, False) + '\n' + html_ + '\n' + pied(base) + OVERLAY + scripts(base)
+
+
 def sitemap(chemins):
     urls = ''.join(f'<url><loc>{DOMAINE}/{c}</loc><lastmod>{MAJ}</lastmod></url>\n' for c in chemins)
     return f'<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n{urls}</urlset>\n'
@@ -277,6 +297,10 @@ def main():
         d.mkdir(exist_ok=True)
         (d / 'index.html').write_text(page(k), encoding='utf-8')
         chemins.append(URL[k] + '/')
+    for slug, titre in LEGAL:
+        (SITE / slug).mkdir(exist_ok=True)
+        (SITE / slug / 'index.html').write_text(legale(slug, titre), encoding='utf-8')
+        chemins.append(slug + '/')
     (SITE / 'sitemap.xml').write_text(sitemap(chemins), encoding='utf-8')
     (SITE / 'robots.txt').write_text(f'User-agent: *\nAllow: /\n\nSitemap: {DOMAINE}/sitemap.xml\n', encoding='utf-8')
     print(f'{len(chemins)} pages générées dans {SITE}')
