@@ -163,6 +163,140 @@ function analyser(d) {
   return {p, regul, a, v};
 }
 
+
+// ---------- dossier client : lien privé, infos, fichiers ----------
+// Le lien privé contient un jeton calculé à partir de la référence (HMAC) : rien à stocker, impossible à deviner.
+const zlib = require('zlib');
+const SECRET_LIENS = crypto.createHash('sha256').update('liens-bonpermis:' + (E.LIENS_SECRET || CONF.stripeWebhook || 'dev')).digest();
+const jeton = (ref, usage = 'client') => crypto.createHmac('sha256', SECRET_LIENS).update(usage + ':' + ref).digest('base64url').slice(0, 24);
+const jetonValide = (ref, t, usage = 'client') => typeof t === 'string' && t.length === 24 && crypto.timingSafeEqual(Buffer.from(t), Buffer.from(jeton(ref, usage)));
+const lienDossier = ref => `${CONF.site}/dossier/?d=${ref}&t=${jeton(ref)}`;
+const lienAdmin = ref => `${CONF.site}/api/admin/dossier.zip?d=${ref}&t=${jeton(ref, 'admin')}`;
+const REF_RE = /^BP-[2-9A-HJ-NP-Z]{6}$/;
+const LIM = {fichier: 25 * 1024 * 1024, nb: 40, total: 400 * 1024 * 1024};
+
+function lireCommande(ref) {
+  if (!REF_RE.test(ref)) return null;
+  try { return JSON.parse(fs.readFileSync(path.join(CONF.donnees, 'commandes', ref + '.json'), 'utf8')); } catch { return null; }
+}
+const dossierDir = ref => path.join(CONF.donnees, 'dossiers', ref);
+function etatDossier(ref) {
+  const d = dossierDir(ref), f = path.join(d, 'fichiers');
+  let fichiers = [];
+  try { fichiers = fs.readdirSync(f).sort().map(n => ({nom: n.replace(/^\d+-[0-9a-f]{4}-/, ''), id: n, taille: fs.statSync(path.join(f, n)).size})); } catch {}
+  let infos = {}, statut = {};
+  try { infos = JSON.parse(fs.readFileSync(path.join(d, 'infos.json'), 'utf8')); } catch {}
+  try { statut = JSON.parse(fs.readFileSync(path.join(d, 'statut.json'), 'utf8')); } catch {}
+  return {fichiers, infos, statut};
+}
+function accesDossier(url) {
+  const ref = url.searchParams.get('d') || '', t = url.searchParams.get('t') || '';
+  if (!REF_RE.test(ref) || !jetonValide(ref, t)) return null;
+  const cmd = lireCommande(ref);
+  return cmd ? {ref, cmd} : null;
+}
+function typeFichier(tete) {
+  if (tete[0] === 0xFF && tete[1] === 0xD8 && tete[2] === 0xFF) return 'jpg';
+  if (tete.slice(0, 4).toString('hex') === '89504e47') return 'png';
+  if (tete.slice(0, 4).toString() === '%PDF') return 'pdf';
+  if (tete.slice(0, 4).toString() === 'RIFF' && tete.slice(8, 12).toString() === 'WEBP') return 'webp';
+  if (tete.slice(4, 8).toString() === 'ftyp' && /^(heic|heix|hevc|mif1|msf1|heim|heis)/.test(tete.slice(8, 12).toString())) return 'heic';
+  return null;
+}
+const nomPropre = n => (String(n || 'fichier').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^A-Za-z0-9._-]+/g, '-').replace(/^[-.]+/, '').slice(0, 80) || 'fichier');
+
+async function dossierGet(req, res, url) {
+  const a = accesDossier(url); if (!a) return repondre(res, 404, {erreur: 'Lien invalide ou expiré. Écrivez-nous à contact@bonpermis.fr.'});
+  const {cmd} = a, e = etatDossier(a.ref);
+  repondre(res, 200, {ref: a.ref, projet: cmd.nom, adresse: cmd.adresse, demandes: (P[cmd.projet] && NEED[cmd.projet]) || NEED.extension,
+    fichiers: e.fichiers.map(f => ({nom: f.nom, taille: f.taille})), infos: e.infos, termine: !!e.statut.termine, limites: LIM});
+}
+
+async function dossierInfos(req, res, url) {
+  const a = accesDossier(url); if (!a) return repondre(res, 404, {erreur: 'Lien invalide.'});
+  let d; try { d = JSON.parse(await lireCorps(req)); } catch { return repondre(res, 400, {erreur: 'Demande illisible.'}); }
+  const infos = {projet: texteLong(d.projet), mesures: texteLong(d.mesures), remarques: texteLong(d.remarques), maj: new Date().toISOString()};
+  fs.mkdirSync(dossierDir(a.ref), {recursive: true});
+  fs.writeFileSync(path.join(dossierDir(a.ref), 'infos.json'), JSON.stringify(infos, null, 2));
+  repondre(res, 200, {ok: true});
+}
+const texteLong = v => typeof v === 'string' ? v.replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/g, '').trim().slice(0, 5000) : '';
+
+function dossierFichier(req, res, url) {
+  const a = accesDossier(url); if (!a) { req.resume(); return repondre(res, 404, {erreur: 'Lien invalide.'}); }
+  const e = etatDossier(a.ref), total = e.fichiers.reduce((s, f) => s + f.taille, 0);
+  const annonce = +req.headers['content-length'] || 0;
+  if (e.statut.termine) { req.resume(); return repondre(res, 409, {erreur: 'Dossier déjà transmis. Pour ajouter un fichier, écrivez-nous.'}); }
+  if (e.fichiers.length >= LIM.nb) { req.resume(); return repondre(res, 413, {erreur: `Maximum ${LIM.nb} fichiers.`}); }
+  if (annonce > LIM.fichier) { req.resume(); return repondre(res, 413, {erreur: 'Fichier trop lourd (25 Mo maximum).'}); }
+  if (total + annonce > LIM.total) { req.resume(); return repondre(res, 413, {erreur: 'Dossier complet : 400 Mo maximum.'}); }
+  const nom = nomPropre(decodeURIComponent(req.headers['x-nom-fichier'] || 'fichier'));
+  const dir = path.join(dossierDir(a.ref), 'fichiers'); fs.mkdirSync(dir, {recursive: true});
+  const id = Date.now() + '-' + crypto.randomBytes(2).toString('hex') + '-' + nom.replace(/\.[A-Za-z0-9]{1,5}$/, '');
+  const tmp = path.join(dir, '.' + id + '.part');
+  const out = fs.createWriteStream(tmp, {flags: 'wx'});
+  let n = 0, tete = Buffer.alloc(0), fini = false;
+  const echec = (code, msg) => { if (fini) return; fini = true; out.destroy(); fs.rm(tmp, {force: true}, () => {}); req.resume(); repondre(res, code, {erreur: msg}); };
+  req.on('data', c => {
+    if (fini) return;
+    n += c.length; if (tete.length < 16) tete = Buffer.concat([tete, c]).slice(0, 16);
+    if (n > LIM.fichier) return echec(413, 'Fichier trop lourd (25 Mo maximum).');
+    out.write(c);
+  });
+  req.on('error', () => echec(400, 'Envoi interrompu.'));
+  req.on('end', () => {
+    if (fini) return;
+    const type = typeFichier(tete);
+    if (!type) return echec(415, 'Format non accepté : photos (JPG, PNG, HEIC, WebP) ou PDF.');
+    out.end(() => {
+      if (fini) return; fini = true;
+      const final = path.join(dir, id + '.' + type);
+      fs.renameSync(tmp, final);
+      journal('fichier reçu', a.ref, type, n);
+      repondre(res, 200, {ok: true, nom: path.basename(final).replace(/^\d+-[0-9a-f]{4}-/, ''), taille: n});
+    });
+  });
+}
+
+async function dossierTerminer(req, res, url) {
+  const a = accesDossier(url); if (!a) return repondre(res, 404, {erreur: 'Lien invalide.'});
+  const e = etatDossier(a.ref);
+  if (!e.fichiers.length && !(e.infos.projet || e.infos.mesures)) return repondre(res, 400, {erreur: 'Ajoutez au moins une photo ou une description avant de valider.'});
+  if (e.statut.termine) return repondre(res, 200, {ok: true});
+  fs.mkdirSync(dossierDir(a.ref), {recursive: true});
+  fs.writeFileSync(path.join(dossierDir(a.ref), 'statut.json'), JSON.stringify({termine: new Date().toISOString()}));
+  repondre(res, 200, {ok: true});
+  const {cmd} = a, mo = n => (n / 1048576).toFixed(1).replace('.', ',') + ' Mo';
+  await envoyerMail(CONF.mailA, `Dossier complet ${a.ref} : ${cmd.nom}`,
+    `Le client a transmis son dossier ${a.ref}.\n\nProjet : ${cmd.nom}\nAdresse des travaux : ${cmd.adresse}\nClient : ${cmd.nom_client || cmd.nom || ''} <${cmd.email}>\nOptions : ${cmd.options}\n\nDescription du projet :\n${e.infos.projet || '(rien)'}\n\nMesures :\n${e.infos.mesures || '(rien)'}\n\nRemarques :\n${e.infos.remarques || '(rien)'}\n\nFichiers : ${e.fichiers.length} (${mo(e.fichiers.reduce((s, f) => s + f.taille, 0))})\n${e.fichiers.map(f => '- ' + f.nom).join('\n')}\n\nTout télécharger (zip) : ${lienAdmin(a.ref)}\n`, cmd.email);
+  if (cmd.email) await envoyerMail(cmd.email, `Dossier ${a.ref} : tout est bien reçu`,
+    `Bonjour,\n\nNous avons bien reçu les éléments de votre dossier ${a.ref} (${cmd.nom}).\nNous les vérifions et revenons vers vous si une information manque. Votre dossier sera prêt dans le délai annoncé à la commande.\n\nVotre dossier : ${lienDossier(a.ref)}\n\nL'équipe Le Bon Permis\n`, CONF.mailA);
+}
+
+// Archive zip (sans compression : les photos sont déjà compressées). Aucune dépendance.
+function adminZip(req, res, url) {
+  const ref = url.searchParams.get('d') || '', t = url.searchParams.get('t') || '';
+  if (!REF_RE.test(ref) || !jetonValide(ref, t, 'admin') || !lireCommande(ref)) return repondre(res, 404, {erreur: 'Introuvable.'});
+  const cmd = lireCommande(ref), e = etatDossier(ref), dir = path.join(dossierDir(ref), 'fichiers');
+  const fiche = Buffer.from(`Dossier ${ref}\nProjet : ${cmd.nom}\nAdresse des travaux : ${cmd.adresse}\nClient : <${cmd.email}>\nMontant : ${cmd.montant} €\nOptions : ${cmd.options}\nRéponses : ${cmd.reponses}\n\nDescription du projet :\n${e.infos.projet || ''}\n\nMesures :\n${e.infos.mesures || ''}\n\nRemarques :\n${e.infos.remarques || ''}\n`, 'utf8');
+  const entrees = [{nom: ref + '-fiche.txt', data: fiche}, ...e.fichiers.map(f => ({nom: f.id, data: fs.readFileSync(path.join(dir, f.id))}))];
+  const parts = [], central = []; let off = 0;
+  for (const x of entrees) {
+    const nom = Buffer.from(x.nom, 'utf8'), crc = zlib.crc32(x.data);
+    const h = Buffer.alloc(30); h.writeUInt32LE(0x04034b50, 0); h.writeUInt16LE(20, 4); h.writeUInt16LE(0x0800, 6); h.writeUInt16LE(0, 8);
+    h.writeUInt32LE(0, 10); h.writeUInt32LE(crc, 14); h.writeUInt32LE(x.data.length, 18); h.writeUInt32LE(x.data.length, 22); h.writeUInt16LE(nom.length, 26); h.writeUInt16LE(0, 28);
+    const c = Buffer.alloc(46); c.writeUInt32LE(0x02014b50, 0); c.writeUInt16LE(20, 4); c.writeUInt16LE(20, 6); c.writeUInt16LE(0x0800, 8); c.writeUInt16LE(0, 10);
+    c.writeUInt32LE(0, 12); c.writeUInt32LE(crc, 16); c.writeUInt32LE(x.data.length, 20); c.writeUInt32LE(x.data.length, 24); c.writeUInt16LE(nom.length, 28);
+    c.writeUInt32LE(off, 42);
+    parts.push(h, nom, x.data); central.push(c, nom); off += 30 + nom.length + x.data.length;
+  }
+  const cd = Buffer.concat(central), fin = Buffer.alloc(22);
+  fin.writeUInt32LE(0x06054b50, 0); fin.writeUInt16LE(entrees.length, 8); fin.writeUInt16LE(entrees.length, 10); fin.writeUInt32LE(cd.length, 12); fin.writeUInt32LE(off, 16);
+  const zip = Buffer.concat([...parts, cd, fin]);
+  res.writeHead(200, {'Content-Type': 'application/zip', 'Content-Disposition': `attachment; filename="${ref}.zip"`, 'Content-Length': zip.length, 'Cache-Control': 'no-store'});
+  res.end(zip);
+}
+
 // ---------- routes ----------
 async function commande(req, res) {
   if (tropDeDemandes(req)) return repondre(res, 429, {erreur: 'Trop de demandes. Réessayez dans quelques minutes.'});
@@ -212,7 +346,8 @@ async function etatCommande(req, res, url) {
       ref: reference(s.id), paye: s.payment_status === 'paid', montant: (s.amount_total || 0) / 100,
       projet: m.nom || (P[p] ? P[p].n : ''), adresse: m.adresse || '',
       email: mail.replace(/^(.).*(@.*)$/, '$1•••$2'),
-      demandes: (P[p] && NEED[p]) || NEED.extension
+      demandes: (P[p] && NEED[p]) || NEED.extension,
+      dossier: s.payment_status === 'paid' ? lienDossier(reference(s.id)) : null
     });
   } catch (e) {
     repondre(res, 404, {erreur: 'Commande introuvable.'});
@@ -229,16 +364,16 @@ async function webhook(req, res) {
   const ref = reference(s.id), m = s.metadata || {};
   const email = (s.customer_details && s.customer_details.email) || s.customer_email || '';
   const nom = (s.customer_details && s.customer_details.name) || '';
-  const cmd = {ref, session: s.id, date: new Date().toISOString(), montant: s.amount_total / 100, email, nom, ...m};
+  const cmd = {ref, session: s.id, date: new Date().toISOString(), montant: s.amount_total / 100, email, nom_client: nom, ...m};
   const nouvelle = enregistrer('commandes', ref, cmd);
   repondre(res, 200, {recu: true});
   if (!nouvelle) return;
   journal('commande payée', ref, m.projet, cmd.montant + ' €');
   const need = (P[m.projet] && NEED[m.projet]) || NEED.extension;
   await envoyerMail(CONF.mailA, `Nouvelle commande ${ref} : ${m.nom} (${euro(cmd.montant)})`,
-    `Commande ${ref} payée.\n\nProjet : ${m.nom}\nAdresse des travaux : ${m.adresse}\nClient : ${nom} <${email}>\nMontant : ${euro(cmd.montant)} TTC\nOptions : ${m.options}\nRéponses : ${m.reponses}\n\nStripe : https://dashboard.stripe.com/payments/${s.payment_intent || ''}\n`, email);
+    `Commande ${ref} payée.\n\nProjet : ${m.nom}\nAdresse des travaux : ${m.adresse}\nClient : ${nom} <${email}>\nMontant : ${euro(cmd.montant)} TTC\nOptions : ${m.options}\nRéponses : ${m.reponses}\n\nStripe : https://dashboard.stripe.com/payments/${s.payment_intent || ''}\nDossier client : ${lienDossier(ref)}\nTélécharger (zip) : ${lienAdmin(ref)}\n`, email);
   if (email) await envoyerMail(email, `Votre commande ${ref} : la suite`,
-    `Bonjour${nom ? ' ' + nom : ''},\n\nMerci, votre paiement de ${euro(cmd.montant)} est bien reçu.\nRéférence de votre dossier : ${ref}\nProjet : ${m.nom}\nAdresse des travaux : ${m.adresse}\n\nPour lancer votre dossier, répondez simplement à cet e-mail avec :\n- Le projet : ${need[0]}\n- Les mesures : ${need[1]}\n- Les photos : ${need[2]}\n\nLe délai de préparation commence à la réception de ces éléments. Une question ? Répondez à cet e-mail.\n\nL'équipe Le Bon Permis\n${CONF.site}\n`, CONF.mailA);
+    `Bonjour${nom ? ' ' + nom : ''},\n\nMerci, votre paiement de ${euro(cmd.montant)} est bien reçu.\nRéférence de votre dossier : ${ref}\nProjet : ${m.nom}\nAdresse des travaux : ${m.adresse}\n\nPour lancer votre dossier, envoyez-nous vos photos et vos mesures sur votre page personnelle, depuis votre téléphone :\n${lienDossier(ref)}\n\nCe qu'il nous faut :\n- Le projet : ${need[0]}\n- Les mesures : ${need[1]}\n- Les photos : ${need[2]}\n\nLe délai de préparation commence à la réception de ces éléments. Gardez cet e-mail : le lien ci-dessus est personnel. Une question ? Répondez à cet e-mail.\n\nL'équipe Le Bon Permis\n${CONF.site}\n`, CONF.mailA);
 }
 
 async function rappel(req, res) {
@@ -262,6 +397,11 @@ const serveur = http.createServer(async (req, res) => {
     if (req.method === 'GET' && url.pathname === '/api/commande') return await etatCommande(req, res, url);
     if (req.method === 'POST' && url.pathname === '/api/stripe-webhook') return await webhook(req, res);
     if (req.method === 'POST' && url.pathname === '/api/rappel') return await rappel(req, res);
+    if (req.method === 'GET' && url.pathname === '/api/dossier') return await dossierGet(req, res, url);
+    if (req.method === 'POST' && url.pathname === '/api/dossier/infos') return await dossierInfos(req, res, url);
+    if (req.method === 'POST' && url.pathname === '/api/dossier/fichier') return dossierFichier(req, res, url);
+    if (req.method === 'POST' && url.pathname === '/api/dossier/terminer') return await dossierTerminer(req, res, url);
+    if (req.method === 'GET' && url.pathname === '/api/admin/dossier.zip') return adminZip(req, res, url);
     if (req.method === 'GET' && url.pathname === '/api/sante') return repondre(res, 200, {ok: true, stripe: !!CONF.stripeCle, mode: CONF.stripeCle.includes('_live_') ? 'reel' : 'test', webhook: !!CONF.stripeWebhook, mail: !!(CONF.smtp.hote && CONF.smtp.pass)});
     repondre(res, 404, {erreur: 'Introuvable.'});
   } catch (e) {
@@ -270,5 +410,8 @@ const serveur = http.createServer(async (req, res) => {
   }
 });
 
+// Envois de photos depuis un téléphone : on laisse 15 minutes par requête.
+serveur.requestTimeout = 15 * 60 * 1000;
+
 if (require.main === module) serveur.listen(CONF.port, () => journal(`service de paiement sur le port ${CONF.port}`, CONF.stripeCle ? '' : '(clé Stripe absente)'));
-module.exports = {serveur, signatureValide, reference, encoder, analyser};
+module.exports = {serveur, signatureValide, reference, encoder, analyser, jeton, lienDossier, lienAdmin};

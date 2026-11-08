@@ -294,6 +294,22 @@ def merci():
     return h + '<body data-page="merci">\n\n' + entete(base, False) + '\n' + corps + '\n' + pied(base) + f'<script src="{base}assets/merci.js"></script>\n</body>\n</html>\n'
 
 
+def dossier():
+    base = '../'
+    corps = """<main id="top">
+<section class="page-sec legal-page">
+  <div class="wrap narrow" id="dossier" aria-live="polite">
+    <h1>Mon dossier</h1>
+    <p class="answer">Chargement…</p>
+  </div>
+</section>
+</main>
+"""
+    h = head('Mon dossier | Le Bon Permis', 'Envoi des photos et des mesures de votre projet.', 'dossier/', base, [])
+    h = h.replace('<meta charset="utf-8">', '<meta charset="utf-8">\n<meta name="robots" content="noindex">\n<meta name="referrer" content="no-referrer">')
+    return h + '<body data-page="dossier">\n\n' + entete(base, False) + '\n' + corps + '\n' + pied(base) + f'<script src="{base}assets/dossier.js"></script>\n</body>\n</html>\n'
+
+
 def sitemap(chemins):
     urls = ''.join(f'<url><loc>{DOMAINE}/{c}</loc><lastmod>{MAJ}</lastmod></url>\n' for c in chemins)
     return f'<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n{urls}</urlset>\n'
@@ -303,7 +319,7 @@ def main():
     (SITE / 'assets').mkdir(exist_ok=True)
     data = {'P': P, 'GROUPS': GROUPS, 'SVCS': SVCS, 'NEED': NEED, 'URL': URL}
     (SITE / 'assets' / 'data.js').write_text('window.OP = ' + json.dumps(data, ensure_ascii=False) + ';\n', encoding='utf-8')
-    for f in ('app.js', 'prix.js', 'merci.js'):
+    for f in ('app.js', 'prix.js', 'merci.js', 'dossier.js'):
         shutil.copy(SRC / f, SITE / 'assets' / f)
     shutil.copy(SRC / 'style.css', SITE / 'assets' / 'style.css')
     shutil.copytree(SRC / 'fonts', SITE / 'assets' / 'fonts', dirs_exist_ok=True)
@@ -320,8 +336,10 @@ def main():
         chemins.append(slug + '/')
     (SITE / 'commande' / 'merci').mkdir(parents=True, exist_ok=True)
     (SITE / 'commande' / 'merci' / 'index.html').write_text(merci(), encoding='utf-8')
+    (SITE / 'dossier').mkdir(exist_ok=True)
+    (SITE / 'dossier' / 'index.html').write_text(dossier(), encoding='utf-8')
     (SITE / 'sitemap.xml').write_text(sitemap(chemins), encoding='utf-8')
-    (SITE / 'robots.txt').write_text(f'User-agent: *\nAllow: /\nDisallow: /commande/\nDisallow: /api/\n\nSitemap: {DOMAINE}/sitemap.xml\n', encoding='utf-8')
+    (SITE / 'robots.txt').write_text(f'User-agent: *\nAllow: /\nDisallow: /commande/\nDisallow: /dossier/\nDisallow: /api/\n\nSitemap: {DOMAINE}/sitemap.xml\n', encoding='utf-8')
     print(f'{len(chemins)} pages générées dans {SITE}')
 
 

@@ -26,3 +26,12 @@ Installation (une fois) ou changement de clés : `sudo bash /opt/apps/bonpermis-
 Modifier `src/`, lancer `python3 src/build.py`, pousser sur `main`. Le timer `bonpermis-pull.timer` lance `deploy/maj.sh` toutes les 2 minutes : `git pull --ff-only`, Nginx lit `site/` directement, et le service de paiement redémarre seul si `api/` ou la grille de prix a changé. Aucune action sur le serveur.
 
 Pas de force-push : le serveur ne suit qu'en fast-forward.
+
+## Dossier client (envoi des photos)
+
+Après le paiement, le client reçoit un lien privé `https://bonpermis.fr/dossier/?d=BP-XXXXXX&t=...` (page de confirmation et e-mail).
+Le jeton est un HMAC de la référence : rien à stocker, impossible à deviner.
+Sur cette page il décrit le projet, donne les mesures et envoie ses photos (JPG, PNG, HEIC, WebP, PDF ; 25 Mo par fichier, 40 fichiers, 400 Mo par dossier).
+Le type de chaque fichier est vérifié sur son contenu, pas sur son nom.
+Quand il clique sur « J'ai tout envoyé », contact@ reçoit un e-mail avec un lien de téléchargement du dossier complet en zip (jeton admin distinct).
+Fichiers sur le serveur : `/opt/apps/bonpermis-data/dossiers/BP-XXXXXX/`.

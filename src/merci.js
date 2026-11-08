@@ -13,8 +13,9 @@
       <h1>Merci, votre dossier ${esc(d.ref)} est lancé.</h1>
       <p class="answer">${esc(d.projet)}${d.adresse ? ', ' + esc(d.adresse) : ''}. Un e-mail de confirmation part à ${esc(d.email)}.</p>
       <h2>Ce qu'il nous faut maintenant</h2>
-      <p>Répondez à l'e-mail de confirmation, ou écrivez à <a href="mailto:contact@bonpermis.fr?subject=${encodeURIComponent('Dossier ' + d.ref)}">contact@bonpermis.fr</a> en indiquant <b>${esc(d.ref)}</b>, avec :</p>
       <ul class="need-list"><li><i>Le projet</i>${esc(d.demandes[0])}</li><li><i>Les mesures</i>${esc(d.demandes[1])}</li><li><i>Les photos</i>${esc(d.demandes[2])}</li></ul>
+      ${d.dossier ? `<p style="margin-top:24px"><a class="btn blue-btn" href="${esc(d.dossier)}">Envoyer mes photos et mesures</a></p><p>Le lien est aussi dans l'e-mail de confirmation : vous pouvez le faire plus tard, depuis votre téléphone.</p>`
+        : `<p>Répondez à l'e-mail de confirmation en indiquant <b>${esc(d.ref)}</b>, avec ces éléments.</p>`}
       <p class="rules-src">Le délai de préparation commence à la réception de ces éléments. Gardez la référence ${esc(d.ref)} pour toute question.</p>`;
   } catch (e) { echec('Impossible d\'afficher la commande pour le moment. Votre paiement, s\'il a abouti, est bien enregistré : vous allez recevoir un e-mail.'); }
 })();
