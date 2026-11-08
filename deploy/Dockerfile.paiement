@@ -1,0 +1,5 @@
+# Le Bon Permis : image du service (api/server.js).
+# Node 22 + les outils d'images : pdftoppm (aperçu des PDF livrés), ImageMagick avec HEIC (photos d'iPhone, filigrane), police DejaVu.
+# Le code n'est pas copié dans l'image : il est monté en lecture seule depuis /opt/apps/bonpermis-src (voir compose-paiement.yml).
+FROM node:22-alpine
+RUN apk add --no-cache poppler-utils imagemagick imagemagick-jpeg imagemagick-heic imagemagick-webp font-dejavu

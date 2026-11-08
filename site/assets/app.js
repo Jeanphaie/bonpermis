@@ -6,7 +6,7 @@
   const PH = '<span class="ph"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M10 54V30L30 14l20 16v24z" fill="none" stroke="#9A968F" stroke-width="1.6"/><path d="M36 54V38h14v16" fill="none" stroke="var(--accent)" stroke-width="2" stroke-dasharray="3 2.5"/><path d="M4 54h56" stroke="#9A968F" stroke-width="1.6"/></svg></span>';
 
   const ov = document.getElementById('overlay'), body = document.getElementById('panelBody'), bar = document.getElementById('barFill');
-  const euro = n => n.toLocaleString('fr-FR') + ' €';
+  const euro = n => n.toLocaleString('fr-FR', {minimumFractionDigits: n % 1 ? 2 : 0, maximumFractionDigits: 2}) + ' €';
   let S = {}, lastFocus = null;
 
   const pimg = document.getElementById('projImg');
@@ -54,6 +54,7 @@
 
   const CONCEPT = X.CONCEPT;
   function total(v){ return X.total(X.lignes(P, S.p, v, S.opt)); }
+  function acompte(v){ return Math.round(Math.round(total(v) * 100) * 0.3) / 100; }
 
   function renderVerdict(){
     const v = X.verdict(P, S.p, S.a, S.regul); S.v = v;
@@ -96,22 +97,35 @@
           <label class="opt"><input type="checkbox" data-o="visio" ${S.opt.visio?'checked':''}><span><b>20 minutes en visio avec nous</b><small>Pour parler de votre projet avant qu'on commence</small></span><span class="p">+ 49 €</span></label>
         </div>
         <div class="total"><span>Total TTC</span><b>${euro(total(v))}</b></div>
+        <div class="lines acompte-l"><div><span>Aujourd'hui, acompte de 30 %</span><span>${euro(acompte(v))}</span></div><div><span>Après l'aperçu de vos plans, le solde</span><span>${euro(Math.round((total(v) - acompte(v)) * 100) / 100)}</span></div></div>
         <p class="small-note">Tout compris : plans, formulaire, relecture, pièces demandées par la mairie. Refus de notre fait : on redépose sans frais.</p>
-        </div><button class="btn blue-btn" type="button" data-next>Continuer</button>${back}`;
+        </div><button class="btn blue-btn" type="button" data-next>Continuer</button>
+        <button class="btn ghost" type="button" data-save style="margin-top:10px">Enregistrer dans mon espace</button><p class="small-note" data-saved aria-live="polite"></p>${back}`;
       body.querySelectorAll('[data-o]').forEach(cb => cb.addEventListener('change', () => { S.opt[cb.dataset.o] = cb.checked; renderVerdict(); }));
       body.querySelector('[data-next]').addEventListener('click', () => { S.stage='c'; S.call=false; render(); });
+      body.querySelector('[data-save]').addEventListener('click', async e => {
+        const b = e.currentTarget, out = body.querySelector('[data-saved]'), proj = {p:S.p, a:S.a, regul:S.regul, opt:S.opt, adresse:''};
+        b.disabled = true;
+        try {
+          const r = await fetch(API + '/projets', {method:'POST', headers:{'Content-Type':'application/json'}, credentials:'same-origin', body:JSON.stringify(proj)});
+          if (r.status === 401) { try { localStorage.setItem('bp-projet', JSON.stringify(proj)); } catch (x) {} location.href = BASE + 'espace/'; return; }
+          const j = await r.json().catch(() => ({}));
+          out.innerHTML = r.ok ? `Enregistré. <a href="${BASE}espace/">Voir mon espace →</a>` : (j.erreur || 'Enregistrement impossible.');
+        } catch (x) { out.textContent = 'Le service ne répond pas.'; }
+        b.disabled = false;
+      });
     }
     body.querySelector('[data-back]').addEventListener('click', () => { if (!S.q.length) { close(); return; } S.i = S.q.length - 1; S.stage='q'; render(); });
   }
 
   function renderCheckout(){
     const v = S.v, call = S.call;
-    body.innerHTML = `<div class="qtitle" tabindex="-1">${call?'Comment vous joindre ?':'Encore deux choses, et c\'est parti'}</div><p class="qhelp">${call?'On vous rappelle dans la journée, ou le lendemain matin au plus tard.':'Juste après, vous confirmerez votre terrain sur une carte. Pas de compte à créer, pas de mot de passe.'}</p>
+    body.innerHTML = `<div class="qtitle" tabindex="-1">${call?'Comment vous joindre ?':'Encore deux choses, et c\'est parti'}</div><p class="qhelp">${call?'On vous rappelle dans la journée, ou le lendemain matin au plus tard.':'Pas besoin de créer un compte avant : il est créé avec votre commande. Vous payez 30 % aujourd\'hui, le solde après l\'aperçu de vos plans.'}</p>
       <form id="co" novalidate>
         <label class="field"><span>L'adresse des travaux</span><input name="adr" autocomplete="street-address" placeholder="12 rue des Lilas, 44800 Saint-Herblain" required></label>
         <label class="field"><span>${call?'Votre téléphone':'Votre e-mail, pour recevoir le dossier'}</span><input name="mail" type="${call?'tel':'email'}" autocomplete="${call?'tel':'email'}" required></label>
         <p class="form-err" role="alert" hidden></p>
-        <button class="btn blue-btn" type="submit">${call?'Me faire rappeler':'Payer '+euro(total(v))+' et lancer mon dossier'}</button>
+        <button class="btn blue-btn" type="submit">${call?'Me faire rappeler':'Payer l\'acompte de '+euro(acompte(v))+' et lancer mon dossier'}</button>
         ${call?'':'<div class="reassure"><svg width="14" height="14" viewBox="0 0 14 14"><rect x="2.5" y="6" width="9" height="6.5" rx="1.5" fill="none" stroke="currentColor"/><path d="M4.5 6V4.5a2.5 2.5 0 015 0V6" fill="none" stroke="currentColor"/></svg>Paiement sécurisé par Stripe · Carte, Apple Pay, Google Pay, PayPal</div>'}
       </form><button class="back" type="button" data-back>← Retour</button>`;
     body.querySelector('#co').addEventListener('submit', async e => {
@@ -135,6 +149,10 @@
     });
     body.querySelector('[data-back]').addEventListener('click', () => { S.stage='v'; render(); });
     body.querySelector('.qtitle').focus();
+    if (!call) fetch(API + '/espace', {credentials:'same-origin'}).then(r => r.ok ? r.json() : null).then(j => {
+      const m = body.querySelector('#co [name=mail]'); if (!j || !m) return;
+      m.value = j.compte.email; m.readOnly = true; m.closest('label').querySelector('span').textContent = 'Votre compte';
+    }).catch(() => {});
   }
 
   function renderDone(){

@@ -62,7 +62,7 @@ echo "4/6 Dossier des commandes"
 mkdir -p "$DATA"; chown 1000:1000 "$DATA"; chmod 700 "$DATA"
 
 echo "5/6 Démarrage du service"
-docker compose --env-file "$CENV" -f "$SRC/deploy/compose-paiement.yml" -p bonpermis-paiement up -d --force-recreate
+docker compose --env-file "$CENV" -f "$SRC/deploy/compose-paiement.yml" -p bonpermis-paiement up -d --build --force-recreate
 
 echo "6/6 Mise à jour automatique (redémarre le service quand son code change)"
 cp "$SRC/deploy/systemd/bonpermis-pull.service" /etc/systemd/system/bonpermis-pull.service

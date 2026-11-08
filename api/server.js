@@ -1,359 +1,36 @@
 'use strict';
-/* Le Bon Permis : service de paiement.
-   - POST /api/commande       recalcule le prix à partir des réponses du simulateur et ouvre une page de paiement Stripe Checkout
-   - GET  /api/commande?ref=  état d'une commande, pour la page « Commande reçue »
-   - POST /api/stripe-webhook confirmation signée de Stripe : enregistre la commande et envoie les e-mails
-   - POST /api/rappel         demande de rappel téléphonique
-   - GET  /api/sante          état du service (sans aucun secret)
-   Aucune dépendance : Node 20+ (fetch, crypto, tls). Les secrets viennent des variables d'environnement, jamais du dépôt. */
+/* Le Bon Permis : service en ligne (paiements, comptes, dossiers, espace équipe).
+   Routes principales :
+   - simulateur      POST /api/commande (acompte 30 %), POST /api/rappel, GET /api/commande?ref=cs_... (page « Commande reçue »)
+   - Stripe          POST /api/stripe-webhook (acompte ou solde, signature vérifiée)
+   - comptes         POST /api/compte/{inscription,connexion,lien,mot-de-passe,premier-mot-de-passe,deconnexion}, GET /api/compte/lien
+   - espace client   GET /api/espace, POST/DELETE /api/projets, POST /api/projets/commander, /api/espace/dossier/...
+   - équipe          POST /api/admin/{code,connexion,deconnexion}, /api/admin/dossiers, /api/admin/dossier/...
+   - GET /api/sante  état du service (sans aucun secret)
+   Aucune dépendance npm. Les secrets viennent des variables d'environnement, jamais du dépôt. */
 
 const http = require('http');
-const crypto = require('crypto');
-const fs = require('fs');
-const path = require('path');
-const tls = require('tls');
+const B = require('./base');
+const C = require('./comptes');
+const D = require('./dossiers');
+const {crypto, CONF, P, repondre, lireCorps, lireJson, texte, journal, envoyerMail, signatureValide} = B;
 
-const RACINE = path.join(__dirname, '..');
-const PRIX = require(path.join(RACINE, 'src', 'prix.js'));
-const DATA = JSON.parse(fs.readFileSync(path.join(RACINE, 'src', 'data.json'), 'utf8'));
-const PAGES = JSON.parse(fs.readFileSync(path.join(RACINE, 'src', 'pages.json'), 'utf8')).pages;
-const {P, GROUPS, NEED} = DATA;
-
-const E = process.env;
-const CONF = {
-  port: +(E.PORT || 3000),
-  site: (E.SITE_URL || 'https://bonpermis.fr').replace(/\/$/, ''),
-  stripeCle: E.STRIPE_SECRET_KEY || '',
-  stripeWebhook: E.STRIPE_WEBHOOK_SECRET || '',
-  stripeApi: (E.STRIPE_API || 'https://api.stripe.com').replace(/\/$/, ''),
-  donnees: E.DATA_DIR || '/data',
-  smtp: {hote: E.SMTP_HOST || '', port: +(E.SMTP_PORT || 465), user: E.SMTP_USER || '', pass: E.SMTP_PASS || ''},
-  mailDe: E.MAIL_FROM || 'contact@bonpermis.fr',
-  mailA: E.MAIL_TO || 'contact@bonpermis.fr'
-};
-
-const journal = (...m) => console.log(new Date().toISOString(), ...m);
-const euro = n => n.toLocaleString('fr-FR') + ' €';
-
-// ---------- utilitaires HTTP ----------
-function lireCorps(req, max = 20000) {
-  return new Promise((ok, ko) => {
-    const morceaux = []; let n = 0;
-    req.on('data', c => { n += c.length; if (n > max) { ko(new Error('trop gros')); req.destroy(); } else morceaux.push(c); });
-    req.on('end', () => ok(Buffer.concat(morceaux)));
-    req.on('error', ko);
-  });
-}
-function repondre(res, code, obj) {
-  const corps = JSON.stringify(obj);
-  res.writeHead(code, {'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', 'Content-Length': Buffer.byteLength(corps)});
-  res.end(corps);
-}
-
-// Limite simple par adresse IP : 20 demandes POST par tranche de 10 minutes.
-const compteurs = new Map();
-function tropDeDemandes(req) {
-  const ip = (req.headers['x-forwarded-for'] || req.socket.remoteAddress || '').split(',')[0].trim();
-  const t = Date.now(), c = compteurs.get(ip) || {n: 0, depuis: t};
-  if (t - c.depuis > 600000) { c.n = 0; c.depuis = t; }
-  c.n++; compteurs.set(ip, c);
-  if (compteurs.size > 5000) compteurs.clear();
-  return c.n > (+E.LIMITE_POST || 20);
-}
-
-// ---------- Stripe ----------
-function encoder(obj, prefixe, out = []) {
-  for (const [k, v] of Object.entries(obj)) {
-    if (v === undefined || v === null) continue;
-    const cle = prefixe ? `${prefixe}[${k}]` : k;
-    if (typeof v === 'object') encoder(v, cle, out);
-    else out.push(encodeURIComponent(cle) + '=' + encodeURIComponent(String(v)));
-  }
-  return out.join('&');
-}
-async function stripe(methode, chemin, params) {
-  if (!CONF.stripeCle) throw new Error('Clé Stripe absente');
-  const r = await fetch(CONF.stripeApi + chemin, {
-    method: methode,
-    headers: {'Authorization': 'Bearer ' + CONF.stripeCle, 'Content-Type': 'application/x-www-form-urlencoded'},
-    body: params ? encoder(params) : undefined
-  });
-  const j = await r.json().catch(() => ({}));
-  if (!r.ok) { const e = new Error((j.error && j.error.message) || ('Stripe ' + r.status)); e.stripe = j.error; throw e; }
-  return j;
-}
-function signatureValide(brut, entete, secret) {
-  if (!entete || !secret) return false;
-  const parts = Object.fromEntries(entete.split(',').map(x => { const i = x.indexOf('='); return [x.slice(0, i), x.slice(i + 1)]; }).filter(([k]) => k));
-  const sigs = entete.split(',').filter(x => x.startsWith('v1=')).map(x => x.slice(3));
-  const t = +parts.t;
-  if (!t || Math.abs(Date.now() / 1000 - t) > 300 || !sigs.length) return false;
-  const attendu = crypto.createHmac('sha256', secret).update(t + '.' + brut).digest('hex');
-  return sigs.some(s => s.length === attendu.length && crypto.timingSafeEqual(Buffer.from(s), Buffer.from(attendu)));
-}
-
-// Référence courte, lisible au téléphone : BP- + 6 caractères sans 0/O/1/I.
-function reference(sessionId) {
-  const A = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ', h = crypto.createHash('sha256').update(sessionId).digest();
-  let s = ''; for (let i = 0; i < 6; i++) s += A[h[i] % A.length];
-  return 'BP-' + s;
-}
-
-// ---------- e-mail (SMTP sur TLS, port 465) ----------
-function envoyerMail(a, sujet, texte, repondreA) {
-  const {hote, port, user, pass} = CONF.smtp;
-  if (!hote || !user || !pass) { journal('mail non envoyé (SMTP non configuré) :', sujet); return Promise.resolve(false); }
-  const b64 = s => Buffer.from(s, 'utf8').toString('base64');
-  const message = [
-    `From: Le Bon Permis <${CONF.mailDe}>`, `To: <${a}>`, repondreA ? `Reply-To: <${repondreA}>` : null,
-    `Subject: =?UTF-8?B?${b64(sujet)}?=`, `Date: ${new Date().toUTCString()}`,
-    `Message-ID: <${crypto.randomUUID()}@bonpermis.fr>`, 'MIME-Version: 1.0',
-    'Content-Type: text/plain; charset=utf-8', 'Content-Transfer-Encoding: base64', '',
-    b64(texte).replace(/.{76}/g, '$&\r\n')
-  ].filter(l => l !== null).join('\r\n');
-  return new Promise((ok) => {
-    const s = tls.connect({host: hote, port, servername: hote}, () => {});
-    let tampon = '', etape = 0;
-    const etapes = [
-      [220, () => `EHLO bonpermis.fr`], [250, () => 'AUTH LOGIN'], [334, () => b64(user)], [334, () => b64(pass)],
-      [235, () => `MAIL FROM:<${CONF.mailDe}>`], [250, () => `RCPT TO:<${a}>`], [250, () => 'DATA'],
-      [354, () => message + '\r\n.'], [250, () => 'QUIT']
-    ];
-    const fin = (r, why) => { if (!r) journal('échec SMTP :', why); s.destroy(); ok(r); };
-    s.setTimeout(20000, () => fin(false, 'délai dépassé'));
-    s.on('error', e => fin(false, e.message));
-    s.on('data', d => {
-      tampon += d.toString();
-      const lignes = tampon.split('\r\n'); tampon = lignes.pop();
-      for (const l of lignes) {
-        if (/^\d{3}-/.test(l)) continue;          // réponse sur plusieurs lignes : attendre la dernière
-        const code = +l.slice(0, 3), [attendu, suite] = etapes[etape] || [221];
-        if (etape >= etapes.length) return fin(true);
-        if (code !== attendu) return fin(false, l);
-        etape++; s.write(suite() + '\r\n');
-        if (etape === etapes.length) return fin(true);
-      }
-    });
-  });
-}
-
-// ---------- stockage ----------
-function enregistrer(dossier, nom, obj) {
-  const d = path.join(CONF.donnees, dossier);
-  fs.mkdirSync(d, {recursive: true});
-  const f = path.join(d, nom + '.json');
-  if (fs.existsSync(f)) return false;
-  fs.writeFileSync(f, JSON.stringify(obj, null, 2));
-  return true;
-}
-
-// ---------- validation des demandes ----------
-const MAIL_RE = /^[^\s@<>()",;]{1,64}@[^\s@<>()",;]{1,190}\.[a-z]{2,}$/i;
-const texte = (v, max) => typeof v === 'string' ? v.replace(/[\u0000-\u001f]/g, ' ').trim().slice(0, max) : '';
-
-function analyser(d) {
-  if (!d || typeof d !== 'object') return {erreur: 'Demande illisible.'};
-  const p = d.p;
-  if (!P[p]) return {erreur: 'Projet inconnu.'};
-  const regul = d.regul === true;
-  if (regul && !PRIX.regulPossible(P, GROUPS, p)) return {erreur: 'Ce projet ne peut pas être déclaré après coup.'};
-  const a = PRIX.reponsesValides(P, p, d.a);
-  if (!a) return {erreur: 'Réponses incomplètes. Reprenez le simulateur depuis le début.'};
-  const v = PRIX.verdict(P, p, a, regul);
-  return {p, regul, a, v};
-}
-
-
-// ---------- dossier client : lien privé, infos, fichiers ----------
-// Le lien privé contient un jeton calculé à partir de la référence (HMAC) : rien à stocker, impossible à deviner.
-const zlib = require('zlib');
-const SECRET_LIENS = crypto.createHash('sha256').update('liens-bonpermis:' + (E.LIENS_SECRET || CONF.stripeWebhook || 'dev')).digest();
-const jeton = (ref, usage = 'client') => crypto.createHmac('sha256', SECRET_LIENS).update(usage + ':' + ref).digest('base64url').slice(0, 24);
-const jetonValide = (ref, t, usage = 'client') => typeof t === 'string' && t.length === 24 && crypto.timingSafeEqual(Buffer.from(t), Buffer.from(jeton(ref, usage)));
-const lienDossier = ref => `${CONF.site}/dossier/?d=${ref}&t=${jeton(ref)}`;
-const lienAdmin = ref => `${CONF.site}/api/admin/dossier.zip?d=${ref}&t=${jeton(ref, 'admin')}`;
-const REF_RE = /^BP-[2-9A-HJ-NP-Z]{6}$/;
-const LIM = {fichier: 25 * 1024 * 1024, nb: 40, total: 400 * 1024 * 1024};
-
-function lireCommande(ref) {
-  if (!REF_RE.test(ref)) return null;
-  try { return JSON.parse(fs.readFileSync(path.join(CONF.donnees, 'commandes', ref + '.json'), 'utf8')); } catch { return null; }
-}
-const dossierDir = ref => path.join(CONF.donnees, 'dossiers', ref);
-function etatDossier(ref) {
-  const d = dossierDir(ref), f = path.join(d, 'fichiers');
-  let fichiers = [];
-  try { fichiers = fs.readdirSync(f).sort().map(n => ({nom: n.replace(/^\d+-[0-9a-f]{4}-/, ''), id: n, taille: fs.statSync(path.join(f, n)).size})); } catch {}
-  let infos = {}, statut = {};
-  try { infos = JSON.parse(fs.readFileSync(path.join(d, 'infos.json'), 'utf8')); } catch {}
-  try { statut = JSON.parse(fs.readFileSync(path.join(d, 'statut.json'), 'utf8')); } catch {}
-  return {fichiers, infos, statut};
-}
-function accesDossier(url) {
-  const ref = url.searchParams.get('d') || '', t = url.searchParams.get('t') || '';
-  if (!REF_RE.test(ref) || !jetonValide(ref, t)) return null;
-  const cmd = lireCommande(ref);
-  return cmd ? {ref, cmd} : null;
-}
-function typeFichier(tete) {
-  if (tete[0] === 0xFF && tete[1] === 0xD8 && tete[2] === 0xFF) return 'jpg';
-  if (tete.slice(0, 4).toString('hex') === '89504e47') return 'png';
-  if (tete.slice(0, 4).toString() === '%PDF') return 'pdf';
-  if (tete.slice(0, 4).toString() === 'RIFF' && tete.slice(8, 12).toString() === 'WEBP') return 'webp';
-  if (tete.slice(4, 8).toString() === 'ftyp' && /^(heic|heix|hevc|mif1|msf1|heim|heis)/.test(tete.slice(8, 12).toString())) return 'heic';
-  return null;
-}
-const nomPropre = n => (String(n || 'fichier').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^A-Za-z0-9._-]+/g, '-').replace(/^[-.]+/, '').slice(0, 80) || 'fichier');
-
-async function dossierGet(req, res, url) {
-  const a = accesDossier(url); if (!a) return repondre(res, 404, {erreur: 'Lien invalide ou expiré. Écrivez-nous à contact@bonpermis.fr.'});
-  const {cmd} = a, e = etatDossier(a.ref);
-  repondre(res, 200, {ref: a.ref, projet: cmd.nom, adresse: cmd.adresse, demandes: (P[cmd.projet] && NEED[cmd.projet]) || NEED.extension,
-    fichiers: e.fichiers.map(f => ({nom: f.nom, taille: f.taille})), infos: e.infos, termine: !!e.statut.termine, limites: LIM});
-}
-
-async function dossierInfos(req, res, url) {
-  const a = accesDossier(url); if (!a) return repondre(res, 404, {erreur: 'Lien invalide.'});
-  let d; try { d = JSON.parse(await lireCorps(req)); } catch { return repondre(res, 400, {erreur: 'Demande illisible.'}); }
-  const infos = {projet: texteLong(d.projet), mesures: texteLong(d.mesures), remarques: texteLong(d.remarques), maj: new Date().toISOString()};
-  fs.mkdirSync(dossierDir(a.ref), {recursive: true});
-  fs.writeFileSync(path.join(dossierDir(a.ref), 'infos.json'), JSON.stringify(infos, null, 2));
+// ---------- demande de rappel ----------
+async function rappel(req, res) {
+  if (B.tropDeDemandes(req)) return repondre(res, 429, {erreur: 'Trop de demandes. Réessayez dans quelques minutes.'});
+  const d = await lireJson(req); if (!d) return repondre(res, 400, {erreur: 'Demande illisible.'});
+  const tel = texte(d.tel, 40), adresse = texte(d.adresse, 300);
+  if ((tel.match(/\d/g) || []).length < 9) return repondre(res, 400, {erreur: 'Numéro de téléphone invalide.'});
+  const projet = P[d.p] ? P[d.p].n : '';
+  const id = new Date().toISOString().replace(/[:.]/g, '-') + '-' + crypto.randomBytes(3).toString('hex');
+  B.creer({date: new Date().toISOString(), tel, adresse, projet, motif: texte(d.motif, 40), reponses: d.a && typeof d.a === 'object' ? d.a : {}}, 'rappels', id + '.json');
+  journal('demande de rappel', projet);
+  await envoyerMail(CONF.mailA, `À rappeler : ${projet || 'projet'} (${tel})`,
+    `Demande de rappel depuis le site.\n\nTéléphone : ${tel}\nProjet : ${projet}\nMotif : ${texte(d.motif, 40)}\nAdresse des travaux : ${adresse}\nRéponses : ${JSON.stringify(d.a || {})}\n`);
   repondre(res, 200, {ok: true});
 }
-const texteLong = v => typeof v === 'string' ? v.replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/g, '').trim().slice(0, 5000) : '';
 
-function dossierFichier(req, res, url) {
-  const a = accesDossier(url); if (!a) { req.resume(); return repondre(res, 404, {erreur: 'Lien invalide.'}); }
-  const e = etatDossier(a.ref), total = e.fichiers.reduce((s, f) => s + f.taille, 0);
-  const annonce = +req.headers['content-length'] || 0;
-  if (e.statut.termine) { req.resume(); return repondre(res, 409, {erreur: 'Dossier déjà transmis. Pour ajouter un fichier, écrivez-nous.'}); }
-  if (e.fichiers.length >= LIM.nb) { req.resume(); return repondre(res, 413, {erreur: `Maximum ${LIM.nb} fichiers.`}); }
-  if (annonce > LIM.fichier) { req.resume(); return repondre(res, 413, {erreur: 'Fichier trop lourd (25 Mo maximum).'}); }
-  if (total + annonce > LIM.total) { req.resume(); return repondre(res, 413, {erreur: 'Dossier complet : 400 Mo maximum.'}); }
-  const nom = nomPropre(decodeURIComponent(req.headers['x-nom-fichier'] || 'fichier'));
-  const dir = path.join(dossierDir(a.ref), 'fichiers'); fs.mkdirSync(dir, {recursive: true});
-  const id = Date.now() + '-' + crypto.randomBytes(2).toString('hex') + '-' + nom.replace(/\.[A-Za-z0-9]{1,5}$/, '');
-  const tmp = path.join(dir, '.' + id + '.part');
-  const out = fs.createWriteStream(tmp, {flags: 'wx'});
-  let n = 0, tete = Buffer.alloc(0), fini = false;
-  const echec = (code, msg) => { if (fini) return; fini = true; out.destroy(); fs.rm(tmp, {force: true}, () => {}); req.resume(); repondre(res, code, {erreur: msg}); };
-  req.on('data', c => {
-    if (fini) return;
-    n += c.length; if (tete.length < 16) tete = Buffer.concat([tete, c]).slice(0, 16);
-    if (n > LIM.fichier) return echec(413, 'Fichier trop lourd (25 Mo maximum).');
-    out.write(c);
-  });
-  req.on('error', () => echec(400, 'Envoi interrompu.'));
-  req.on('end', () => {
-    if (fini) return;
-    const type = typeFichier(tete);
-    if (!type) return echec(415, 'Format non accepté : photos (JPG, PNG, HEIC, WebP) ou PDF.');
-    out.end(() => {
-      if (fini) return; fini = true;
-      const final = path.join(dir, id + '.' + type);
-      fs.renameSync(tmp, final);
-      journal('fichier reçu', a.ref, type, n);
-      repondre(res, 200, {ok: true, nom: path.basename(final).replace(/^\d+-[0-9a-f]{4}-/, ''), taille: n});
-    });
-  });
-}
-
-async function dossierTerminer(req, res, url) {
-  const a = accesDossier(url); if (!a) return repondre(res, 404, {erreur: 'Lien invalide.'});
-  const e = etatDossier(a.ref);
-  if (!e.fichiers.length && !(e.infos.projet || e.infos.mesures)) return repondre(res, 400, {erreur: 'Ajoutez au moins une photo ou une description avant de valider.'});
-  if (e.statut.termine) return repondre(res, 200, {ok: true});
-  fs.mkdirSync(dossierDir(a.ref), {recursive: true});
-  fs.writeFileSync(path.join(dossierDir(a.ref), 'statut.json'), JSON.stringify({termine: new Date().toISOString()}));
-  repondre(res, 200, {ok: true});
-  const {cmd} = a, mo = n => (n / 1048576).toFixed(1).replace('.', ',') + ' Mo';
-  await envoyerMail(CONF.mailA, `Dossier complet ${a.ref} : ${cmd.nom}`,
-    `Le client a transmis son dossier ${a.ref}.\n\nProjet : ${cmd.nom}\nAdresse des travaux : ${cmd.adresse}\nClient : ${cmd.nom_client || cmd.nom || ''} <${cmd.email}>\nOptions : ${cmd.options}\n\nDescription du projet :\n${e.infos.projet || '(rien)'}\n\nMesures :\n${e.infos.mesures || '(rien)'}\n\nRemarques :\n${e.infos.remarques || '(rien)'}\n\nFichiers : ${e.fichiers.length} (${mo(e.fichiers.reduce((s, f) => s + f.taille, 0))})\n${e.fichiers.map(f => '- ' + f.nom).join('\n')}\n\nTout télécharger (zip) : ${lienAdmin(a.ref)}\n`, cmd.email);
-  if (cmd.email) await envoyerMail(cmd.email, `Dossier ${a.ref} : tout est bien reçu`,
-    `Bonjour,\n\nNous avons bien reçu les éléments de votre dossier ${a.ref} (${cmd.nom}).\nNous les vérifions et revenons vers vous si une information manque. Votre dossier sera prêt dans le délai annoncé à la commande.\n\nVotre dossier : ${lienDossier(a.ref)}\n\nL'équipe Le Bon Permis\n`, CONF.mailA);
-}
-
-// Archive zip (sans compression : les photos sont déjà compressées). Aucune dépendance.
-function adminZip(req, res, url) {
-  const ref = url.searchParams.get('d') || '', t = url.searchParams.get('t') || '';
-  if (!REF_RE.test(ref) || !jetonValide(ref, t, 'admin') || !lireCommande(ref)) return repondre(res, 404, {erreur: 'Introuvable.'});
-  const cmd = lireCommande(ref), e = etatDossier(ref), dir = path.join(dossierDir(ref), 'fichiers');
-  const fiche = Buffer.from(`Dossier ${ref}\nProjet : ${cmd.nom}\nAdresse des travaux : ${cmd.adresse}\nClient : <${cmd.email}>\nMontant : ${cmd.montant} €\nOptions : ${cmd.options}\nRéponses : ${cmd.reponses}\n\nDescription du projet :\n${e.infos.projet || ''}\n\nMesures :\n${e.infos.mesures || ''}\n\nRemarques :\n${e.infos.remarques || ''}\n`, 'utf8');
-  const entrees = [{nom: ref + '-fiche.txt', data: fiche}, ...e.fichiers.map(f => ({nom: f.id, data: fs.readFileSync(path.join(dir, f.id))}))];
-  const parts = [], central = []; let off = 0;
-  for (const x of entrees) {
-    const nom = Buffer.from(x.nom, 'utf8'), crc = zlib.crc32(x.data);
-    const h = Buffer.alloc(30); h.writeUInt32LE(0x04034b50, 0); h.writeUInt16LE(20, 4); h.writeUInt16LE(0x0800, 6); h.writeUInt16LE(0, 8);
-    h.writeUInt32LE(0, 10); h.writeUInt32LE(crc, 14); h.writeUInt32LE(x.data.length, 18); h.writeUInt32LE(x.data.length, 22); h.writeUInt16LE(nom.length, 26); h.writeUInt16LE(0, 28);
-    const c = Buffer.alloc(46); c.writeUInt32LE(0x02014b50, 0); c.writeUInt16LE(20, 4); c.writeUInt16LE(20, 6); c.writeUInt16LE(0x0800, 8); c.writeUInt16LE(0, 10);
-    c.writeUInt32LE(0, 12); c.writeUInt32LE(crc, 16); c.writeUInt32LE(x.data.length, 20); c.writeUInt32LE(x.data.length, 24); c.writeUInt16LE(nom.length, 28);
-    c.writeUInt32LE(off, 42);
-    parts.push(h, nom, x.data); central.push(c, nom); off += 30 + nom.length + x.data.length;
-  }
-  const cd = Buffer.concat(central), fin = Buffer.alloc(22);
-  fin.writeUInt32LE(0x06054b50, 0); fin.writeUInt16LE(entrees.length, 8); fin.writeUInt16LE(entrees.length, 10); fin.writeUInt32LE(cd.length, 12); fin.writeUInt32LE(off, 16);
-  const zip = Buffer.concat([...parts, cd, fin]);
-  res.writeHead(200, {'Content-Type': 'application/zip', 'Content-Disposition': `attachment; filename="${ref}.zip"`, 'Content-Length': zip.length, 'Cache-Control': 'no-store'});
-  res.end(zip);
-}
-
-// ---------- routes ----------
-async function commande(req, res) {
-  if (tropDeDemandes(req)) return repondre(res, 429, {erreur: 'Trop de demandes. Réessayez dans quelques minutes.'});
-  let d; try { d = JSON.parse(await lireCorps(req)); } catch { return repondre(res, 400, {erreur: 'Demande illisible.'}); }
-  const x = analyser(d); if (x.erreur) return repondre(res, 400, x);
-  if (!['dp', 'pc', 'pd', 'svc'].includes(x.v.kind)) return repondre(res, 400, {erreur: 'Ce projet ne se commande pas en ligne : demandez à être rappelé.'});
-  const email = texte(d.email, 254), adresse = texte(d.adresse, 300);
-  if (!MAIL_RE.test(email)) return repondre(res, 400, {erreur: 'Adresse e-mail invalide.'});
-  if (adresse.length < 5) return repondre(res, 400, {erreur: 'Indiquez l\'adresse des travaux.'});
-  const opt = PRIX.optionsValides(P, x.p, x.v, d.opt);
-  const lignes = PRIX.lignes(P, x.p, x.v, opt), total = PRIX.total(lignes);
-  const nom = (x.regul ? 'Travaux déjà faits · ' : '') + P[x.p].n;
-  const page = PAGES[x.p] ? `${CONF.site}/${PAGES[x.p].slug}/` : `${CONF.site}/`;
-  const meta = {
-    projet: x.p, nom: nom.slice(0, 200), regul: String(x.regul), adresse: adresse.slice(0, 480),
-    reponses: JSON.stringify(x.a).slice(0, 480),
-    options: Object.keys(opt).filter(k => opt[k]).join(',') || 'aucune', total: String(total)
-  };
-  const params = {
-    mode: 'payment', locale: 'fr', customer_email: email,
-    success_url: `${CONF.site}/commande/merci/?ref={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${page}#${x.p}`,
-    line_items: lignes.map(l => ({quantity: 1, price_data: {currency: 'eur', unit_amount: Math.round(l.prix * 100), product_data: {name: l.label}}})),
-    metadata: meta,
-    payment_intent_data: {description: `${nom}, ${adresse}`.slice(0, 1000), metadata: meta},
-    consent_collection: {terms_of_service: 'required'},
-    custom_text: {terms_of_service_acceptance: {message: `J'accepte les [conditions générales de vente](${CONF.site}/cgv/) et je demande que mon dossier soit commencé avant la fin du délai de rétractation de 14 jours.`}}
-  };
-  try {
-    const s = await stripe('POST', '/v1/checkout/sessions', params);
-    journal('paiement ouvert', reference(s.id), x.p, total + ' €');
-    repondre(res, 200, {url: s.url});
-  } catch (e) {
-    journal('erreur Stripe :', e.message);
-    repondre(res, 502, {erreur: 'Le paiement n\'a pas pu s\'ouvrir.'});
-  }
-}
-
-async function etatCommande(req, res, url) {
-  const id = url.searchParams.get('ref') || '';
-  if (!/^cs_(test|live)_[A-Za-z0-9]{10,200}$/.test(id)) return repondre(res, 400, {erreur: 'Référence invalide.'});
-  try {
-    const s = await stripe('GET', '/v1/checkout/sessions/' + encodeURIComponent(id));
-    const m = s.metadata || {}, p = m.projet;
-    const mail = (s.customer_details && s.customer_details.email) || s.customer_email || '';
-    repondre(res, 200, {
-      ref: reference(s.id), paye: s.payment_status === 'paid', montant: (s.amount_total || 0) / 100,
-      projet: m.nom || (P[p] ? P[p].n : ''), adresse: m.adresse || '',
-      email: mail.replace(/^(.).*(@.*)$/, '$1•••$2'),
-      demandes: (P[p] && NEED[p]) || NEED.extension,
-      dossier: s.payment_status === 'paid' ? lienDossier(reference(s.id)) : null
-    });
-  } catch (e) {
-    repondre(res, 404, {erreur: 'Commande introuvable.'});
-  }
-}
-
+// ---------- webhook Stripe ----------
 async function webhook(req, res) {
   let brut; try { brut = (await lireCorps(req, 200000)).toString('utf8'); } catch { return repondre(res, 400, {}); }
   if (!signatureValide(brut, req.headers['stripe-signature'], CONF.stripeWebhook)) { journal('webhook refusé : signature invalide'); return repondre(res, 400, {erreur: 'signature'}); }
@@ -361,57 +38,91 @@ async function webhook(req, res) {
   if (!['checkout.session.completed', 'checkout.session.async_payment_succeeded'].includes(ev.type)) return repondre(res, 200, {recu: true});
   const s = ev.data.object;
   if (s.payment_status !== 'paid') return repondre(res, 200, {recu: true});
-  const ref = reference(s.id), m = s.metadata || {};
-  const email = (s.customer_details && s.customer_details.email) || s.customer_email || '';
-  const nom = (s.customer_details && s.customer_details.name) || '';
-  const cmd = {ref, session: s.id, date: new Date().toISOString(), montant: s.amount_total / 100, email, nom_client: nom, ...m};
-  const nouvelle = enregistrer('commandes', ref, cmd);
+  try { await D.paiementRecu(s); } catch (e) { journal('erreur webhook', e.stack || e.message); return repondre(res, 500, {}); } // Stripe réessaiera
   repondre(res, 200, {recu: true});
-  if (!nouvelle) return;
-  journal('commande payée', ref, m.projet, cmd.montant + ' €');
-  const need = (P[m.projet] && NEED[m.projet]) || NEED.extension;
-  await envoyerMail(CONF.mailA, `Nouvelle commande ${ref} : ${m.nom} (${euro(cmd.montant)})`,
-    `Commande ${ref} payée.\n\nProjet : ${m.nom}\nAdresse des travaux : ${m.adresse}\nClient : ${nom} <${email}>\nMontant : ${euro(cmd.montant)} TTC\nOptions : ${m.options}\nRéponses : ${m.reponses}\n\nStripe : https://dashboard.stripe.com/payments/${s.payment_intent || ''}\nDossier client : ${lienDossier(ref)}\nTélécharger (zip) : ${lienAdmin(ref)}\n`, email);
-  if (email) await envoyerMail(email, `Votre commande ${ref} : la suite`,
-    `Bonjour${nom ? ' ' + nom : ''},\n\nMerci, votre paiement de ${euro(cmd.montant)} est bien reçu.\nRéférence de votre dossier : ${ref}\nProjet : ${m.nom}\nAdresse des travaux : ${m.adresse}\n\nPour lancer votre dossier, envoyez-nous vos photos et vos mesures sur votre page personnelle, depuis votre téléphone :\n${lienDossier(ref)}\n\nCe qu'il nous faut :\n- Le projet : ${need[0]}\n- Les mesures : ${need[1]}\n- Les photos : ${need[2]}\n\nLe délai de préparation commence à la réception de ces éléments. Gardez cet e-mail : le lien ci-dessus est personnel. Une question ? Répondez à cet e-mail.\n\nL'équipe Le Bon Permis\n${CONF.site}\n`, CONF.mailA);
 }
 
-async function rappel(req, res) {
-  if (tropDeDemandes(req)) return repondre(res, 429, {erreur: 'Trop de demandes. Réessayez dans quelques minutes.'});
-  let d; try { d = JSON.parse(await lireCorps(req)); } catch { return repondre(res, 400, {erreur: 'Demande illisible.'}); }
-  const tel = texte(d.tel, 40), adresse = texte(d.adresse, 300);
-  if ((tel.match(/\d/g) || []).length < 9) return repondre(res, 400, {erreur: 'Numéro de téléphone invalide.'});
-  const projet = P[d.p] ? P[d.p].n : '';
-  const id = new Date().toISOString().replace(/[:.]/g, '-') + '-' + crypto.randomBytes(3).toString('hex');
-  enregistrer('rappels', id, {date: new Date().toISOString(), tel, adresse, projet, motif: texte(d.motif, 40), reponses: d.a && typeof d.a === 'object' ? d.a : {}});
-  journal('demande de rappel', projet);
-  await envoyerMail(CONF.mailA, `À rappeler : ${projet || 'projet'} (${tel})`,
-    `Demande de rappel depuis le site.\n\nTéléphone : ${tel}\nProjet : ${projet}\nMotif : ${texte(d.motif, 40)}\nAdresse des travaux : ${adresse}\nRéponses : ${JSON.stringify(d.a || {})}\n`);
-  repondre(res, 200, {ok: true});
+// ---------- anciens liens « dossier » (première version) ----------
+const ANCIEN = crypto.createHash('sha256').update('liens-bonpermis:' + (B.E.LIENS_SECRET || CONF.stripeWebhook || 'dev')).digest();
+function ancienLien(req, res, url) {
+  const ref = url.searchParams.get('d') || '', t = url.searchParams.get('t') || '';
+  const attendu = crypto.createHmac('sha256', ANCIEN).update('client:' + ref).digest('base64url').slice(0, 24);
+  const cmd = D.REF_RE.test(ref) && B.egal(t, attendu) && D.lireCmd(ref);
+  const u = cmd && C.lireUser(cmd.uid);
+  if (!u) { res.writeHead(302, {Location: '/espace/'}); return res.end(); }
+  C.ouvrirSession(res, u);
+  res.writeHead(302, {Location: '/espace/dossier/?ref=' + ref}); res.end();
 }
+
+// Les demandes qui modifient quelque chose doivent venir du site lui-même.
+function origineOk(req) {
+  const o = req.headers.origin; if (!o) return true;
+  return o === CONF.site;
+}
+
+const ROUTES = {
+  'POST /api/commande': D.commande,
+  'GET /api/commande': D.etatCommande,
+  'POST /api/stripe-webhook': webhook,
+  'POST /api/rappel': rappel,
+  // comptes
+  'POST /api/compte/inscription': C.inscription,
+  'POST /api/compte/connexion': C.connexion,
+  'POST /api/compte/lien': C.demanderLien,
+  'GET /api/compte/lien': C.suivreLien,
+  'POST /api/compte/mot-de-passe': C.changerMdp,
+  'POST /api/compte/premier-mot-de-passe': C.premierMdp,
+  'POST /api/compte/deconnexion': C.deconnexion,
+  'GET /api/compte/acces': ancienLien,
+  // espace client
+  'GET /api/espace': D.espace,
+  'POST /api/projets': D.enregistrerProjet,
+  'DELETE /api/projets': D.supprimerProjet,
+  'POST /api/projets/commander': D.commanderProjet,
+  'GET /api/espace/dossier': D.clientDossier,
+  'POST /api/espace/dossier/texte': D.clientTexte,
+  'POST /api/espace/dossier/fichier': D.clientFichier,
+  'DELETE /api/espace/dossier/fichier': D.clientSupprimerFichier,
+  'POST /api/espace/dossier/message': D.clientMessage,
+  'POST /api/espace/dossier/terminer': D.clientTerminer,
+  'POST /api/espace/dossier/valider': D.clientValider,
+  'GET /api/espace/voir': D.clientVoir,
+  'GET /api/espace/telecharger': D.clientTelecharger,
+  // équipe
+  'POST /api/admin/code': C.adminCode,
+  'POST /api/admin/connexion': C.adminConnexion,
+  'POST /api/admin/deconnexion': C.adminDeconnexion,
+  'GET /api/admin/moi': (req, res) => { const e = C.sessionAdmin(req); repondre(res, e ? 200 : 401, e ? {email: e} : {erreur: 'Non connecté.'}); },
+  'GET /api/admin/dossiers': D.equipeListe,
+  'GET /api/admin/dossier': D.equipeDossier,
+  'GET /api/admin/voir': D.equipeVoir,
+  'POST /api/admin/piece': D.equipePiece,
+  'POST /api/admin/classer': D.equipeClasser,
+  'POST /api/admin/fichier': D.equipeFichier,
+  'POST /api/admin/message': D.equipeMessage,
+  'POST /api/admin/lancer': D.equipeLancer,
+  'POST /api/admin/livrable': D.equipeLivrable,
+  'DELETE /api/admin/livrable': D.equipeSupprimerLivrable,
+  'POST /api/admin/apercu': D.equipeEnvoyerApercu,
+  'GET /api/admin/dossier.zip': D.equipeZip,
+  'GET /api/sante': (req, res) => repondre(res, 200, {ok: true, stripe: !!CONF.stripeCle, mode: CONF.stripeCle.includes('_live_') ? 'reel' : 'test', webhook: !!CONF.stripeWebhook, mail: !!(CONF.smtp.hote && CONF.smtp.pass), images: !!B.OUTILS.magick, pdf: !!B.OUTILS.pdftoppm})
+};
 
 const serveur = http.createServer(async (req, res) => {
   const url = new URL(req.url, 'http://local');
+  const route = ROUTES[req.method + ' ' + url.pathname];
   try {
-    if (req.method === 'POST' && url.pathname === '/api/commande') return await commande(req, res);
-    if (req.method === 'GET' && url.pathname === '/api/commande') return await etatCommande(req, res, url);
-    if (req.method === 'POST' && url.pathname === '/api/stripe-webhook') return await webhook(req, res);
-    if (req.method === 'POST' && url.pathname === '/api/rappel') return await rappel(req, res);
-    if (req.method === 'GET' && url.pathname === '/api/dossier') return await dossierGet(req, res, url);
-    if (req.method === 'POST' && url.pathname === '/api/dossier/infos') return await dossierInfos(req, res, url);
-    if (req.method === 'POST' && url.pathname === '/api/dossier/fichier') return dossierFichier(req, res, url);
-    if (req.method === 'POST' && url.pathname === '/api/dossier/terminer') return await dossierTerminer(req, res, url);
-    if (req.method === 'GET' && url.pathname === '/api/admin/dossier.zip') return adminZip(req, res, url);
-    if (req.method === 'GET' && url.pathname === '/api/sante') return repondre(res, 200, {ok: true, stripe: !!CONF.stripeCle, mode: CONF.stripeCle.includes('_live_') ? 'reel' : 'test', webhook: !!CONF.stripeWebhook, mail: !!(CONF.smtp.hote && CONF.smtp.pass)});
-    repondre(res, 404, {erreur: 'Introuvable.'});
+    if (!route) { req.resume(); return repondre(res, 404, {erreur: 'Introuvable.'}); }
+    if (req.method !== 'GET' && url.pathname !== '/api/stripe-webhook' && !origineOk(req)) { req.resume(); return repondre(res, 403, {erreur: 'Origine refusée.'}); }
+    return await route(req, res, url);
   } catch (e) {
     journal('erreur', e.stack || e.message);
     if (!res.headersSent) repondre(res, 500, {erreur: 'Erreur du service.'});
   }
 });
-
-// Envois de photos depuis un téléphone : on laisse 15 minutes par requête.
+// Envois de photos et de PDF depuis un téléphone : on laisse 15 minutes par requête.
 serveur.requestTimeout = 15 * 60 * 1000;
 
-if (require.main === module) serveur.listen(CONF.port, () => journal(`service de paiement sur le port ${CONF.port}`, CONF.stripeCle ? '' : '(clé Stripe absente)'));
-module.exports = {serveur, signatureValide, reference, encoder, analyser, jeton, lienDossier, lienAdmin};
+if (require.main === module) { setTimeout(C.purgerInactifs, 60000); setInterval(C.purgerInactifs, 86400000).unref(); }
+if (require.main === module) serveur.listen(CONF.port, () => journal(`service Le Bon Permis sur le port ${CONF.port}`, CONF.stripeCle ? '' : '(clé Stripe absente)', `images:${!!B.OUTILS.magick} pdf:${!!B.OUTILS.pdftoppm}`));
+module.exports = {serveur, signatureValide, reference: B.reference, encoder: B.encoder, analyser: D.analyser};

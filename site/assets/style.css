@@ -327,3 +327,13 @@ a.tile,a.svc{color:inherit;text-decoration:none}
 .legal-page .files{padding:0;margin-left:0}
 .legal-page .files li{list-style:none}
 .up em{grid-column:1/-1;margin-top:-6px}
+
+/* Lien « Mon espace » dans l'en-tête */
+.top-act{display:flex;align-items:center;gap:14px}
+.espace-lien{display:inline-flex;align-items:center;gap:6px;color:var(--ink);text-decoration:none;font-size:14px;min-height:44px}
+.espace-lien:hover{color:var(--accent)}
+.espace-lien:focus-visible{outline:3px solid var(--accent);outline-offset:3px;border-radius:6px}
+@media (max-width:560px){.espace-lien span{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+.acompte-l{margin-top:6px;border-top:0}
+.acompte-l div{font-size:14px;color:var(--muted);padding:6px 0;border-bottom:0}

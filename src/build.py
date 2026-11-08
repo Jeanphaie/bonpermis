@@ -93,7 +93,8 @@ def entete(base, accueil):
       <a href="{a}#tarifs">Tarifs</a>
       <a href="{a}#faq">Questions</a>
     </nav>
-    <a class="btn{' js-start' if accueil else ''}" href="{a}#projets">Commencer</a>
+    <div class="top-act"><a class="espace-lien" href="/espace/" aria-label="Mon espace"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg><span>Mon espace</span></a>
+    <a class="btn{' js-start' if accueil else ''}" href="{a}#projets">Commencer</a></div>
   </div>
 </header>
 '''
@@ -278,36 +279,34 @@ def legale(slug, titre):
     return head(f'{titre} | Le Bon Permis', desc, slug + '/', base, []) + '<body data-page="legal">\n\n' + entete(base, False) + '\n' + html_ + '\n' + pied(base) + OVERLAY + scripts(base)
 
 
-def merci():
-    base = '../../'
-    corps = """<main id="top">
-<section class="page-sec legal-page">
-  <div class="wrap narrow" id="merci" aria-live="polite">
-    <h1>Votre commande</h1>
+def page_app(chemin, titre, desc, ident, script, large=False):
+    """Pages de l'espace client et de l'équipe : coquille HTML, le contenu est rendu par le script."""
+    base = '../' * chemin.count('/')
+    if large:
+        corps = f'<main id="top"><div id="{ident}"><p class="answer" style="padding:40px">Chargement…</p></div></main>\n'
+    else:
+        corps = f"""<main id="top">
+<section class="esp">
+  <div class="wrap narrow" id="{ident}" aria-live="polite">
+    <h1>{e(titre)}</h1>
     <p class="answer">Chargement…</p>
   </div>
 </section>
 </main>
 """
-    h = head('Commande reçue | Le Bon Permis', 'Confirmation de votre commande Le Bon Permis.', 'commande/merci/', base, [])
-    h = h.replace('<meta charset="utf-8">', '<meta charset="utf-8">\n<meta name="robots" content="noindex">')
-    return h + '<body data-page="merci">\n\n' + entete(base, False) + '\n' + corps + '\n' + pied(base) + f'<script src="{base}assets/merci.js"></script>\n</body>\n</html>\n'
+    h = head(f'{titre} | Le Bon Permis', desc, chemin, base, [])
+    h = h.replace('<meta charset="utf-8">', '<meta charset="utf-8">\n<meta name="robots" content="noindex">\n<meta name="referrer" content="same-origin">')
+    h = h.replace('</head>', f'<link rel="stylesheet" href="{base}assets/espace.css">\n</head>')
+    return h + f'<body data-page="{ident}">\n\n' + entete(base, False) + '\n' + corps + '\n' + (pied(base) if not large else '') + f'<script src="{base}assets/{script}"></script>\n</body>\n</html>\n'
 
 
-def dossier():
-    base = '../'
-    corps = """<main id="top">
-<section class="page-sec legal-page">
-  <div class="wrap narrow" id="dossier" aria-live="polite">
-    <h1>Mon dossier</h1>
-    <p class="answer">Chargement…</p>
-  </div>
-</section>
-</main>
-"""
-    h = head('Mon dossier | Le Bon Permis', 'Envoi des photos et des mesures de votre projet.', 'dossier/', base, [])
-    h = h.replace('<meta charset="utf-8">', '<meta charset="utf-8">\n<meta name="robots" content="noindex">\n<meta name="referrer" content="no-referrer">')
-    return h + '<body data-page="dossier">\n\n' + entete(base, False) + '\n' + corps + '\n' + pied(base) + f'<script src="{base}assets/dossier.js"></script>\n</body>\n</html>\n'
+APPS = [
+    ('commande/merci/', 'Votre commande', 'Confirmation de votre commande Le Bon Permis.', 'merci', 'merci.js', False),
+    ('espace/', 'Mon espace', 'Vos projets et vos dossiers Le Bon Permis.', 'espace', 'espace.js', False),
+    ('espace/dossier/', 'Mon dossier', 'Suivi de votre dossier Le Bon Permis.', 'dossier', 'espace-dossier.js', False),
+    ('admin/', 'Espace équipe', 'Espace équipe Le Bon Permis.', 'admin', 'admin.js', True),
+    ('dossier/', 'Mon dossier', 'Redirection vers votre espace.', 'dossier', 'dossier.js', False),
+]
 
 
 def sitemap(chemins):
@@ -319,7 +318,7 @@ def main():
     (SITE / 'assets').mkdir(exist_ok=True)
     data = {'P': P, 'GROUPS': GROUPS, 'SVCS': SVCS, 'NEED': NEED, 'URL': URL}
     (SITE / 'assets' / 'data.js').write_text('window.OP = ' + json.dumps(data, ensure_ascii=False) + ';\n', encoding='utf-8')
-    for f in ('app.js', 'prix.js', 'merci.js', 'dossier.js'):
+    for f in ('app.js', 'prix.js', 'merci.js', 'dossier.js', 'espace.js', 'espace-dossier.js', 'admin.js', 'espace.css'):
         shutil.copy(SRC / f, SITE / 'assets' / f)
     shutil.copy(SRC / 'style.css', SITE / 'assets' / 'style.css')
     shutil.copytree(SRC / 'fonts', SITE / 'assets' / 'fonts', dirs_exist_ok=True)
@@ -334,12 +333,11 @@ def main():
         (SITE / slug).mkdir(exist_ok=True)
         (SITE / slug / 'index.html').write_text(legale(slug, titre), encoding='utf-8')
         chemins.append(slug + '/')
-    (SITE / 'commande' / 'merci').mkdir(parents=True, exist_ok=True)
-    (SITE / 'commande' / 'merci' / 'index.html').write_text(merci(), encoding='utf-8')
-    (SITE / 'dossier').mkdir(exist_ok=True)
-    (SITE / 'dossier' / 'index.html').write_text(dossier(), encoding='utf-8')
+    for chemin, titre, desc, ident, script, large in APPS:
+        (SITE / chemin).mkdir(parents=True, exist_ok=True)
+        (SITE / chemin / 'index.html').write_text(page_app(chemin, titre, desc, ident, script, large), encoding='utf-8')
     (SITE / 'sitemap.xml').write_text(sitemap(chemins), encoding='utf-8')
-    (SITE / 'robots.txt').write_text(f'User-agent: *\nAllow: /\nDisallow: /commande/\nDisallow: /dossier/\nDisallow: /api/\n\nSitemap: {DOMAINE}/sitemap.xml\n', encoding='utf-8')
+    (SITE / 'robots.txt').write_text(f'User-agent: *\nAllow: /\nDisallow: /commande/\nDisallow: /dossier/\nDisallow: /espace/\nDisallow: /admin/\nDisallow: /api/\n\nSitemap: {DOMAINE}/sitemap.xml\n', encoding='utf-8')
     print(f'{len(chemins)} pages générées dans {SITE}')
 
 

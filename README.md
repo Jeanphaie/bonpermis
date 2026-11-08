@@ -27,11 +27,13 @@ Modifier `src/`, lancer `python3 src/build.py`, pousser sur `main`. Le timer `bo
 
 Pas de force-push : le serveur ne suit qu'en fast-forward.
 
-## Dossier client (envoi des photos)
+## Comptes, dossiers et espace équipe
 
-Après le paiement, le client reçoit un lien privé `https://bonpermis.fr/dossier/?d=BP-XXXXXX&t=...` (page de confirmation et e-mail).
-Le jeton est un HMAC de la référence : rien à stocker, impossible à deviner.
-Sur cette page il décrit le projet, donne les mesures et envoie ses photos (JPG, PNG, HEIC, WebP, PDF ; 25 Mo par fichier, 40 fichiers, 400 Mo par dossier).
-Le type de chaque fichier est vérifié sur son contenu, pas sur son nom.
-Quand il clique sur « J'ai tout envoyé », contact@ reçoit un e-mail avec un lien de téléchargement du dossier complet en zip (jeton admin distinct).
-Fichiers sur le serveur : `/opt/apps/bonpermis-data/dossiers/BP-XXXXXX/`.
+Code du service : `api/server.js` (routes), `api/comptes.js` (comptes, sessions, accès équipe), `api/dossiers.js` (commandes, pièces, livrables, paiements), `api/base.js` (outils).
+
+- **Client** : compte e-mail + mot de passe (empreinte scrypt) ou lien de connexion par e-mail. Le compte peut exister sans commande (simulations enregistrées, prix figé). Il est créé automatiquement au paiement ; le mot de passe se choisit sur la page « Commande reçue ». Pages : `/espace/`, `/espace/dossier/?ref=BP-XXXXXX`.
+- **Paiement en deux fois** : acompte de 30 % à la commande, solde après l'aperçu des plans (Stripe Checkout, `metadata.type` = `acompte` ou `solde`).
+- **Dossier** : pièces demandées (textes, photos, documents) avec statut manquant / à vérifier / validé / à refaire, messages, historique. Statuts : elements, verification, preparation (échéance), apercu, corrections, livre.
+- **Équipe** : `/admin/`, connexion par code à 6 chiffres envoyé aux adresses de `ADMIN_EMAILS` (par défaut contact@bonpermis.fr et jpk@lk-invest.fr). Liseuse, classement, validation, dépôt des PDF livrés (aperçu en image avec filigrane), envoi de l'aperçu.
+- **Images** : l'image Docker (`deploy/Dockerfile.paiement`) ajoute pdftoppm et ImageMagick (HEIC). `deploy/maj.sh` la reconstruit tout seul quand elle change ; sans ces outils, le service fonctionne sans aperçus.
+- **Données** : `/opt/apps/bonpermis-data/` (`comptes/`, `projets/`, `commandes/`, `dossiers/BP-XXXXXX/{fichiers,vues,livrables,apercu}`).

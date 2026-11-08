@@ -1,11 +1,14 @@
 # Le Bon Permis : service de paiement (api/server.js), à côté du site.
 # Projet Compose séparé : il ne modifie pas le Compose principal de /opt/apps.
-# Lancé par deploy/installer-paiement.sh :
-#   docker compose --env-file /opt/apps/bonpermis-paiement.compose.env -f deploy/compose-paiement.yml -p bonpermis-paiement up -d
+# Lancé par deploy/installer-paiement.sh, puis reconstruit automatiquement par deploy/maj.sh quand l'image change :
+#   docker compose --env-file /opt/apps/bonpermis-paiement.compose.env -f deploy/compose-paiement.yml -p bonpermis-paiement up -d --build
 # Les secrets (clé Stripe, secret du webhook, mot de passe SMTP) sont dans /opt/apps/bonpermis-paiement.env, jamais dans le dépôt.
 services:
   api:
-    image: node:22-alpine
+    image: bonpermis-paiement:local
+    build:
+      context: .
+      dockerfile: Dockerfile.paiement
     container_name: bonpermis-paiement
     restart: unless-stopped
     user: "1000:1000"
