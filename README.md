@@ -1,30 +1,21 @@
-# ouipermis
+# bonpermis
 
-Dépôt du site **Le Bon Permis** (bonpermis.fr, ancien nom Oui Permis : ouipermis.fr redirige vers bonpermis.fr) : plans et dossiers pour déposer une déclaration préalable ou un permis de construire.
+Dépôt du site **Le Bon Permis** (https://bonpermis.fr) : plans et dossiers pour déposer une déclaration préalable ou un permis de construire.
 
 ## Contenu
 
-- `site/` : le site statique servi en production (`index.html` + `img/`, 38 illustrations). Source : artifact « Oui Permis » v27.
-- `deploy/` : configuration serveur (Nginx + bloc Docker Compose pour Traefik).
+- `site/` : le site statique servi en production (`index.html` + `img/`).
+- `deploy/` : configuration serveur (Nginx, bloc Docker Compose pour Traefik, timer de mise à jour).
 
 ## Hébergement
 
-- Serveur Hetzner `95.217.60.216`, même Docker Compose que LKI (`/opt/apps`), HTTPS par Traefik / Let's Encrypt.
-- DNS chez Hostinger, pour bonpermis.fr et ouipermis.fr : `A @ -> 95.217.60.216`, `CNAME www -> domaine`.
+- Serveur Hetzner `95.217.60.216`, même Docker Compose que LKI (`/opt/apps`), service `bonpermis`, HTTPS par Traefik / Let's Encrypt.
+- Clone sur le serveur : `/opt/apps/bonpermis-src`.
+- DNS chez Hostinger : `A @ -> 95.217.60.216`, `CNAME www -> bonpermis.fr`.
+- `www.bonpermis.fr` et l'ancien domaine `ouipermis.fr` redirigent en 301 vers `https://bonpermis.fr`.
 
-## Première mise en ligne (une seule fois, sur le serveur)
+## Publier
 
-```bash
-git clone https://github.com/Jeanphaie/ouipermis /opt/apps/ouipermis-src
-# insérer deploy/service-ouipermis.yml dans /opt/apps/docker-compose.yml, juste avant le service lki-frontend
-# (mêmes réglages Traefik que LKI : entrypoint websecure, certresolver letsencrypt, réseau web, middleware security-headers@file)
-cd /opt/apps && docker compose up -d ouipermis
-```
+Pousser sur `main`. Le timer `bonpermis-pull.timer` fait `git pull --ff-only` toutes les 2 minutes ; Nginx lit `site/` directement. Aucune action sur le serveur.
 
-## Mettre à jour le site
-
-```bash
-cd /opt/apps/ouipermis-src && git pull
-```
-
-Rien d'autre : le conteneur lit le dossier `site/` directement.
+Pas de force-push : le serveur ne suit qu'en fast-forward.

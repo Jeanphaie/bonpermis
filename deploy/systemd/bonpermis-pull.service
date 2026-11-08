@@ -1,0 +1,8 @@
+# Met à jour le site Le Bon Permis depuis GitHub. Lancé par bonpermis-pull.timer.
+# Installé une fois par JP ; ne touche qu'à /opt/apps/bonpermis-src (fast-forward seulement).
+[Unit]
+Description=Le Bon Permis : git pull du site
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/git -C /opt/apps/bonpermis-src pull -q --ff-only origin main
