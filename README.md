@@ -1,6 +1,6 @@
 # ouipermis
 
-Dépôt du site **Oui Permis** (ouipermis.fr) : plans et dossiers pour déposer une déclaration préalable ou un permis de construire.
+Dépôt du site **Le Bon Permis** (bonpermis.fr, ancien nom Oui Permis : ouipermis.fr redirige vers bonpermis.fr) : plans et dossiers pour déposer une déclaration préalable ou un permis de construire.
 
 ## Contenu
 
@@ -10,7 +10,7 @@ Dépôt du site **Oui Permis** (ouipermis.fr) : plans et dossiers pour déposer 
 ## Hébergement
 
 - Serveur Hetzner `95.217.60.216`, même Docker Compose que LKI (`/opt/apps`), HTTPS par Traefik / Let's Encrypt.
-- DNS chez Hostinger : `A @ -> 95.217.60.216`, `CNAME www -> ouipermis.fr`.
+- DNS chez Hostinger, pour bonpermis.fr et ouipermis.fr : `A @ -> 95.217.60.216`, `CNAME www -> domaine`.
 
 ## Première mise en ligne (une seule fois, sur le serveur)
 

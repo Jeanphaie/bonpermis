@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Oui Permis</title>
+<title>Le Bon Permis</title>
 <meta name="description" content="Abri, piscine, extension, véranda : on prépare votre dossier de mairie, plans compris, et on vérifie les règles de votre commune. Prix connu en une minute, dossier prêt en 48 h.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -262,13 +262,13 @@ footer a{color:var(--muted)}
 
 <header class="top">
   <div class="wrap">
-    <a class="logo" href="#top" aria-label="Oui Permis, accueil">
+    <a class="logo" href="#top" aria-label="Le Bon Permis, accueil">
       <svg viewBox="0 0 32 32" aria-hidden="true">
         <path d="M1 1 H31 V31 H17" fill="none" stroke="var(--ink)" stroke-width="2"/>
         <path d="M1 1 V31 H3" fill="none" stroke="var(--ink)" stroke-width="2"/>
         <path d="M8 17 L14 23 L25 9" fill="none" stroke="var(--accent)" stroke-width="4" stroke-linecap="square"/>
       </svg>
-      <b>oui<i>permis</i></b>
+      <b>bon<i>permis</i></b>
     </a>
     <nav class="links" aria-label="Sections">
       <a href="#comment">Comment ça marche</a>
@@ -365,7 +365,7 @@ footer a{color:var(--muted)}
     </div>
     <div class="compare-scroll">
       <table class="compare">
-        <thead><tr><th></th><th>Outil automatique</th><th>Bureau d'études classique</th><th class="us">Oui Permis</th></tr></thead>
+        <thead><tr><th></th><th>Outil automatique</th><th>Bureau d'études classique</th><th class="us">Le Bon Permis</th></tr></thead>
         <tbody>
           <tr><td>Qui dessine les plans ?</td><td>Vous, avec un logiciel</td><td>Un dessinateur</td><td class="us">Nous</td></tr>
           <tr><td>Règles de votre commune</td><td>À vérifier vous-même</td><td>Vérifiées</td><td class="us">Vérifiées avant de dessiner</td></tr>
@@ -471,7 +471,7 @@ footer a{color:var(--muted)}
       <details><summary>Combien de temps la mairie met-elle à répondre ?</summary><p>Un mois pour une déclaration, deux mois pour un permis de maison, un mois de plus près d'un monument historique. À compter du dépôt du dossier complet.</p></details>
             <details><summary>Est-ce qu'il me faut un architecte ?</summary><p>Seulement si votre maison dépasse 150 m² après les travaux. Dans ce cas, on vous met en relation avec un architecte partenaire.</p></details>
             <details><summary>Le paiement est-il sécurisé ?</summary><p>Oui. Vous payez par carte, Apple Pay, Google Pay ou PayPal, sur une page sécurisée. Vos données bancaires ne passent jamais par nous.</p></details>
-      <details><summary>Qui êtes-vous ?</summary><p>Oui Permis est un service de LK Invest, société installée à Paris. On prépare des dossiers de mairie pour les particuliers, partout en France. Entreprise privée, sans lien avec les administrations.</p></details>
+      <details><summary>Qui êtes-vous ?</summary><p>Le Bon Permis est un service de LK Invest, société installée à Paris. On prépare des dossiers de mairie pour les particuliers, partout en France. Entreprise privée, sans lien avec les administrations.</p></details>
     </div>
   </div>
 </section>
@@ -493,7 +493,7 @@ footer a{color:var(--muted)}
 
 <footer>
   <div class="wrap">
-    <span>© 2026 Oui Permis, un service de LK Invest. Entreprise privée, sans lien avec les administrations.</span>
+    <span>© 2026 Le Bon Permis, un service de LK Invest. Entreprise privée, sans lien avec les administrations.</span>
     <span><a href="#">Mentions légales</a> · <a href="#">CGV</a> · <a href="#">Confidentialité</a> · Maquette, paiement non branché</span>
   </div>
 </footer>
@@ -777,7 +777,7 @@ footer a{color:var(--muted)}
     const s = e.target.closest('.js-start');
     if (s) { e.preventDefault(); const a = document.getElementById('projets'); a.scrollIntoView({behavior:'smooth', block:'start'}); setTimeout(() => { const f = a.querySelector('.tile'); if (f) f.focus({preventScroll:true}); }, 400); }
   });
-  // Accès direct : ouipermis.fr/#extension ouvre directement le projet
+  // Accès direct : bonpermis.fr/#extension ouvre directement le projet
   const fromHash = () => { const k = decodeURIComponent(location.hash.slice(1)); if (P[k] || k==='regul') open(k, null); };
   window.addEventListener('hashchange', fromHash); fromHash();
   document.getElementById('closeBtn').addEventListener('click', close);

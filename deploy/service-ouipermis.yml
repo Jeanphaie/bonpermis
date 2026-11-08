@@ -6,10 +6,21 @@
       - /opt/apps/ouipermis-src/deploy/nginx.conf:/etc/nginx/conf.d/default.conf:ro
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.ouipermis.rule=Host(`ouipermis.fr`) || Host(`www.ouipermis.fr`)"
+      # Site principal : bonpermis.fr
+      - "traefik.http.routers.bonpermis.rule=Host(`bonpermis.fr`)"
+      - "traefik.http.routers.bonpermis.entrypoints=websecure"
+      - "traefik.http.routers.bonpermis.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.bonpermis.middlewares=security-headers@file"
+      - "traefik.http.routers.bonpermis.service=ouipermis"
+      # www.bonpermis.fr et l'ancien domaine ouipermis.fr : redirection permanente (301) vers bonpermis.fr, même chemin
+      - "traefik.http.routers.ouipermis.rule=Host(`www.bonpermis.fr`) || Host(`ouipermis.fr`) || Host(`www.ouipermis.fr`)"
       - "traefik.http.routers.ouipermis.entrypoints=websecure"
       - "traefik.http.routers.ouipermis.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.ouipermis.middlewares=security-headers@file"
+      - "traefik.http.routers.ouipermis.middlewares=vers-bonpermis"
+      - "traefik.http.routers.ouipermis.service=ouipermis"
+      - "traefik.http.middlewares.vers-bonpermis.redirectregex.regex=^https?://[^/]+/(.*)"
+      - "traefik.http.middlewares.vers-bonpermis.redirectregex.replacement=https://bonpermis.fr/$${1}"
+      - "traefik.http.middlewares.vers-bonpermis.redirectregex.permanent=true"
       - "traefik.http.services.ouipermis.loadbalancer.server.port=80"
     networks:
       - web
