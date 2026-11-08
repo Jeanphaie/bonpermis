@@ -17,7 +17,7 @@ from pathlib import Path
 SRC = Path(__file__).resolve().parent
 SITE = SRC.parent / 'site'
 DOMAINE = 'https://bonpermis.fr'
-EMAIL = 'jpk@lk-invest.fr'
+EMAIL = 'contact@bonpermis.fr'
 LEGAL = [('mentions-legales', 'Mentions légales'), ('cgv', 'Conditions générales de vente'), ('confidentialite', 'Politique de confidentialité')]
 
 D = json.loads((SRC / 'data.json').read_text(encoding='utf-8'))
@@ -66,9 +66,8 @@ def head(titre, desc, chemin, base, jsonld):
 <meta property="og:title" content="{e(titre)}">
 <meta property="og:description" content="{e(desc)}">
 <meta property="og:url" content="{url}">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..600;1,9..144,400..600&family=Geist:wght@300..700&display=swap">
+<link rel="preload" href="{base}assets/fonts/fraunces.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="{base}assets/fonts/geist.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="{base}assets/style.css">
 {ld}
 </head>
@@ -290,6 +289,7 @@ def main():
     (SITE / 'assets' / 'data.js').write_text('window.OP = ' + json.dumps(data, ensure_ascii=False) + ';\n', encoding='utf-8')
     shutil.copy(SRC / 'app.js', SITE / 'assets' / 'app.js')
     shutil.copy(SRC / 'style.css', SITE / 'assets' / 'style.css')
+    shutil.copytree(SRC / 'fonts', SITE / 'assets' / 'fonts', dirs_exist_ok=True)
     (SITE / 'index.html').write_text(accueil(), encoding='utf-8')
     chemins = ['']
     for k in PAGES:
