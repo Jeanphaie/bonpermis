@@ -1,79 +1,13 @@
 (() => {
   const {P, GROUPS, SVCS, NEED, URL} = window.OP;
+  const X = window.PRIX;
+  const API = '/api';
   const BASE = document.documentElement.dataset.base || '';
   const PH = '<span class="ph"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M10 54V30L30 14l20 16v24z" fill="none" stroke="#9A968F" stroke-width="1.6"/><path d="M36 54V38h14v16" fill="none" stroke="var(--accent)" stroke-width="2" stroke-dasharray="3 2.5"/><path d="M4 54h56" stroke="#9A968F" stroke-width="1.6"/></svg></span>';
 
   const ov = document.getElementById('overlay'), body = document.getElementById('panelBody'), bar = document.getElementById('barFill');
   const euro = n => n.toLocaleString('fr-FR') + ' €';
   let S = {}, lastFocus = null;
-
-  const QUESTIONS = {
-    abri:{id:'size',t:'Quelle taille fera votre abri ?',h:'La surface au sol, toit compris. Une estimation suffit.',c:[['moins5','Moins de 5 m²'],['dp','Entre 5 et 20 m²'],['pc','Plus de 20 m²'],['nsp','Je ne sais pas']]},
-    piscine:{id:'size',t:'Quelle taille fera le bassin ?',h:'La surface de l\'eau seulement, sans les plages autour.',c:[['moins10','Moins de 10 m²'],['dp','Entre 10 et 100 m²'],['pc','Plus de 100 m², ou couverte haute'],['nsp','Je ne sais pas']]},
-    annexe:{id:'size',t:'Quelle surface au sol ?',h:'Toit compris. Une estimation suffit.',c:[['dp','Jusqu\'à 20 m²'],['pc','Plus de 20 m²'],['nsp','Je ne sais pas']]},
-    agrandir:{id:'size',t:'Combien de mètres carrés ajoutez-vous ?',h:'Une estimation suffit, on affinera avec vos mesures.',c:[['dp','Moins de 20 m²'],['dp40','Entre 20 et 40 m²'],['pc','Plus de 40 m²'],['nsp','Je ne sais pas']]},
-    total150:{id:'total',t:'Une fois les travaux faits, la maison fera-t-elle plus de 150 m² ?',h:'Toute la maison, extension comprise. C\'est la limite au-delà de laquelle la loi impose un architecte.',c:[['non','Non'],['oui','Oui'],['nsp','Je ne sais pas']]},
-    maison:{id:'size',t:'Quelle surface fera la maison ?',h:'Tous les niveaux additionnés.',c:[['ok','Jusqu\'à 150 m²'],['archi','Plus de 150 m²'],['nsp','Je ne sais pas']]},
-    plans:{id:'plans',t:'Avez-vous déjà les plans de la maison ?',h:'Ceux d\'un constructeur, d\'un architecte, ou les vôtres, même faits à la main.',c:[['oui','Oui, j\'ai des plans'],['non','Non, tout est à dessiner']]},
-    abf:{id:'abf',t:'Êtes-vous près d\'un monument historique, ou dans un quartier protégé ?',h:'Une vieille église, un château, un centre ancien… Si vous ne savez pas, pas d\'inquiétude : on le vérifie avec votre adresse.',c:[['non','Non'],['oui','Oui'],['nsp','Je ne sais pas']]},
-    terrasse:{id:'type',t:'De quoi s\'agit-il ?',h:'Choisissez ce qui ressemble le plus à votre projet.',c:[['plain','Terrasse de plain-pied'],['haute','Terrasse surélevée de plus de 60 cm'],['mur','Mur ou muret de plus de 2 m'],['clim','Climatisation ou pompe à chaleur extérieure']]},
-    usage:{id:'facade',t:'Touchez-vous à la façade ou à la structure ?',h:'Par exemple une nouvelle fenêtre, un mur porteur abattu, la toiture modifiée.',c:[['non','Non, seulement l\'intérieur'],['oui','Oui'],['nsp','Je ne sais pas']]},
-    cu:{id:'cutype',t:'Que voulez-vous savoir ?',h:'C\'est la mairie qui répond, par écrit. On prépare la demande pour vous.',c:[['a','Les règles qui s\'appliquent à mon terrain'],['b','Si mon projet précis est réalisable']]},
-    modif:{id:'accorde',t:'La mairie a-t-elle déjà accordé votre permis ?',h:'Si elle l\'étudie encore, pas besoin de permis modificatif.',c:[['oui','Oui, il est accordé'],['non','Non, il est en cours d\'instruction']]},
-    copro:{id:'copro',t:'Êtes-vous en copropriété ?',h:'Un immeuble ou une résidence avec un syndic. Il faudra l\'accord des autres copropriétaires.',c:[['non','Non'],['oui','Oui']]}
-  };
-
-  function flow(p){
-    const c = P[p].cat, q = [];
-    if (c==='petits' && P[p].size) q.push(QUESTIONS[P[p].size]);
-    if (c==='agrandir'){ q.push(QUESTIONS.agrandir); q.push(QUESTIONS.total150); }
-    if (c==='maison'){ q.push(QUESTIONS.maison); q.push(QUESTIONS.plans); }
-    if (c==='ext') q.push(QUESTIONS.terrasse);
-    if (c==='usage') q.push(QUESTIONS.usage);
-    if (c==='cu') q.push(QUESTIONS.cu);
-    if (c==='modif') q.push(QUESTIONS.modif);
-    if (!P[p].svc) q.push(QUESTIONS.abf);
-    if (P[p].copro) q.push(QUESTIONS.copro);
-    return q;
-  }
-
-  function verdict(){
-    const p = P[S.p], a = S.a, c = p.cat;
-    const small = a.size==='moins5' || a.size==='moins10' || a.type==='plain';
-    if (small && a.abf!=='oui') return {kind:'none'};
-    if (c==='modif' && a.accorde==='non') return {kind:'call', title:'Tant que la mairie étudie votre dossier, on peut encore le modifier.', text:'Pas besoin de permis modificatif. On reprend les pièces concernées. Laissez-nous votre numéro, on vous rappelle pour voir ce qui change.'};
-    if (c==='maison' && (a.size==='archi')) return {kind:'archi'};
-    if (c==='maison' && a.plans==='non') return {kind:'conception'};
-    if (c==='agrandir' && a.total==='oui' && a.size==='pc') return {kind:'archi'};
-    let v;
-    if (small) v = {kind:'dp',base:149,label:'Petits travaux en quartier protégé'};
-    else if (c==='ext') v = {kind:'dp',base:149,label:'Terrasse, mur ou climatisation'};
-    else if (c==='usage') v = (a.facade==='oui') ? {kind:'pc',base:490,label:'Transformation avec travaux de façade'} : {kind:'dp',base:349,label:'Transformation en logement'};
-    else if (c==='demol') v = {kind:'pd',base:149,label:'Permis de démolir'};
-    else if (c==='cu') v = (a.cutype==='b') ? {kind:'svc',base:149,label:'Certificat d\'urbanisme pour votre projet',title:'Certificat d\'urbanisme',h3:'On demande à la mairie si votre projet est possible.'} : {kind:'svc',base:89,label:'Certificat d\'urbanisme',title:'Certificat d\'urbanisme',h3:'On demande à la mairie les règles de votre terrain.'};
-    else if (c==='modif') v = {kind:'svc',base:249,label:'Permis modificatif',title:'Permis modificatif',h3:'On prépare la modification de votre permis.'};
-    else if (c==='daact') v = {kind:'svc',base:49,label:'Déclaration de fin de travaux',title:'Fin de travaux',h3:'On prépare votre déclaration de fin de travaux.'};
-    if (v) {} else if (c==='petits') v = (a.size==='pc') ? {kind:'pc',base:490,label:'Permis de construire'} : {kind:'dp',base:149,label:'Petits travaux'};
-    if (c==='agrandir') v = (a.size==='pc') ? {kind:'pc',base:490,label:'Permis d\'extension'} : {kind:'dp',base:349,label:'Agrandissement'};
-    if (c==='toit') v = {kind:'dp',base:349,label:'Travaux sur le toit'};
-    if (c==='garage') v = {kind:'dp',base:319,label:'Garage transformé'};
-    if (c==='maison') v = {kind:'pc',base:590,label:'Maison neuve',re:159};
-    v.note = [];
-    if (small) v.note.push('Dans un quartier protégé, même les petites constructions demandent une déclaration. On le vérifie avec votre adresse avant de commencer.');
-    if (c==='usage' && a.facade==='nsp') v.note.push('Si la façade ou la structure change, il faut un permis à 490 €. On le vérifie sur vos photos et on vous prévient avant de commencer.');
-    if (c==='demol') v.note.push('Il n\'est obligatoire que dans un quartier protégé, ou si votre commune l\'a décidé. On le vérifie avec votre adresse et on vous le dit avant de commencer.');
-    if (c==='daact') v.note.push('Pour une maison neuve, la mairie demande aussi une attestation énergétique de fin de chantier. On vous met en relation avec un bureau d\'études.');
-    if (c==='combles' || P[S.p].n==='Combles aménagés') v.note.push('Les fenêtres de toit sont comprises dans le dossier.');
-    if (S.regul) v.note.unshift('Travaux déjà faits : le dossier décrit ce qui existe. Vous nous envoyez des photos de ce qui est construit.');
-    if (a.size==='nsp') v.note.push('Pas de souci si vous ne connaissez pas la surface : on la calcule avec vos mesures. S\'il faut un permis plutôt qu\'une déclaration, on vous prévient avant de commencer.');
-    if (a.size==='dp40') v.note.push('Entre 20 et 40 m², une déclaration suffit si votre terrain est en zone urbaine. Sinon, il faut un permis à 490 €. On le vérifie avec votre adresse et on vous prévient avant de commencer.');
-    if (a.total==='oui' && c==='agrandir' && v.kind==='dp') v.note.push('Comme la maison dépassera 150 m², un architecte devra signer si un permis s\'avère nécessaire. On vous prévient avant de commencer.');
-    if (a.total==='nsp') v.note.push('Si la maison dépasse 150 m² après les travaux, un architecte devient obligatoire. On le vérifie et on vous prévient.');
-    v.abf = a.abf==='oui' ? 149 : 0;
-    if (a.abf==='nsp') v.note.push('On vérifie avec votre adresse si vous êtes en quartier protégé. Les 149 € ne sont ajoutés que si c\'est le cas, et avec votre accord.');
-    v.copro = a.copro==='oui' ? 99 : 0;
-    return v;
-  }
 
   const pimg = document.getElementById('projImg');
   function showPanel(title, img){ if (img) { pimg.src = `${BASE}img/${img}.webp`; pimg.hidden = false; } else { pimg.removeAttribute('src'); pimg.hidden = true; } document.getElementById('panelTitle').textContent = title; ov.hidden = false; document.body.style.overflow = 'hidden'; }
@@ -89,7 +23,7 @@
   function open(p, opener, regul){
     if (p==='regul') return openRegul(opener);
     if (opener) lastFocus = opener;
-    S = {p, a:{}, i:0, q:flow(p), opt:{depot:false, express:false, visio:false, concept:false, d3:false}, regul:!!regul};
+    S = {p, a:{}, i:0, q:X.flow(P, p), opt:{depot:false, express:false, visio:false, concept:false, d3:false}, regul:!!regul};
     if (!S.q.length) S.stage = 'v';
     showPanel((regul?'Travaux déjà faits · ':'') + P[p].n, P[p].img);
     render();
@@ -118,11 +52,11 @@
     if (S.stage==='done') return renderDone();
   }
 
-  const CONCEPT = ['agrandir','garage','toit','usage'];
-  function total(v){ return v.base + (v.re||0) + (v.abf||0) + (v.copro||0) + (S.opt.concept?690:0) + (S.opt.concept&&S.opt.d3?190:0) + (S.opt.depot?69:0) + (S.opt.express&&v.kind==='dp'?49:0) + (S.opt.visio?49:0); }
+  const CONCEPT = X.CONCEPT;
+  function total(v){ return X.total(X.lignes(P, S.p, v, S.opt)); }
 
   function renderVerdict(){
-    const v = verdict(); S.v = v;
+    const v = X.verdict(P, S.p, S.a, S.regul); S.v = v;
     const back = '<button class="back" type="button" data-back>← Changer mes réponses</button>';
     if (v.kind==='none'){
       body.innerHTML = `<div class="verdict"><span class="kind">Bonne nouvelle</span><h3>Vous n'avez aucune démarche à faire.</h3><p class="qhelp">Pour des travaux de cette taille, la loi ne demande pas d'autorisation, sauf dans un quartier protégé ou si votre commune a une règle particulière. Vous ne nous devez rien.</p></div>${back}`;
@@ -176,16 +110,35 @@
       <form id="co" novalidate>
         <label class="field"><span>L'adresse des travaux</span><input name="adr" autocomplete="street-address" placeholder="12 rue des Lilas, 44800 Saint-Herblain" required></label>
         <label class="field"><span>${call?'Votre téléphone':'Votre e-mail, pour recevoir le dossier'}</span><input name="mail" type="${call?'tel':'email'}" autocomplete="${call?'tel':'email'}" required></label>
+        <p class="form-err" role="alert" hidden></p>
         <button class="btn blue-btn" type="submit">${call?'Me faire rappeler':'Payer '+euro(total(v))+' et lancer mon dossier'}</button>
-        ${call?'':'<div class="reassure"><svg width="14" height="14" viewBox="0 0 14 14"><rect x="2.5" y="6" width="9" height="6.5" rx="1.5" fill="none" stroke="currentColor"/><path d="M4.5 6V4.5a2.5 2.5 0 015 0V6" fill="none" stroke="currentColor"/></svg>Paiement sécurisé par Stripe · Carte, Apple Pay, Google Pay</div>'}
+        ${call?'':'<div class="reassure"><svg width="14" height="14" viewBox="0 0 14 14"><rect x="2.5" y="6" width="9" height="6.5" rx="1.5" fill="none" stroke="currentColor"/><path d="M4.5 6V4.5a2.5 2.5 0 015 0V6" fill="none" stroke="currentColor"/></svg>Paiement sécurisé par Stripe · Carte, Apple Pay, Google Pay, PayPal</div>'}
       </form><button class="back" type="button" data-back>← Retour</button>`;
-    body.querySelector('#co').addEventListener('submit', e => { e.preventDefault(); const f = e.target; if (!f.adr.value.trim() || !f.mail.value.trim()) { (f.adr.value.trim()?f.mail:f.adr).focus(); return; } S.stage='done'; render(); });
+    body.querySelector('#co').addEventListener('submit', async e => {
+      e.preventDefault(); const f = e.target;
+      if (!f.adr.value.trim() || !f.mail.value.trim()) { (f.adr.value.trim()?f.mail:f.adr).focus(); return; }
+      const btn = f.querySelector('button[type=submit]'), err = f.querySelector('.form-err'), label = btn.textContent;
+      btn.disabled = true; btn.textContent = call ? 'Envoi…' : 'Ouverture du paiement sécurisé…'; err.hidden = true;
+      const data = {p:S.p, a:S.a, regul:S.regul, opt:S.opt, adresse:f.adr.value.trim()};
+      if (call) { data.tel = f.mail.value.trim(); data.motif = v.kind; } else data.email = f.mail.value.trim();
+      try {
+        const r = await fetch(API + (call ? '/rappel' : '/commande'), {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data)});
+        const j = await r.json().catch(() => ({}));
+        if (!r.ok) throw new Error(j.erreur || 'Le service ne répond pas.');
+        if (call) { S.stage='done'; render(); return; }
+        if (!j.url) throw new Error('Réponse inattendue du service de paiement.');
+        location.href = j.url;
+      } catch (x) {
+        err.textContent = (x && x.message && !/fetch|network|JSON/i.test(x.message) ? x.message : 'Le service ne répond pas pour le moment.') + ' Réessayez, ou écrivez-nous à contact@bonpermis.fr.';
+        err.hidden = false; btn.disabled = false; btn.textContent = label;
+      }
+    });
     body.querySelector('[data-back]').addEventListener('click', () => { S.stage='v'; render(); });
     body.querySelector('.qtitle').focus();
   }
 
   function renderDone(){
-    body.innerHTML = `<div class="done"><div class="seal"><svg width="30" height="30" viewBox="0 0 30 30"><path d="M8 15.5l4.5 4.5L22 10" fill="none" stroke="var(--good)" stroke-width="3"/></svg></div><div class="qtitle" tabindex="-1">Ceci est une maquette</div><p class="qhelp" style="max-width:420px;margin:10px auto 0">Le paiement sera activé au lancement du site. Rien n'a été enregistré ni débité.</p></div><button class="btn ghost" type="button" data-close>Fermer</button>`;
+    body.innerHTML = `<div class="done"><div class="seal"><svg width="30" height="30" viewBox="0 0 30 30"><path d="M8 15.5l4.5 4.5L22 10" fill="none" stroke="var(--good)" stroke-width="3"/></svg></div><div class="qtitle" tabindex="-1">C'est noté, on vous rappelle.</div><p class="qhelp" style="max-width:420px;margin:10px auto 0">Dans la journée, ou le lendemain matin au plus tard. Rien ne vous a été facturé.</p></div><button class="btn ghost" type="button" data-close>Fermer</button>`;
     body.querySelector('[data-close]').addEventListener('click', close);
     bar.style.width = '100%';
     body.querySelector('.qtitle').focus();

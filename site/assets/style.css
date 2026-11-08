@@ -306,3 +306,4 @@ a.tile,a.svc{color:inherit;text-decoration:none}
 .legal-page ul{padding-left:20px;display:grid;gap:6px}
 .legal-page .legal-intro{font-size:18px;margin-top:20px}
 .legal-page p+p{margin-top:12px}
+.form-err{margin:4px 0 10px;padding:10px 12px;border-radius:var(--r-sm);background:#FDECEC;color:#8A1C1C;font-size:14px}

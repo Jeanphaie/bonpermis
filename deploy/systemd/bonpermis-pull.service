@@ -1,8 +1,9 @@
 # Met à jour le site Le Bon Permis depuis GitHub. Lancé par bonpermis-pull.timer.
-# Installé une fois par JP ; ne touche qu'à /opt/apps/bonpermis-src (fast-forward seulement).
+# Installé par JP ; deploy/installer-paiement.sh le remet à jour.
+# Fast-forward seulement ; redémarre le service de paiement si son code a changé (voir deploy/maj.sh).
 [Unit]
-Description=Le Bon Permis : git pull du site
+Description=Le Bon Permis : mise à jour depuis GitHub
 
 [Service]
 Type=oneshot
-ExecStart=/usr/bin/git -C /opt/apps/bonpermis-src pull -q --ff-only origin main
+ExecStart=/bin/sh /opt/apps/bonpermis-src/deploy/maj.sh

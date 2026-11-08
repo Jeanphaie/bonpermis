@@ -1,4 +1,6 @@
 User-agent: *
 Allow: /
+Disallow: /commande/
+Disallow: /api/
 
 Sitemap: https://bonpermis.fr/sitemap.xml

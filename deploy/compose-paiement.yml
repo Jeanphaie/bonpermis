@@ -1,0 +1,38 @@
+# Le Bon Permis : service de paiement (api/server.js), à côté du site.
+# Projet Compose séparé : il ne modifie pas le Compose principal de /opt/apps.
+# Lancé par deploy/installer-paiement.sh :
+#   docker compose --env-file /opt/apps/bonpermis-paiement.compose.env -f deploy/compose-paiement.yml -p bonpermis-paiement up -d
+# Les secrets (clé Stripe, secret du webhook, mot de passe SMTP) sont dans /opt/apps/bonpermis-paiement.env, jamais dans le dépôt.
+services:
+  api:
+    image: node:22-alpine
+    container_name: bonpermis-paiement
+    restart: unless-stopped
+    user: "1000:1000"
+    working_dir: /app
+    command: ["node", "api/server.js"]
+    env_file: /opt/apps/bonpermis-paiement.env
+    environment:
+      - PORT=3000
+      - DATA_DIR=/data
+      - SITE_URL=https://bonpermis.fr
+    volumes:
+      - /opt/apps/bonpermis-src:/app:ro
+      - /opt/apps/bonpermis-data:/data
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=${RESEAU_WEB}"
+      - "traefik.http.routers.bonpermis-api.rule=Host(`bonpermis.fr`) && PathPrefix(`/api/`)"
+      - "traefik.http.routers.bonpermis-api.priority=100"
+      - "traefik.http.routers.bonpermis-api.entrypoints=websecure"
+      - "traefik.http.routers.bonpermis-api.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.bonpermis-api.middlewares=security-headers@file"
+      - "traefik.http.routers.bonpermis-api.service=bonpermis-api"
+      - "traefik.http.services.bonpermis-api.loadbalancer.server.port=3000"
+    networks:
+      - web
+
+networks:
+  web:
+    external: true
+    name: ${RESEAU_WEB}

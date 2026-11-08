@@ -135,7 +135,7 @@ OVERLAY = '''
 
 
 def scripts(base):
-    return f'<script src="{base}assets/data.js"></script>\n<script src="{base}assets/app.js"></script>\n</body>\n</html>\n'
+    return f'<script src="{base}assets/data.js"></script>\n<script src="{base}assets/prix.js"></script>\n<script src="{base}assets/app.js"></script>\n</body>\n</html>\n'
 
 
 def tuile(k, base, simu=True):
@@ -278,6 +278,22 @@ def legale(slug, titre):
     return head(f'{titre} | Le Bon Permis', desc, slug + '/', base, []) + '<body data-page="legal">\n\n' + entete(base, False) + '\n' + html_ + '\n' + pied(base) + OVERLAY + scripts(base)
 
 
+def merci():
+    base = '../../'
+    corps = """<main id="top">
+<section class="page-sec legal-page">
+  <div class="wrap narrow" id="merci" aria-live="polite">
+    <h1>Votre commande</h1>
+    <p class="answer">Chargement…</p>
+  </div>
+</section>
+</main>
+"""
+    h = head('Commande reçue | Le Bon Permis', 'Confirmation de votre commande Le Bon Permis.', 'commande/merci/', base, [])
+    h = h.replace('<meta charset="utf-8">', '<meta charset="utf-8">\n<meta name="robots" content="noindex">')
+    return h + '<body data-page="merci">\n\n' + entete(base, False) + '\n' + corps + '\n' + pied(base) + f'<script src="{base}assets/merci.js"></script>\n</body>\n</html>\n'
+
+
 def sitemap(chemins):
     urls = ''.join(f'<url><loc>{DOMAINE}/{c}</loc><lastmod>{MAJ}</lastmod></url>\n' for c in chemins)
     return f'<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n{urls}</urlset>\n'
@@ -287,7 +303,8 @@ def main():
     (SITE / 'assets').mkdir(exist_ok=True)
     data = {'P': P, 'GROUPS': GROUPS, 'SVCS': SVCS, 'NEED': NEED, 'URL': URL}
     (SITE / 'assets' / 'data.js').write_text('window.OP = ' + json.dumps(data, ensure_ascii=False) + ';\n', encoding='utf-8')
-    shutil.copy(SRC / 'app.js', SITE / 'assets' / 'app.js')
+    for f in ('app.js', 'prix.js', 'merci.js'):
+        shutil.copy(SRC / f, SITE / 'assets' / f)
     shutil.copy(SRC / 'style.css', SITE / 'assets' / 'style.css')
     shutil.copytree(SRC / 'fonts', SITE / 'assets' / 'fonts', dirs_exist_ok=True)
     (SITE / 'index.html').write_text(accueil(), encoding='utf-8')
@@ -301,8 +318,10 @@ def main():
         (SITE / slug).mkdir(exist_ok=True)
         (SITE / slug / 'index.html').write_text(legale(slug, titre), encoding='utf-8')
         chemins.append(slug + '/')
+    (SITE / 'commande' / 'merci').mkdir(parents=True, exist_ok=True)
+    (SITE / 'commande' / 'merci' / 'index.html').write_text(merci(), encoding='utf-8')
     (SITE / 'sitemap.xml').write_text(sitemap(chemins), encoding='utf-8')
-    (SITE / 'robots.txt').write_text(f'User-agent: *\nAllow: /\n\nSitemap: {DOMAINE}/sitemap.xml\n', encoding='utf-8')
+    (SITE / 'robots.txt').write_text(f'User-agent: *\nAllow: /\nDisallow: /commande/\nDisallow: /api/\n\nSitemap: {DOMAINE}/sitemap.xml\n', encoding='utf-8')
     print(f'{len(chemins)} pages générées dans {SITE}')
 
 
