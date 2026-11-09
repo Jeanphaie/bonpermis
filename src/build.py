@@ -45,7 +45,7 @@ def maj(k):
     return PAGES.get(k, {}).get('maj', MAJ)
 
 # Prix de base par projet (pour les données structurées). Même grille que le simulateur.
-BASE = {'petits': 149, 'ext': 149, 'agrandir': 349, 'garage': 319, 'toit': 349, 'maison': 590,
+BASE = {'petits': 149, 'ext': 149, 'agrandir': 349, 'garage': 319, 'toit': 149, 'maison': 590,
         'usage': 349, 'demol': 149, 'cu': 89, 'modif': 249, 'daact': 49}
 
 e = lambda s: html.escape(s, quote=True)

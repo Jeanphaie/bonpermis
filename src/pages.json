@@ -588,7 +588,7 @@
   "lucarne": {
    "slug": "lucarne",
    "titre": "Créer une lucarne : déclaration ou permis en 2026 ?",
-   "desc": "Une lucarne change le toit et crée souvent de la surface : déclaration préalable le plus souvent, permis au-delà de 20 m² créés. Dossier dès 349 €.",
+   "desc": "Une lucarne change le toit et crée souvent de la surface : déclaration préalable le plus souvent, permis au-delà de 20 m² créés. Dossier dès 149 €.",
    "h1": "Lucarne : déclaration ou permis ?",
    "chapo": "Une déclaration préalable, le plus souvent, car la lucarne change l'aspect du toit. Si elle accompagne plus de 20 m² créés (40 m² en zone urbaine), un permis de construire.",
    "regles": [
@@ -606,7 +606,7 @@
     ]
    ],
    "note": "Forme, largeur et matériaux de la lucarne sont souvent encadrés par le plan local d'urbanisme, les règles de votre commune, et plus encore en secteur protégé. On les lit avant de dessiner et on choisit un dessin qui a toutes les chances d'être accepté. Si ça ne passe pas, on vous le dit avant de commencer.",
-   "prix": "349 €",
+   "prix": "149 € (avec les combles : 349 €)",
    "delai": "48 h",
    "sources": [
     "DP",
@@ -622,7 +622,7 @@
   "toiture": {
    "slug": "toiture",
    "titre": "Refaire sa toiture : faut-il une déclaration préalable en 2026 ?",
-   "desc": "Changer le matériau, la couleur ou la forme du toit demande une déclaration préalable. À l'identique, en général non. Dossier dès 349 €.",
+   "desc": "Changer le matériau, la couleur ou la forme du toit demande une déclaration préalable. À l'identique, en général non. Dossier dès 149 €.",
    "h1": "Toiture : faut-il déclarer ?",
    "chapo": "Ça dépend. Refaire à l'identique, en général non. Changer de matériau, de couleur, de pente ou de débords, oui : une déclaration préalable.",
    "regles": [
@@ -640,7 +640,7 @@
     ]
    ],
    "note": "Les couleurs de tuiles et d'ardoises sont souvent imposées par le plan local d'urbanisme, les règles de votre commune. On vérifie la liste avant de dessiner, et si votre choix n'en fait pas partie, on vous le dit avant de commencer.",
-   "prix": "349 €",
+   "prix": "149 €",
    "delai": "48 h",
    "sources": [
     "DP"

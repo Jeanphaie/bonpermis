@@ -18,6 +18,7 @@
     usage:{id:'facade',t:'Touchez-vous à la façade ou à la structure ?',h:'Par exemple une nouvelle fenêtre, un mur porteur abattu, la toiture modifiée.',c:[['non','Non, seulement l\'intérieur'],['oui','Oui'],['nsp','Je ne sais pas']]},
     cu:{id:'cutype',t:'Que voulez-vous savoir ?',h:'C\'est la mairie qui répond, par écrit. On prépare la demande pour vous.',c:[['a','Les règles qui s\'appliquent à mon terrain'],['b','Si mon projet précis est réalisable']]},
     modif:{id:'accorde',t:'La mairie a-t-elle déjà accordé votre permis ?',h:'Si elle l\'étudie encore, pas besoin de permis modificatif.',c:[['oui','Oui, il est accordé'],['non','Non, il est en cours d\'instruction']]},
+    lucarne:{id:'size',t:'Aménagez-vous les combles en même temps ?',h:'Une lucarne seule change seulement le toit. Si elle sert à rendre les combles habitables, la surface créée compte.',c:[['seule','Non, seulement la lucarne'],['dp','Oui, moins de 20 m² créés (40 m² en ville)'],['pc','Oui, plus que ça'],['nsp','Je ne sais pas']]},
     copro:{id:'copro',t:'Êtes-vous en copropriété ?',h:'Un immeuble ou une résidence avec un syndic. Il faudra l\'accord des autres copropriétaires.',c:[['non','Non'],['oui','Oui']]}
   };
 
@@ -27,6 +28,7 @@
     if (c==='agrandir'){ q.push(QUESTIONS.agrandir); q.push(QUESTIONS.total150); }
     if (c==='maison'){ q.push(QUESTIONS.maison); q.push(QUESTIONS.plans); }
     if (c==='ext') q.push(QUESTIONS.terrasse);
+    if (p==='lucarne') q.push(QUESTIONS.lucarne);
     if (c==='usage') q.push(QUESTIONS.usage);
     if (c==='cu') q.push(QUESTIONS.cu);
     if (c==='modif') q.push(QUESTIONS.modif);
@@ -53,10 +55,11 @@
     else if (c==='daact') v = {kind:'svc',base:49,label:'Déclaration de fin de travaux',title:'Fin de travaux',h3:'On prépare votre déclaration de fin de travaux.'};
     if (v) {} else if (c==='petits') v = (a.size==='pc') ? {kind:'pc',base:490,label:'Permis de construire'} : {kind:'dp',base:149,label:'Petits travaux'};
     if (c==='agrandir') v = (a.size==='pc') ? {kind:'pc',base:490,label:'Permis d\'extension'} : {kind:'dp',base:349,label:'Agrandissement'};
-    if (c==='toit') v = {kind:'dp',base:349,label:'Travaux sur le toit'};
+    if (c==='toit') v = p.n==='Lucarne' ? (a.size==='pc' ? {kind:'pc',base:490,label:'Lucarne et combles, permis de construire'} : (a.size==='dp' || a.size==='nsp') ? {kind:'dp',base:349,label:'Lucarne et combles aménagés'} : {kind:'dp',base:149,label:'Lucarne'}) : {kind:'dp',base:149,label:'Toiture'};
+    if (c==='toit' && p.n==='Lucarne' && a.size==='nsp') v.note = ['Si les combles ne sont pas aménagés, le dossier revient à 149 €.'];
     if (c==='garage') v = {kind:'dp',base:319,label:'Garage transformé'};
     if (c==='maison') v = {kind:'pc',base:590,label:'Maison neuve'};
-    v.note = [];
+    v.note = v.note || [];
     if (small) v.note.push('Dans un quartier protégé, même les petites constructions demandent une déclaration. On le vérifie avec votre adresse avant de commencer.');
     if (c==='usage' && a.facade==='nsp') v.note.push('Si la façade ou la structure change, il faut un permis à 490 €. On le vérifie sur vos photos et on vous prévient avant de commencer.');
     if (c==='demol') v.note.push('Il n\'est obligatoire que dans un quartier protégé, ou si votre commune l\'a décidé. On le vérifie avec votre adresse et on vous le dit avant de commencer.');
