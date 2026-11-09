@@ -23,33 +23,91 @@
   function open(p, opener, regul){
     if (p==='regul') return openRegul(opener);
     if (opener) lastFocus = opener;
-    S = {p, a:{}, i:0, q:X.flow(P, p), opt:{depot:false, express:false, visio:false, concept:false, d3:false}, regul:!!regul};
-    if (!S.q.length) S.stage = 'v';
+    S = {p, a:{}, i:0, q:X.flow(P, p), opt:{depot:false, express:false, visio:false, concept:false, d3:false}, regul:!!regul, stage:'a'};
     showPanel((regul?'Travaux déjà faits · ':'') + P[p].n, P[p].img);
     render();
   }
   function close(){ ov.hidden = true; document.body.style.overflow = ''; const h = location.hash.slice(1); if (P[h] || h==='regul') { try { history.replaceState(null, '', location.pathname + location.search); } catch(e){} } if (lastFocus) lastFocus.focus(); }
 
   function progress(){
-    const total = (S.q||[]).length + 2;
-    const at = S.stage==='q' ? S.i : S.stage==='v' ? S.q.length : S.stage==='c' ? S.q.length + 1 : total;
+    const total = (S.q||[]).length + 3;
+    const at = S.stage==='a' ? 0 : S.stage==='q' ? S.i + 1 : S.stage==='v' ? S.q.length + 1 : S.stage==='c' ? S.q.length + 2 : total;
     bar.style.width = Math.round(at / total * 100) + '%';
   }
 
   function render(){
-    if (S.i < S.q.length && S.stage!=='v' && S.stage!=='c' && S.stage!=='done') S.stage = 'q';
+    if (S.i < S.q.length && !['a','v','c','done'].includes(S.stage)) S.stage = 'q';
     progress();
+    if (S.stage==='a') return renderAdresse();
     if (S.stage==='q'){
       const q = S.q[S.i];
-      body.innerHTML = `<div class="qtitle" tabindex="-1">${q.t}</div><p class="qhelp">${q.h}</p><div class="choices">${q.c.map(([v,l]) => `<button class="choice" type="button" data-v="${v}">${l}<span aria-hidden="true">→</span></button>`).join('')}</div>${S.i>0?'<button class="back" type="button" data-back>← Question précédente</button>':''}`;
+      body.innerHTML = `<div class="qtitle" tabindex="-1">${q.t}</div><p class="qhelp">${q.h}</p><div class="choices">${q.c.map(([v,l]) => `<button class="choice" type="button" data-v="${v}">${l}<span aria-hidden="true">→</span></button>`).join('')}</div><button class="back" type="button" data-back>← ${S.i>0?'Question précédente':'Adresse'}</button>`;
       body.querySelectorAll('.choice').forEach(b => b.addEventListener('click', () => { S.a[q.id] = b.dataset.v; S.i++; if (S.i >= S.q.length) S.stage = 'v'; render(); }));
-      const bk = body.querySelector('[data-back]'); if (bk) bk.addEventListener('click', () => { S.i--; render(); });
+      const bk = body.querySelector('[data-back]'); if (bk) bk.addEventListener('click', () => { if (S.i > 0) S.i--; else S.stage = 'a'; render(); });
       body.querySelector('.qtitle').focus();
       return;
     }
     if (S.stage==='v') return renderVerdict();
     if (S.stage==='c') return renderCheckout();
     if (S.stage==='done') return renderDone();
+  }
+
+  // Étape « adresse » : analyse du terrain dès le début (cadastre, PLU, monuments et sites protégés, risques).
+  // Le secteur protégé trouvé répond à la question correspondante ; sans données, la question reste posée.
+  function renderAdresse(){
+    const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+    body.innerHTML = `<div class="qtitle" tabindex="-1">Où se trouvent les travaux ?</div><p class="qhelp">On analyse tout de suite votre terrain : cadastre, plan d'urbanisme, monuments protégés et risques.</p>
+      <div class="field adr-wrap"><label for="an-adr"><span>L'adresse des travaux</span></label>
+        <input id="an-adr" autocomplete="off" placeholder="Tapez le début : 12 rue des Lilas, Saint-Herblain" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="an-sug" value="${esc(S.adresse || '')}">
+        <ul class="sugs" id="an-sug" role="listbox"></ul></div>
+      <div class="mini-carte" data-carte hidden></div>
+      <div class="analyse" data-an hidden aria-live="polite"></div>
+      <button class="btn blue-btn" type="button" data-suite ${S.terrain ? '' : 'hidden'}>Continuer</button>
+      <button class="back" type="button" data-sans>Je n'ai pas encore l'adresse exacte →</button>`;
+    const adr = body.querySelector('#an-adr'), an = body.querySelector('[data-an]'), suite = body.querySelector('[data-suite]');
+    let n = 0;
+    const W = adresseWidget(body, adr, body.querySelector('#an-sug'), body.querySelector('[data-carte]'), {
+      choisir: x => analyser(x),
+      effacer: () => { n++; S.lieu = null; S.terrain = null; an.hidden = true; suite.hidden = true; }
+    });
+    const LIGNES = [['adresse', 'Adresse'], ['parcelle', 'Parcelle cadastrale (IGN)'], ['plu', 'Zone du plan local d\'urbanisme'], ['abf', 'Monuments et sites protégés'], ['risques', 'Risques naturels (Géorisques)']];
+    const dessiner = (vals) => {
+      an.hidden = false;
+      an.innerHTML = '<p class="an-t">Analyse de votre terrain</p>' + LIGNES.map(([k, l]) => { const v = vals[k];
+        return `<div class="an-l ${v ? v.c : 'cours'}"><span class="an-i" aria-hidden="true"></span><b>${l}</b><span class="an-v">${v ? v.t : 'en cours…'}</span></div>`; }).join('');
+    };
+    async function analyser(x) {
+      const k = ++n; S.adresse = x.label; S.lieu = {lon: x.lon, lat: x.lat}; S.terrain = null; suite.hidden = true;
+      S.q = X.flow(P, S.p); delete S.a.abf;
+      const vals = {adresse: {c: 'ok', t: esc(x.label)}}; dessiner(vals);
+      let t; try { t = await (await fetch(API + `/terrain?lon=${x.lon}&lat=${x.lat}`)).json(); } catch (e) { t = {erreurs: ['reseau'], protections: [], batiments: []}; }
+      if (k !== n) return;
+      W.carte(x, t);
+      const err = c => (t.erreurs || []).includes(c);
+      const final = {adresse: vals.adresse,
+        parcelle: t.parcelle ? {c: 'ok', t: `${esc(t.parcelle.section)} ${esc(String(t.parcelle.numero).replace(/^0+/, ''))} · ${(t.parcelle.contenance || t.parcelle.surfaceCalculee).toLocaleString('fr-FR')} m²`} : {c: 'nd', t: err('cadastre') ? 'service indisponible, on vérifiera' : 'non trouvée, on vérifiera'},
+        plu: t.zone ? {c: 'ok', t: `Zone ${esc(t.zone.libelle)}${t.zone.libelleLong && t.zone.libelleLong !== t.zone.libelle ? ' · ' + esc(t.zone.libelleLong) : ''}`} : t.commune && t.commune.rnu ? {c: 'ok', t: 'Règles nationales (pas de PLU)'} : {c: 'nd', t: 'non trouvée, on vérifiera'},
+        abf: t.secteurProtege ? {c: 'alerte', t: esc(t.protections[0].nom || t.protections[0].libelle) + (t.protections.length > 1 ? ` et ${t.protections.length - 1} autre${t.protections.length > 2 ? 's' : ''}` : '')} : t.secteurProtege === false ? {c: 'ok', t: 'Aucun périmètre trouvé'} : {c: 'nd', t: 'non vérifié, on vérifiera'},
+        risques: Array.isArray(t.risques) ? (t.risques.length ? {c: 'alerte', t: t.risques.map(r => esc(r.libelle)).join(', ')} : {c: 'ok', t: 'Aucun risque majeur à l\'adresse'}) : {c: 'nd', t: 'non vérifié'}};
+      // Apparition ligne par ligne, une fois les résultats reçus.
+      const cles = ['parcelle', 'plu', 'abf', 'risques'];
+      for (let i = 0; i < cles.length; i++) { await new Promise(r => setTimeout(r, 220)); if (k !== n) return; vals[cles[i]] = final[cles[i]]; dessiner(vals); }
+      S.terrain = t;
+      if (!P[S.p].svc) {
+        const qa = S.q.findIndex(q => q.id === 'abf');
+        if (t.secteurProtege === true || t.secteurProtege === false) {
+          S.a.abf = t.secteurProtege ? 'oui' : 'nsp';
+          if (qa >= 0) S.q.splice(qa, 1);
+        }
+        if (t.secteurProtege) an.insertAdjacentHTML('beforeend', '<p class="an-n">Votre terrain est en secteur protégé : l\'architecte des Bâtiments de France donnera son avis. On prépare le dossier en conséquence (supplément de 149 €).</p>');
+      }
+      if ((t.risques || []).length) an.insertAdjacentHTML('beforeend', '<p class="an-n">On tient compte de ces risques dans les plans (cotes, matériaux, pièces demandées par la mairie).</p>');
+      suite.hidden = false; suite.focus();
+    }
+    const aller = () => { S.i = 0; S.stage = S.q.length ? 'q' : 'v'; render(); };
+    suite.addEventListener('click', aller);
+    body.querySelector('[data-sans]').addEventListener('click', () => { n++; S.lieu = null; S.terrain = null; S.q = X.flow(P, S.p); aller(); });
+    if (S.lieu && S.adresse) analyser({lon: S.lieu.lon, lat: S.lieu.lat, label: S.adresse}); else adr.focus();
   }
 
   const CONCEPT = X.CONCEPT;
@@ -115,7 +173,79 @@
         b.disabled = false;
       });
     }
-    body.querySelector('[data-back]').addEventListener('click', () => { if (!S.q.length) { close(); return; } S.i = S.q.length - 1; S.stage='q'; render(); });
+    body.querySelector('[data-back]').addEventListener('click', () => { if (!S.q.length) { S.stage='a'; render(); return; } S.i = S.q.length - 1; S.stage='q'; render(); });
+  }
+
+  // Champ adresse : liste déroulante accessible (Base Adresse Nationale) et mini-carte IGN avec le contour de la parcelle.
+  // o.choisir(x) quand une adresse est choisie, o.effacer() dès que le texte change.
+  function adresseWidget(body, adr, sug, carteEl, o) {
+    const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+    // Liste déroulante accessible : flèches, Entrée, Échap ; un clic ou Entrée choisit l'adresse.
+    let liste = [], actif = -1, minuteur = null, demande = 0;
+    const afficher = () => {
+      sug.innerHTML = liste.map((x, i) => `<li role="option" id="${sug.id}-${i}" class="sug${i === actif ? ' on' : ''}" aria-selected="${i === actif}" data-i="${i}"><b>${esc(x.rue || x.label)}</b>${x.ville ? `<small>${esc(x.ville)}</small>` : ''}</li>`).join('');
+      adr.setAttribute('aria-expanded', liste.length > 0 ? 'true' : 'false');
+      if (actif >= 0) adr.setAttribute('aria-activedescendant', sug.id + '-' + actif); else adr.removeAttribute('aria-activedescendant');
+    };
+    const fermerListe = () => { liste = []; actif = -1; afficher(); };
+    const choisir = x => { adr.value = x.label; fermerListe(); carte(x, null); o.choisir(x); };
+    sug.addEventListener('pointerdown', e => { const li = e.target.closest('[data-i]'); if (!li) return; e.preventDefault(); choisir(liste[+li.dataset.i]); });
+    adr.addEventListener('keydown', e => {
+      if (!liste.length) return;
+      if (e.key === 'ArrowDown') { e.preventDefault(); actif = (actif + 1) % liste.length; afficher(); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); actif = actif <= 0 ? liste.length - 1 : actif - 1; afficher(); }
+      else if (e.key === 'Enter') { e.preventDefault(); choisir(liste[Math.max(actif, 0)]); }
+      else if (e.key === 'Escape') { fermerListe(); }
+    });
+    adr.addEventListener('blur', () => setTimeout(fermerListe, 150));
+    adr.addEventListener('input', () => {
+      o.effacer(); carteEl.hidden = true; clearTimeout(minuteur);
+      const q = adr.value.trim(); if (q.length < 3) { fermerListe(); return; }
+      minuteur = setTimeout(async () => {
+        const n = ++demande;
+        try {
+          const j = await (await fetch(API + '/terrain/adresses?q=' + encodeURIComponent(q))).json();
+          if (n !== demande || document.activeElement !== adr) return;
+          liste = j.adresses || []; actif = -1; afficher();
+        } catch (x) { fermerListe(); }
+      }, 200);
+    });
+    // Mini-carte : photo aérienne IGN (tuiles relayées par bonpermis.fr), contour de la parcelle et point de l'adresse.
+    let fond = 'ortho';
+    function carte(x, t) {
+      const RAD = Math.PI / 180, W = carteEl.parentNode.clientWidth || 520, H = 230;
+      carteEl.hidden = false; carteEl.style.height = H + 'px';
+      const anneaux = [];
+      const g = t && t.parcelle && t.parcelle.geometrie;
+      if (g) (g.type === 'MultiPolygon' ? g.coordinates.flat() : g.type === 'Polygon' ? g.coordinates : []).forEach(r => anneaux.push(r));
+      const px = (z, lon, lat) => { const n = 256 * 2 ** z; return [(lon + 180) / 360 * n, (1 - Math.log(Math.tan(lat * RAD) + 1 / Math.cos(lat * RAD)) / Math.PI) / 2 * n]; };
+      // Zoom : le plus fort qui fait tenir la parcelle (photo IGN jusqu'au niveau 19).
+      let z = 19, cx, cy;
+      for (; z >= 15; z--) {
+        const pts = anneaux.flat().map(p => px(z, p[0], p[1]));
+        if (!pts.length) { [cx, cy] = px(z, x.lon, x.lat); break; }
+        const xs = pts.map(p => p[0]), ys = pts.map(p => p[1]);
+        const bw = Math.max(...xs) - Math.min(...xs), bh = Math.max(...ys) - Math.min(...ys);
+        cx = (Math.max(...xs) + Math.min(...xs)) / 2; cy = (Math.max(...ys) + Math.min(...ys)) / 2;
+        if (bw <= W - 60 && bh <= H - 50) break;
+      }
+      const ox = cx - W / 2, oy = cy - H / 2;
+      let h = '';
+      for (let tx = Math.floor(ox / 256); tx <= Math.floor((ox + W) / 256); tx++)
+        for (let ty = Math.floor(oy / 256); ty <= Math.floor((oy + H) / 256); ty++)
+          h += `<img alt="" draggable="false" src="${API}/terrain/tuile?c=${fond}&z=${z}&x=${tx}&y=${ty}" style="left:${Math.round(tx * 256 - ox)}px;top:${Math.round(ty * 256 - oy)}px">`;
+      const chemin = anneaux.map(r => 'M' + r.map(p => { const q = px(z, p[0], p[1]); return (q[0] - ox).toFixed(1) + ',' + (q[1] - oy).toFixed(1); }).join('L') + 'Z').join('');
+      const [mx, my] = px(z, x.lon, x.lat).map((v, i) => v - (i ? oy : ox));
+      h += `<svg width="${W}" height="${H}" aria-hidden="true">${chemin ? `<path d="${chemin}" fill="rgba(1,39,177,.18)" stroke="#fff" stroke-width="4" stroke-linejoin="round"/><path d="${chemin}" fill="none" stroke="#0127B1" stroke-width="2" stroke-linejoin="round"/>` : ''}
+        <g transform="translate(${mx.toFixed(1)},${my.toFixed(1)})"><path d="M0 0c-6-8-10-12-10-17a10 10 0 0 1 20 0c0 5-4 9-10 17z" fill="#0127B1" stroke="#fff" stroke-width="2"/><circle cy="-17" r="3.5" fill="#fff"/></g></svg>
+        <div class="mc-bt" role="group" aria-label="Fond de carte"><button type="button" data-fond="ortho" aria-pressed="${fond === 'ortho'}">Photo</button><button type="button" data-fond="plan" aria-pressed="${fond === 'plan'}">Plan</button></div>
+        <span class="mc-att">${chemin ? 'Contour : cadastre · ' : ''}© IGN</span>`;
+      carteEl.innerHTML = h;
+      carteEl.setAttribute('role', 'img');
+      carteEl.setAttribute('aria-label', 'Vue aérienne de l\'adresse' + (chemin ? ' avec le contour de la parcelle' : ''));
+      carteEl.querySelectorAll('[data-fond]').forEach(b => b.addEventListener('click', () => { fond = b.dataset.fond; carte(x, t); }));
+    }
+    return {carte};
   }
 
   function renderCheckout(){
@@ -162,72 +292,13 @@
       champ.addEventListener('input', () => { if (promo) { promo = null; msg.textContent = ''; majBouton(); } });
       fo._promoVerifier = verifier;
     }
-    // Liste déroulante accessible : flèches, Entrée, Échap ; un clic ou Entrée choisit l'adresse.
-    let liste = [], actif = -1;
-    const carteEl = body.querySelector('[data-carte]');
-    const afficher = () => {
-      sug.innerHTML = liste.map((x, i) => `<li role="option" id="co-sug-${i}" class="sug${i === actif ? ' on' : ''}" aria-selected="${i === actif}" data-i="${i}"><b>${esc(x.rue || x.label)}</b>${x.ville ? `<small>${esc(x.ville)}</small>` : ''}</li>`).join('');
-      adr.setAttribute('aria-expanded', liste.length > 0 ? 'true' : 'false');
-      if (actif >= 0) adr.setAttribute('aria-activedescendant', 'co-sug-' + actif); else adr.removeAttribute('aria-activedescendant');
-    };
-    const fermerListe = () => { liste = []; actif = -1; afficher(); };
-    const choisir = x => { adr.value = x.label; fermerListe(); lieu = {lon: x.lon, lat: x.lat}; carte(x, null); terrain(x); };
-    sug.addEventListener('pointerdown', e => { const li = e.target.closest('[data-i]'); if (!li) return; e.preventDefault(); choisir(liste[+li.dataset.i]); });
-    adr.addEventListener('keydown', e => {
-      if (!liste.length) return;
-      if (e.key === 'ArrowDown') { e.preventDefault(); actif = (actif + 1) % liste.length; afficher(); }
-      else if (e.key === 'ArrowUp') { e.preventDefault(); actif = actif <= 0 ? liste.length - 1 : actif - 1; afficher(); }
-      else if (e.key === 'Enter') { e.preventDefault(); choisir(liste[Math.max(actif, 0)]); }
-      else if (e.key === 'Escape') { fermerListe(); }
+    // Adresse : liste déroulante (Base Adresse Nationale) et mini-carte, communes avec l'étape « adresse ».
+    const W = adresseWidget(body, adr, sug, body.querySelector('[data-carte]'), {
+      choisir: x => { lieu = {lon: x.lon, lat: x.lat}; terrain(x); },
+      effacer: () => { lieu = null; info.hidden = true; }
     });
-    adr.addEventListener('blur', () => setTimeout(fermerListe, 150));
-    adr.addEventListener('input', () => {
-      lieu = null; info.hidden = true; carteEl.hidden = true; clearTimeout(minuteur);
-      const q = adr.value.trim(); if (q.length < 3) { fermerListe(); return; }
-      minuteur = setTimeout(async () => {
-        const n = ++demande;
-        try {
-          const j = await (await fetch(API + '/terrain/adresses?q=' + encodeURIComponent(q))).json();
-          if (n !== demande || document.activeElement !== adr) return;
-          liste = j.adresses || []; actif = -1; afficher();
-        } catch (x) { fermerListe(); }
-      }, 200);
-    });
-    // Mini-carte : photo aérienne IGN (tuiles relayées par bonpermis.fr), contour de la parcelle et point de l'adresse.
-    let fond = 'ortho';
-    function carte(x, t) {
-      const RAD = Math.PI / 180, W = carteEl.parentNode.clientWidth || 520, H = 230;
-      carteEl.hidden = false; carteEl.style.height = H + 'px';
-      const anneaux = [];
-      const g = t && t.parcelle && t.parcelle.geometrie;
-      if (g) (g.type === 'MultiPolygon' ? g.coordinates.flat() : g.type === 'Polygon' ? g.coordinates : []).forEach(r => anneaux.push(r));
-      const px = (z, lon, lat) => { const n = 256 * 2 ** z; return [(lon + 180) / 360 * n, (1 - Math.log(Math.tan(lat * RAD) + 1 / Math.cos(lat * RAD)) / Math.PI) / 2 * n]; };
-      // Zoom : le plus fort qui fait tenir la parcelle (photo IGN jusqu'au niveau 19).
-      let z = 19, cx, cy;
-      for (; z >= 15; z--) {
-        const pts = anneaux.flat().map(p => px(z, p[0], p[1]));
-        if (!pts.length) { [cx, cy] = px(z, x.lon, x.lat); break; }
-        const xs = pts.map(p => p[0]), ys = pts.map(p => p[1]);
-        const bw = Math.max(...xs) - Math.min(...xs), bh = Math.max(...ys) - Math.min(...ys);
-        cx = (Math.max(...xs) + Math.min(...xs)) / 2; cy = (Math.max(...ys) + Math.min(...ys)) / 2;
-        if (bw <= W - 60 && bh <= H - 50) break;
-      }
-      const ox = cx - W / 2, oy = cy - H / 2;
-      let h = '';
-      for (let tx = Math.floor(ox / 256); tx <= Math.floor((ox + W) / 256); tx++)
-        for (let ty = Math.floor(oy / 256); ty <= Math.floor((oy + H) / 256); ty++)
-          h += `<img alt="" draggable="false" src="${API}/terrain/tuile?c=${fond}&z=${z}&x=${tx}&y=${ty}" style="left:${Math.round(tx * 256 - ox)}px;top:${Math.round(ty * 256 - oy)}px">`;
-      const chemin = anneaux.map(r => 'M' + r.map(p => { const q = px(z, p[0], p[1]); return (q[0] - ox).toFixed(1) + ',' + (q[1] - oy).toFixed(1); }).join('L') + 'Z').join('');
-      const [mx, my] = px(z, x.lon, x.lat).map((v, i) => v - (i ? oy : ox));
-      h += `<svg width="${W}" height="${H}" aria-hidden="true">${chemin ? `<path d="${chemin}" fill="rgba(1,39,177,.18)" stroke="#fff" stroke-width="4" stroke-linejoin="round"/><path d="${chemin}" fill="none" stroke="#0127B1" stroke-width="2" stroke-linejoin="round"/>` : ''}
-        <g transform="translate(${mx.toFixed(1)},${my.toFixed(1)})"><path d="M0 0c-6-8-10-12-10-17a10 10 0 0 1 20 0c0 5-4 9-10 17z" fill="#0127B1" stroke="#fff" stroke-width="2"/><circle cy="-17" r="3.5" fill="#fff"/></g></svg>
-        <div class="mc-bt" role="group" aria-label="Fond de carte"><button type="button" data-fond="ortho" aria-pressed="${fond === 'ortho'}">Photo</button><button type="button" data-fond="plan" aria-pressed="${fond === 'plan'}">Plan</button></div>
-        <span class="mc-att">${chemin ? 'Contour : cadastre · ' : ''}© IGN</span>`;
-      carteEl.innerHTML = h;
-      carteEl.setAttribute('role', 'img');
-      carteEl.setAttribute('aria-label', 'Vue aérienne de l\'adresse' + (chemin ? ' avec le contour de la parcelle' : ''));
-      carteEl.querySelectorAll('[data-fond]').forEach(b => b.addEventListener('click', () => { fond = b.dataset.fond; carte(x, t); }));
-    }
+    const carte = (x, t) => W.carte(x, t);
+    if (S.lieu) { adr.value = S.adresse; lieu = S.lieu; terrain({lon: S.lieu.lon, lat: S.lieu.lat, label: S.adresse}); }
     async function terrain(x) {
       info.hidden = false; info.className = 'terrain-info'; info.textContent = 'On regarde votre terrain…';
       let t; try { t = await (await fetch(API + `/terrain?lon=${x.lon}&lat=${x.lat}`)).json(); } catch (e) { info.hidden = true; return; }

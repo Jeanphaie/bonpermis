@@ -139,6 +139,7 @@
     if (t.zone) li.push(['PLU', `${esc(t.zone.libelle)} · ${esc(t.zone.libelleLong)}${t.zone.reglement ? ' · ' + esc(t.zone.reglement) : ''}`]);
     else if (t.commune) li.push(['PLU', t.commune.rnu ? 'Commune au RNU (règles nationales)' : 'Zone non trouvée']);
     li.push(['Protection', t.protections.length ? t.protections.map(p => `${esc(p.libelle)} : ${esc(p.nom)}${p.detail ? ' (' + esc(p.detail) + ')' : ''}`).join('<br>') : (t.secteurProtege === false ? 'Aucune dans les données publiques (à confirmer)' : 'Non vérifiée')]);
+    if (Array.isArray(t.risques)) li.push(['Risques', t.risques.length ? t.risques.map(r => esc(r.libelle) + (r.niveau ? ' (' + esc(r.niveau) + ')' : '') + (r.detail ? ' · ' + esc(r.detail) : '')).join('<br>') + (t.georisques ? `<br><a href="${esc(t.georisques)}" target="_blank" rel="noopener">Rapport Géorisques</a>` : '') : 'Aucun risque majeur à l\'adresse']);
     const bs = t.batiments.filter(b => b.surParcelle);
     li.push(['Bâtiments', bs.length ? bs.map(b => `${b.emprise} m² au sol${b.hauteur != null ? ', ' + String(b.hauteur).replace('.', ',') + ' m à la gouttière' : ''}${b.etages ? ', ' + b.etages + ' niv.' : ''}${b.usage ? ' · ' + esc(b.usage) : ''}`).join('<br>') : 'Aucun sur la parcelle']);
     if (t.erreurs && t.erreurs.length) li.push(['Non lu', esc(t.erreurs.join(', '))]);

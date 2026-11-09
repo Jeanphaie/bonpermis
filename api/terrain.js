@@ -10,10 +10,11 @@
 const B = require('./base');
 const {fs, path, repondre, journal} = B;
 
-const GEOPF = 'https://data.geopf.fr', CARTO = 'https://apicarto.ign.fr/api';
+const GEOPF = 'https://data.geopf.fr', CARTO = 'https://apicarto.ign.fr/api', GEORISQUES = 'https://www.georisques.gouv.fr/api/v1';
 const DELAI = 9000, DUREE_CACHE = 7 * 86400000;
 const cache = new Map();
 
+const IGNORES = ['radon', 'pollutionSols'];
 const PROTECTIONS = {
   ac1: 'Monument historique ou ses abords',
   ac2: 'Site inscrit ou classé',
@@ -87,10 +88,11 @@ async function analyserTerrain(lon, lat) {
   const erreurs = [];
   const essai = async (nom, f) => { try { return await f(); } catch (e) { erreurs.push(nom); journal('terrain', nom, e.message); return null; } };
 
-  const [parc, zone, sup] = await Promise.all([
+  const [parc, zone, sup, ris] = await Promise.all([
     essai('cadastre', () => lireUrl(`${CARTO}/cadastre/parcelle?geom=${pt}`)),
     essai('plu', () => lireUrl(`${CARTO}/gpu/zone-urba?geom=${pt}`)),
-    essai('servitudes', () => lireUrl(`${CARTO}/gpu/assiette-sup-s?geom=${pt}`))
+    essai('servitudes', () => lireUrl(`${CARTO}/gpu/assiette-sup-s?geom=${pt}`)),
+    essai('risques', () => lireUrl(`${GEORISQUES}/resultats_rapport_risque?latlon=${lon},${lat}`))
   ]);
 
   const out = {point: [lon, lat], parcelle: null, batiments: [], zone: null, commune: null, protections: [], erreurs};
@@ -152,6 +154,19 @@ async function analyserTerrain(lon, lat) {
   }
   // Le bâtiment lui-même classé passe avant ses abords, puis par type.
   out.protections.sort((a, c) => (c.detail === 'Monument historique') - (a.detail === 'Monument historique') || a.type.localeCompare(c.type));
+  // Risques (Géorisques) : seulement ceux établis à l'adresse et utiles au dossier (zone inondable, argiles, séisme fort…).
+  if (ris) {
+    out.risques = [];
+    const groupes = [ris.risquesNaturels || {}, ris.risquesTechnologiques || {}];
+    for (const g of groupes) for (const [code, r] of Object.entries(g)) {
+      const st = String((r && r.libelleStatutAdresse) || '');
+      if (!r || !r.present || !/^Risque Existant/i.test(st)) continue;
+      if (IGNORES.includes(code)) continue;
+      if (/faible/i.test(st) && ['seisme', 'retraitGonflementArgile'].includes(code)) continue;
+      out.risques.push({code, libelle: String(r.libelle || '').replace(/\bforet\b/, 'forêt'), niveau: st.replace(/^Risque Existant\s*-?\s*/i, '') || null, detail: r.specifique || null});
+    }
+    out.georisques = ris.url || null;
+  } else out.risques = null;
   out.secteurProtege = out.protections.length ? true : (erreurs.includes('servitudes') ? null : false);
   out.date = new Date().toISOString();
   return out;
