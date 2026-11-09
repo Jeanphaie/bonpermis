@@ -56,7 +56,7 @@ def head(titre, desc, chemin, base, jsonld):
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{e(titre)}</title>
 <link rel="icon" href="/favicon.ico" sizes="48x48">
-<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon-192.png" type="image/png" sizes="192x192">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <meta name="description" content="{e(desc)}">
 <link rel="canonical" href="{url}">
@@ -79,7 +79,7 @@ def entete(base, accueil):
     return f'''<header class="top">
   <div class="wrap">
     <a class="logo" href="{logo}" aria-label="Le Bon Permis, accueil">
-      <img src="/img/logo-le-bon-permis.svg" alt="Le Bon Permis" width="180" height="22">
+      <img src="/img/logo-le-bon-permis.png" alt="Le Bon Permis" width="198" height="22">
     </a>
     <nav class="links" aria-label="Sections">
       <a href="{a}#projets">Projets</a>
