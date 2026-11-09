@@ -1,0 +1,38 @@
+{
+  "_doc": "Fiche zone PLU analysée à la main par Claude. Pages = pagination du règlement écrit PDF. A vérifier: définitions du lexique (hauteur, emprise) non encore lues.",
+  "document": {
+    "nom": "PLUi du Seignanx, règlement écrit",
+    "partition": "DU_244000659",
+    "gpu_doc_id": "51d09b5e91053e9415f674770a5bb599",
+    "fichier": "244000659_reglement_20251218.pdf",
+    "approbation": "2025-12-18",
+    "communes": ["Biarrotte","Biaudos","Ondres","Saint-André-de-Seignanx","Saint-Barthélemy","Saint-Laurent-de-Gosse","Saint-Martin-de-Seignanx","Tarnos"]
+  },
+  "zone": "U40.9",
+  "commune": "Tarnos",
+  "analyse": {"par": "Claude", "date": "2026-11-09", "statut": "brouillon"},
+  "vocation": {"texte": "Zone mixte à dominante d'habitat", "page": 118},
+  "interdits": {"texte": "Caravanes, résidences mobiles de loisirs, HLL, PRL; remblais en zone inondable ou de remontée de nappe; commerces de plus de 300 m² de surface de vente", "pages": [119,120]},
+  "emprise": {"max_pct": 40, "base": "unité foncière", "page": 121},
+  "hauteur": {"max_m": 9, "page": 122, "a_verifier": "point de mesure (égout ou faîtage) dans le lexique"},
+  "recul_voie": {"min_m": 5, "mesure": "alignement, façade avec balcons et terrasses, avant-toits jusqu'à 50 cm non comptés", "exceptions": "poursuite d'alignements existants, front bâti commercial", "hors_agglo": "RD: 15 à 50 m selon catégorie", "pages": [34,35]},
+  "limites_separatives": {"regle": "non réglementé", "page": 122},
+  "regles_alternatives": {"page": 125},
+  "toiture": {"terrasse": "autorisée à Tarnos", "pente_pct": [30,45], "tuiles": "canal, romane ou Marseille, tuiles sombres interdites", "limite": "aucun débord sur le voisin en limite", "pages": [47,123]},
+  "facades": {"texte": "Nuancier prescriptif pour éléments verticaux, menuiseries, portes; couleurs vives et brillant interdits sauf petits éléments", "pages": [44,47]},
+  "clotures": {
+    "types": "haie d'essences locales ou claire-voie à vides majoritaires; mur plein interdit à Tarnos sauf règles alternatives",
+    "hauteur_voie_m": 1.6, "hauteur_limite_m": 1.6, "piliers_portail": "+30 cm max",
+    "interdits": "bâches, végétaux artificiels, parpaing ou brique non enduits sur les 2 faces",
+    "risques": "transparence hydraulique en zone inondable ou de remontée de nappe",
+    "alternatives": "mur existant poursuivi ou réhaussé en claire-voie, coffrets techniques 2 ml; le mur intimité 1,8 m x 5 m en continuité du bâti est exclu à Tarnos",
+    "pages": [51,52,54,55,56]
+  },
+  "espaces_libres": {"sea_min_pct": 50, "calcul": "100% - CES 40% - 10%; pleine terre x1, toiture végétalisée 30 cm x0,7, semi-perméable x0,5, mur végétalisé x0,5", "arbre_abattu": "2 arbres locaux plantés pour 1 arbre de plus de 5 m supprimé", "exemptions": "réhabilitation dans le volume existant", "pages": [70,71,72,75]},
+  "stationnement": {"logement": "1 place pour 1 à 2 pièces, 2 places à partir de 3 pièces, +1 visiteur par 4 logements", "extension_annexe": "aucune place exigée si pas de nouveau logement", "parking_exterieur": "revêtement perméable, 1 arbre pour 4 places", "pages": [76,77,79,80]},
+  "vigilance": [
+    "Indice sdu: SDU loi Littoral quartier Forêt, avis CDNPS (p.118-125)",
+    "Loi Littoral: p.14-21",
+    "Risques: p.22-28 (remontée de nappe, feu de forêt à Tarnos)"
+  ]
+}
