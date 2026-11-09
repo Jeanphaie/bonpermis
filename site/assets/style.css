@@ -442,3 +442,6 @@ section.sell-band{padding:0}
 .tel-grand:hover{border-color:var(--accent)}
 .tel-box{margin:22px 0 0;padding:14px 18px;border-left:3px solid var(--accent);background:var(--accent-soft);border-radius:0 12px 12px 0;font-size:15px}
 .tel-box a{color:var(--ink);text-decoration:none}
+.tel-rappel{margin:28px 0 0;font-size:16px;color:var(--muted)}
+.tel-rappel a{color:var(--ink);text-decoration:none}
+.tel-rappel b{font-size:17px}
