@@ -198,7 +198,7 @@ def accueil():
     titre = 'Le Bon Permis : déclaration préalable et permis de construire en ligne'
     desc = ("Abri, piscine, extension, véranda : on vérifie les règles d'urbanisme de votre commune (PLU) avant de dessiner, "
             "puis on prépare votre dossier de mairie, plans compris. Prix connu en une minute, dossier prêt en 48 h.")
-    return head(titre, desc, '', '', ld) + '<body>\n\n' + entete('', True) + '\n' + corps + '\n' + pied('') + barre_mobile() + OVERLAY + scripts('')
+    return head(titre, desc, '', '', ld) + '<body>\n\n' + entete('', True) + '\n' + corps + '\n' + pied('') + OVERLAY + scripts('')
 
 
 def page(k):
@@ -256,7 +256,7 @@ def page(k):
         <button class="btn blue-btn" type="button" data-p="{simu}">{e(c.get("cta", "Voir mon prix en une minute"))}</button>
         <a class="btn ghost" href="#regles">Les règles en détail</a>
       </div>
-      <div class="facts"><span><b>{e(c['prix'])}</b>Prix TTC tout compris</span><span><b>{e(c['delai'])}</b>Dossier prêt</span><span><b>{e(c.get("fait3", ["Sans frais", "Si refus de notre fait"])[0])}</b>{e(c.get("fait3", ["Sans frais", "Si refus de notre fait"])[1])}</span><a class="fact-tel" href="{TEL_HREF}"><i><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/></svg></i><span><b>{TEL}</b>Une question ? On décroche</span></a></div>
+      <div class="facts"><span><b>{e(c['prix'])}</b>Prix TTC tout compris</span><span><b>{e(c['delai'])}</b>Dossier prêt</span><span><b>{e(c.get("fait3", ["Sans frais", "Si refus de notre fait"])[0])}</b>{e(c.get("fait3", ["Sans frais", "Si refus de notre fait"])[1])}</span></div>
     </div>
     <div class="page-art"><img src="../img/{img(k)}.webp" alt="{e(n)} : illustration du projet" width="480" height="480" fetchpriority="high"></div>
   </div>
@@ -278,7 +278,6 @@ def page(k):
     {need_html}
     <h2 class="mt">Ce qu'on fait pour vous</h2>
     <p class="lead">D'abord, on lit le plan local d'urbanisme de votre commune : distances aux voisins, hauteur, emprise, clôtures, couleurs. Si votre projet ne passe pas tel quel, on vous le dit avant de commencer. Ensuite on dessine tous les plans demandés par la mairie et on remplit le formulaire officiel. Une deuxième personne relit tout. Vous n'avez plus qu'à déposer, ou on dépose pour vous.</p>
-    <p class="tel-box">Une question avant de commencer ? <a href="{TEL_HREF}"><b>{TEL}</b></a>, du lundi au vendredi. Vous parlez à la personne qui préparera votre dossier.</p>
     <div class="cta-box">
       <div><b>{e(c['prix'])}</b><span>{e(cta_txt)}</span></div>
       <button class="btn blue-btn" type="button" data-p="{simu}">Voir mon prix exact</button>
@@ -302,7 +301,7 @@ def page(k):
 </section>
 </main>
 '''
-    return head(titre, c['desc'], slug + '/', base, ld) + f'<body data-page="{simu}">\n\n' + entete(base, False, simu if simu in P or simu == 'regul' else None) + '\n' + corps + '\n' + pied(base) + barre_mobile(simu if simu in P or simu == 'regul' else None) + OVERLAY + scripts(base)
+    return head(titre, c['desc'], slug + '/', base, ld) + f'<body data-page="{simu}">\n\n' + entete(base, False, simu if simu in P or simu == 'regul' else None) + '\n' + corps + '\n' + pied(base) + OVERLAY + scripts(base)
 
 
 COOKIES_SANS = ("<p>Le site n'utilise pas de cookie publicitaire ni de mesure d'audience. Seuls des cookies techniques servent à garder "

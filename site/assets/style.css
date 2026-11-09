@@ -500,3 +500,7 @@ nav.links a,.espace-lien{white-space:nowrap}
 .facts .fact-tel b{color:var(--ink);font-size:16px}
 .facts .fact-tel:hover{filter:none;border-color:var(--accent)}
 @media (max-width:860px){.barre-mobile .bm-tel{background:#fff;border-color:var(--line-2,var(--line));color:var(--ink);font-weight:600}}
+/* En-tête : seul endroit où le numéro est mis en avant (09/11 soir) */
+.tel-lien i{background:var(--accent);color:#fff}
+.tel-lien span{color:var(--accent)}
+@media (max-width:860px){.tel-lien i{background:var(--accent);color:#fff;border:0;border-radius:50%;width:38px;height:38px}}
