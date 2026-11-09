@@ -1,5 +1,5 @@
 {
- "_maj": "2026-11-07",
+ "_maj": "2026-11-09",
  "_sources": {
   "DP": ["Déclaration préalable de travaux", "https://www.service-public.gouv.fr/particuliers/vosdroits/F17578"],
   "PC": ["Permis de construire", "https://www.service-public.gouv.fr/particuliers/vosdroits/F1986"],
@@ -8,7 +8,9 @@
   "CU": ["Certificat d'urbanisme", "https://www.service-public.gouv.fr/particuliers/vosdroits/F1633"],
   "PD": ["Permis de démolir", "https://www.service-public.gouv.fr/particuliers/vosdroits/F17669"],
   "MODIF": ["Permis modificatif", "https://www.service-public.gouv.fr/particuliers/vosdroits/F19450"],
-  "DAACT": ["Déclaration d'achèvement des travaux", "https://www.service-public.gouv.fr/particuliers/vosdroits/F1997"]
+  "DAACT": ["Déclaration d'achèvement des travaux", "https://www.service-public.gouv.fr/particuliers/vosdroits/F1997"],
+  "INFRA": ["Travaux sans autorisation : délais de prescription", "https://www.justice.fr/fiche/infractions-regles-urbanisme-delais-prescription"],
+  "PRESCR": ["Conseil d'État, 3 février 2017, n° 373898", "https://www.legifrance.gouv.fr/affichJuriAdmin.do?oldAction=rechJuriAdmin&idTexte=CETATEXT000033981644&fastReqId=2037680504&fastPos=1"]
  },
  "pages": {
   "abri": {
@@ -269,7 +271,32 @@
    "chapo": "Un abri, une véranda ou une extension construits sans autorisation peuvent être régularisés : on dépose le dossier qui aurait dû l'être, à partir de ce qui existe.",
    "regles": [["Travaux conformes aux règles actuelles", "Dossier de régularisation, même démarche qu'avant travaux"], ["Travaux non conformes", "On vous le dit avant de commencer, et ce qu'il faudrait modifier"], ["Avant une vente", "Le notaire le demandera souvent"]],
    "note": "La mairie juge le dossier avec les règles d'aujourd'hui, pas celles de l'époque des travaux.",
-   "prix": "Même prix que le projet (dès 149 €)", "delai": "48 h", "sources": ["DP", "PC"], "liens": ["abri", "veranda", "extension", "daact"]
+   "prix": "Même prix que le projet (dès 149 €)", "delai": "48 h", "sources": ["DP", "PC"], "liens": ["vente", "veranda", "extension", "daact"]
+  },
+  "vente": {
+   "slug": "regularisation-avant-vente",
+   "n": "Régulariser avant une vente",
+   "simu": "regul",
+   "img": "38-regularisation",
+   "titre": "Régulariser des travaux avant une vente : dossier en 48 h",
+   "desc": "Véranda, garage aménagé ou extension jamais déclarés ? On vérifie si c'est régularisable et on prépare le dossier de mairie avant la vente. Prêt en 48 h.",
+   "h1": "Vous vendez, et des travaux n'ont jamais été déclarés ?",
+   "chapo": "Véranda, garage transformé, extension, abri : on vérifie s'ils sont régularisables, puis on prépare le dossier de mairie qui aurait dû être déposé. Vous avancez sur la vente avec une réponse claire.",
+   "cta": "Voir mon prix en une minute",
+   "fait3": ["Avant de dessiner", "On vous dit si c'est régularisable"],
+   "regles": [["Travaux conformes aux règles d'aujourd'hui", "Dossier de régularisation : déclaration préalable ou permis, selon la surface"], ["Travaux qui auraient demandé une déclaration préalable, finis depuis plus de 10 ans", "En général couverts par la prescription. On vérifie la date et on vous dit si un dossier reste utile"], ["Travaux qui auraient demandé un permis de construire", "Pas de prescription de 10 ans : il faut régulariser, quel que soit leur âge"], ["Travaux non conformes aux règles actuelles", "On vous le dit avant de commencer, avec ce qu'il faudrait modifier pour qu'ils le deviennent"]],
+   "note": "La mairie juge le dossier avec les règles d'aujourd'hui, pas celles de l'époque des travaux. Tant que la mairie n'a pas accordé la régularisation, les travaux restent sans autorisation.",
+   "prix": "Même prix que le projet (dès 149 €)",
+   "delai": "48 h",
+   "cta_txt": "Dossier prêt en 48 h après réception de vos photos et de vos mesures. Plusieurs constructions à régulariser : un seul dossier. Près d'un monument : + 149 €. En copropriété : + 99 €.",
+   "etapes_titre": "Comment ça se passe",
+   "etapes": [["Vous décrivez ce qui a été fait.", "Le type de travaux, la surface, l'année approximative. Deux ou trois questions suffisent."], ["On vérifie si c'est régularisable.", "Date des travaux, déclaration ou permis, règles actuelles de votre commune. Si ça ne passe pas, on vous le dit avant de dessiner."], ["On dessine l'existant.", "À partir de vos photos et de vos mesures : plans, insertion, formulaire officiel."], ["Vous déposez, ou on dépose pour vous.", "Vous recevez le récépissé de dépôt, à transmettre à votre notaire."]],
+   "erreurs_titre": "Ce qui fait échouer une régularisation",
+   "erreurs": ["Attendre le compromis. La mairie a un mois pour répondre à une déclaration, deux en secteur protégé, plus si elle réclame des pièces.", "Croire que 10 ans suffisent toujours. La prescription ne couvre pas les travaux qui auraient demandé un permis de construire.", "Déclarer moins que ce qui existe. Une surface sous-estimée peut changer la démarche, et le dossier ne correspond plus à la construction.", "Oublier une partie des travaux. Une véranda régularisée sans le garage transformé à côté laisse le problème entier.", "Lancer de nouveaux travaux avant de régulariser. Une demande sur une construction irrégulière doit porter sur l'ensemble."],
+   "garantie": ["Si la mairie dit non à cause d'une erreur de notre part, on corrige et on redépose, sans frais.", "Si les travaux ne respectent pas les règles actuelles de votre commune, on vous le dit avant de dessiner. La garantie ne couvre pas un refus lié à la construction elle-même."],
+   "faq": [["Peut-on vendre une maison avec des travaux non déclarés ?", "La vente n'est pas interdite. Mais c'est souvent le notaire qui relève le problème, et l'acheteur ou sa banque peut demander que ce soit réglé avant de signer. Régulariser avant la mise en vente évite de bloquer la date."], ["Quel risque si des travaux ont été faits sans autorisation ?", "C'est un délit. Pendant 6 ans après les travaux, une amende est possible, de 1 200 € à 300 000 € selon le cas. La régularisation peut être demandée à tout moment."], ["Mes travaux ont plus de 10 ans. Suis-je tranquille ?", "Pas toujours. La prescription de 10 ans couvre les travaux faits sans déclaration préalable. Elle ne couvre pas ceux qui auraient demandé un permis de construire. On vérifie votre cas avec la date et la surface."], ["Les travaux ont été faits par l'ancien propriétaire. Qui doit régulariser ?", "La demande est déposée par le propriétaire actuel, ou par une personne qu'il autorise. Si vous vendez, c'est donc à vous de la lancer avant la vente, ou d'en convenir avec l'acheteur."], ["La mairie peut-elle refuser ?", "Oui, si les travaux ne respectent pas les règles d'urbanisme en vigueur aujourd'hui. C'est pour ça qu'on vérifie avant de dessiner."], ["Combien de temps ça prend ?", "Le dossier est prêt en 48 h après vos photos et vos mesures. Ensuite, la mairie a un mois pour une déclaration préalable, en général deux en secteur protégé, à compter d'un dossier complet."], ["J'ai plusieurs constructions non déclarées. Il faut plusieurs dossiers ?", "Non, on les régularise dans un seul dossier, ce qui évite qu'une partie reste en suspens."], ["Que dois-je donner à mon notaire ?", "Le récépissé de dépôt, puis la décision de la mairie quand elle arrive. On vous les envoie dans votre espace."]],
+   "sources": ["INFRA", "PRESCR", "DP", "PC"],
+   "liens": ["veranda", "garage", "extension", "abri"]
   }
  }
 }

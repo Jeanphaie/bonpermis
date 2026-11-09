@@ -39,11 +39,15 @@ e = lambda s: html.escape(s, quote=True)
 
 
 def nom(k):
-    return 'Déclarer des travaux déjà faits' if k == 'regul' else P[k]['n']
+    if k == 'regul':
+        return 'Déclarer des travaux déjà faits'
+    return PAGES.get(k, {}).get('n') or P[k]['n']
 
 
 def img(k):
-    return REGUL_IMG if k == 'regul' else P[k]['img']
+    if k == 'regul':
+        return REGUL_IMG
+    return PAGES.get(k, {}).get('img') or P[k]['img']
 
 
 def head(titre, desc, chemin, base, jsonld):
@@ -83,6 +87,7 @@ def entete(base, accueil):
     </a>
     <nav class="links" aria-label="Sections">
       <a href="{a}#projets">Projets</a>
+      <a href="{base}regularisation-avant-vente/">Avant une vente</a>
       <a href="{a}#comment">Comment ça marche</a>
       <a href="{a}#tarifs">Tarifs</a>
       <a href="{a}#faq">Questions</a>
@@ -98,7 +103,7 @@ def pied(base):
     cols = []
     for g in GROUPS:
         cols.append((g['t'], g['k']))
-    cols.append(('Les autres démarches', [s['k'] for s in SVCS]))
+    cols.append(('Les autres démarches', [s['k'] for s in SVCS] + [k for k in PAGES if k not in P and k != 'regul']))
     blocs = ''.join(
         f'<div><b>{e(t)}</b><ul>' + ''.join(f'<li><a href="{base}{URL[k]}/">{e(nom(k))}</a></li>' for k in ks if k in URL) + '</ul></div>'
         for t, ks in cols)
@@ -177,16 +182,33 @@ def page(k):
     c, base, slug = PAGES[k], '../', URL[k]
     n = nom(k)
     need = NEED.get(k)
-    if k == 'regul':
+    simu = c.get('simu', k)  # projet ouvert dans le simulateur (une page peut en ouvrir un autre)
+    if simu == 'regul':
         need = ['Ce qui a été construit : type, dimensions, matériaux, et la date approximative des travaux',
                 'Les dimensions de ce qui existe et la distance aux limites du terrain',
                 'Des photos de ce qui est construit, la maison vue de la rue, le terrain vu de loin']
     regles = ''.join(f'<tr><th scope="row">{e(a)}</th><td>{e(b)}</td></tr>' for a, b in c['regles'])
     srcs = ' · '.join(f'<a href="{SOURCES[s][1]}" rel="noopener" target="_blank">{e(SOURCES[s][0])}</a>' for s in c['sources'])
-    liens = ''.join(tuile(l, base, False) if l in P else '' for l in c['liens'])
+    liens = ''.join(tuile(l, base, False) if l in P else (
+        f'<a class="tile" href="{base}{URL[l]}/"><img src="{base}img/{img(l)}.webp" alt="" loading="lazy" width="480" height="480"><span>{e(nom(l))}</span></a>'
+        if l in PAGES else '') for l in c['liens'])
+    # Sections facultatives : étapes, erreurs fréquentes, FAQ (avec balisage FAQPage)
+    etapes_html = '' if not c.get('etapes') else (
+        f'<h2 class="mt">{e(c.get("etapes_titre", "Comment ça se passe"))}</h2><ol class="steps-list">'
+        + ''.join(f'<li><b>{e(t)}</b> {e(x)}</li>' for t, x in c['etapes']) + '</ol>')
+    erreurs_html = '' if not c.get('erreurs') else (
+        f'<h2 class="mt">{e(c.get("erreurs_titre", "Les erreurs qui bloquent un dossier"))}</h2><ul class="need-list">'
+        + ''.join(f'<li>{e(x)}</li>' for x in c['erreurs']) + '</ul>')
+    faq_html = '' if not c.get('faq') else (
+        '<section id="faq" class="page-sec alt"><div class="wrap narrow"><h2>Questions fréquentes</h2><div class="faq">'
+        + ''.join(f'<details><summary>{e(q)}</summary><p>{e(r)}</p></details>' for q, r in c['faq']) + '</div></div></section>')
+    blocs_sup = '' if not (etapes_html or erreurs_html) else f'<section class="page-sec"><div class="wrap narrow">{etapes_html}{erreurs_html}</div></section>'
+    gar_t, gar_p = c.get('garantie', ["Si la mairie dit non à cause de nous, on reprend tout, sans frais.",
+                                      "Un refus ou une pièce manquante à cause d'une erreur dans le dossier ? On corrige et on redépose, sans rien vous facturer."])
+    cta_txt = c.get('cta_txt', f"Dossier prêt en {c['delai']} après réception de vos photos. Près d'un monument : + 149 €. En copropriété : + 99 €.")
     need_html = '' if not need else (
         '<ul class="need-list">' + ''.join(f'<li><i>{t}</i>{e(x)}</li>' for t, x in zip(['Le projet', 'Les mesures', 'Les photos'], need)) + '</ul>')
-    cat = 'regul' if k == 'regul' else P[k]['cat']
+    cat = 'regul' if simu == 'regul' else P[simu]['cat']
     prix_num = BASE.get(cat, 149)
     ld = [
         {"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [
@@ -196,6 +218,9 @@ def page(k):
          "provider": {"@id": DOMAINE + "/#org"}, "areaServed": "FR",
          "offers": {"@type": "Offer", "price": str(prix_num), "priceCurrency": "EUR"}},
     ]
+    if c.get('faq'):
+        ld.append({"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [
+            {"@type": "Question", "name": q, "acceptedAnswer": {"@type": "Answer", "text": r}} for q, r in c['faq']]})
     titre = c['titre']
     corps = f'''<main id="top">
 <section class="page-hero">
@@ -205,10 +230,10 @@ def page(k):
       <h1>{e(c['h1'])}</h1>
       <p class="answer">{e(c['chapo'])}</p>
       <div class="hero-cta">
-        <button class="btn blue-btn" type="button" data-p="{k}">Voir mon prix en une minute</button>
+        <button class="btn blue-btn" type="button" data-p="{simu}">{e(c.get("cta", "Voir mon prix en une minute"))}</button>
         <a class="btn ghost" href="#regles">Les règles en détail</a>
       </div>
-      <div class="facts"><span><b>{e(c['prix'])}</b>Prix TTC tout compris</span><span><b>{e(c['delai'])}</b>Dossier prêt</span><span><b>Sans frais</b>Si refus de notre fait</span></div>
+      <div class="facts"><span><b>{e(c['prix'])}</b>Prix TTC tout compris</span><span><b>{e(c['delai'])}</b>Dossier prêt</span><span><b>{e(c.get("fait3", ["Sans frais", "Si refus de notre fait"])[0])}</b>{e(c.get("fait3", ["Sans frais", "Si refus de notre fait"])[1])}</span></div>
     </div>
     <div class="page-art"><img src="../img/{img(k)}.webp" alt="{e(n)} : illustration du projet" width="480" height="480" fetchpriority="high"></div>
   </div>
@@ -231,19 +256,20 @@ def page(k):
     <h2 class="mt">Ce qu'on fait pour vous</h2>
     <p class="lead">On vérifie les règles de votre commune, on dessine tous les plans demandés par la mairie, on remplit le formulaire officiel. Une deuxième personne relit tout. Vous n'avez plus qu'à déposer, ou on dépose pour vous.</p>
     <div class="cta-box">
-      <div><b>{e(c['prix'])}</b><span>Dossier prêt en {e(c['delai'])} après réception de vos photos. Près d'un monument : + 149 €. En copropriété : + 99 €.</span></div>
-      <button class="btn blue-btn" type="button" data-p="{k}">Voir mon prix exact</button>
+      <div><b>{e(c['prix'])}</b><span>{e(cta_txt)}</span></div>
+      <button class="btn blue-btn" type="button" data-p="{simu}">Voir mon prix exact</button>
     </div>
   </div>
 </section>
-
+{blocs_sup}
+{faq_html}
 <section class="page-sec">
   <div class="wrap">
     <div class="guarantee">
       <div class="seal"><svg width="30" height="30" viewBox="0 0 30 30"><path d="M8 15.5l4.5 4.5L22 10" fill="none" stroke="var(--accent)" stroke-width="3"/></svg></div>
       <div>
-        <h3>Si la mairie dit non à cause de nous, on reprend tout, sans frais.</h3>
-        <p>Un refus ou une pièce manquante à cause d'une erreur dans le dossier ? On corrige et on redépose, sans rien vous facturer.</p>
+        <h3>{e(gar_t)}</h3>
+        <p>{e(gar_p)}</p>
       </div>
     </div>
     <h2 class="mt">Projets proches</h2>
@@ -252,7 +278,7 @@ def page(k):
 </section>
 </main>
 '''
-    return head(titre, c['desc'], slug + '/', base, ld) + f'<body data-page="{k}">\n\n' + entete(base, False) + '\n' + corps + '\n' + pied(base) + OVERLAY + scripts(base)
+    return head(titre, c['desc'], slug + '/', base, ld) + f'<body data-page="{simu}">\n\n' + entete(base, False) + '\n' + corps + '\n' + pied(base) + OVERLAY + scripts(base)
 
 
 def legale(slug, titre):
