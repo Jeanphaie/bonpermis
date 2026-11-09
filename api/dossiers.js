@@ -30,13 +30,15 @@ function piecesInitiales(kind, p, ctx) {
     let a = {}; try { a = JSON.parse(c.reponses || '{}'); } catch {}
     const copie = l => (l || []).map(x => Object.assign({}, x));
     const commun = !PIECES.sansCommun.includes(p), cm = PIECES.commun.debut ? PIECES.commun : {debut: [], fin: PIECES.commun};
-    const out = [{id: 'projet', nom: kind === 'svc' ? 'Votre demande' : 'Le projet en quelques mots', type: 'texte', aide: nd[0]}];
+    const out = [{id: 'projet', nom: kind === 'svc' ? 'Votre demande' : 'Le projet en quelques mots', type: 'texte',
+      aide: kind === 'svc' ? nd[0] : 'Deux ou trois phrases suffisent : ce que vous faites, où sur le terrain ou sur la maison, à peu près quelle taille.'}];
     if (commun) out.push(...copie(cm.debut));
     if (PIECES.modes && PIECES.modes[p]) out.push({id: 'plan', nom: 'Emplacement sur le plan', type: 'plan', mode: PIECES.modes[p], facultatif: true,
       aide: 'Placez votre projet sur le plan de votre terrain. Si vous n\'y arrivez pas, décrivez-le simplement dans « Le projet en quelques mots ».'});
     out.push(...copie(liste));
     if (c.regul === true || c.regul === 'true') out.push(...copie(PIECES.regul));
-    if (commun) out.push(...copie(cm.fin));
+    // La photo de l'endroit des travaux ne sert que si le projet n'a pas déjà sa propre photo (façade, toit, rue).
+    if (commun) out.push(...copie(cm.fin).filter(x => x.id !== 'endroit' || !liste.some(y => y.type === 'photo')));
     if (c.regul === true || c.regul === 'true') for (const x of out) if (x.id === 'endroit') x.aide = "À quelques mètres : l'endroit exact où ont été faits les travaux.";
     if (a.abf === 'oui') out.push(...copie(PIECES.situations.secteur_protege));
     if (a.copro === 'oui') out.push(...copie(PIECES.situations.copropriete));

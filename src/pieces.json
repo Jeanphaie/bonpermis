@@ -22,14 +22,6 @@
     "nom": "L'endroit des travaux",
     "type": "photo",
     "aide": "À quelques mètres : l'endroit exact où se feront les travaux."
-   },
-   {
-    "id": "pente-terrain",
-    "nom": "Votre terrain est-il plat ou en pente ?",
-    "type": "texte",
-    "aide": "",
-    "exemple": "Exemple : plat. Ou : il descend vers le fond, environ 1 m sur toute la longueur",
-    "facultatif": true
    }
   ]
  },
@@ -55,14 +47,6 @@
     "aide": "Longueur, largeur, hauteur au plus haut, matériau, toit plat ou en pente. Inutile si vous envoyez la fiche du modèle.",
     "exemple": "Exemple : 3 m x 2 m, 2,20 m de haut, bois naturel, toit à 2 pentes",
     "sauf": "modele"
-   },
-   {
-    "id": "limite",
-    "nom": "Distance au terrain voisin le plus proche",
-    "type": "texte",
-    "aide": "Au mètre ruban, de la construction prévue jusqu'à la clôture ou la borne. Inutile si vous avez placé votre projet sur le plan.",
-    "exemple": "Exemple : 1,50 m de la clôture du voisin de droite (vu depuis la rue)",
-    "sauf": "plan"
    }
   ],
   "annexe": [
@@ -85,14 +69,6 @@
     "type": "texte",
     "aide": "Les murs, le toit, les fenêtres.",
     "exemple": "Exemple : murs enduits beige comme la maison, toit en tuiles rouges, fenêtres alu gris"
-   },
-   {
-    "id": "limite",
-    "nom": "Distance au terrain voisin le plus proche",
-    "type": "texte",
-    "aide": "Au mètre ruban, de la construction prévue jusqu'à la clôture ou la borne. Inutile si vous avez placé votre projet sur le plan.",
-    "exemple": "Exemple : 1,50 m de la clôture du voisin de droite (vu depuis la rue)",
-    "sauf": "plan"
    }
   ],
   "carport": [
@@ -110,20 +86,6 @@
     "aide": "Longueur, largeur, hauteur, matériau. Fixé à la maison ou posé seul ? Inutile si vous envoyez la fiche du modèle.",
     "exemple": "Exemple : 5 m x 3 m, 2,40 m de haut, alu gris, fixé au mur du garage",
     "sauf": "modele"
-   },
-   {
-    "id": "facade",
-    "nom": "L'endroit prévu, vu de face",
-    "type": "photo",
-    "aide": "Le mur où il sera fixé, ou l'endroit du terrain s'il est posé seul."
-   },
-   {
-    "id": "limite",
-    "nom": "Distance au terrain voisin le plus proche",
-    "type": "texte",
-    "aide": "Au mètre ruban, de la construction prévue jusqu'à la clôture ou la borne. Inutile si vous avez placé votre projet sur le plan.",
-    "exemple": "Exemple : 1,50 m de la clôture du voisin de droite (vu depuis la rue)",
-    "sauf": "plan"
    }
   ],
   "pergola": [
@@ -138,16 +100,9 @@
     "id": "dimensions-et-hauteur",
     "nom": "Dimensions et hauteur",
     "type": "texte",
-    "aide": "Longueur, largeur, hauteur, type de toit (lames, toile, vitré), couleur. Inutile si vous envoyez la fiche du modèle.",
-    "exemple": "Exemple : 4 m x 3 m, 2,50 m de haut, alu gris foncé, toit à lames",
+    "aide": "Longueur, largeur, hauteur, type de toit (lames, toile, vitré), couleur, fixée à la maison ou posée seule. Inutile si vous envoyez la fiche du modèle.",
+    "exemple": "Exemple : 4 m x 3 m, 2,50 m de haut, alu gris foncé, toit à lames, fixée au mur de la terrasse",
     "sauf": "modele"
-   },
-   {
-    "id": "adossee-ou-autoportante",
-    "nom": "Fixée à la maison ou posée seule ?",
-    "type": "texte",
-    "aide": "",
-    "exemple": "Exemple : fixée au mur de la terrasse"
    },
    {
     "id": "facade",
@@ -159,17 +114,9 @@
     "id": "porte",
     "nom": "Une mesure de repère sur la façade concernée",
     "type": "texte",
-    "aide": "Au mètre ruban : la hauteur et la largeur d'une porte, d'une fenêtre ou d'une porte de garage que l'on voit sur la photo. Rien à mesurer sur ce mur ? Donnez sa longueur au sol. Inutile si vos plans montrent les façades.",
+    "aide": "Au mètre ruban : la hauteur et la largeur d'une porte, d'une fenêtre ou d'une porte de garage que l'on voit sur la photo. Ça nous sert à mettre la photo à l'échelle. Si vous ne pouvez pas, on se débrouille avec le cadastre.",
     "exemple": "Exemple : porte d'entrée, 2,15 m de haut et 0,90 m de large",
-    "sauf": "plans"
-   },
-   {
-    "id": "limite",
-    "nom": "Distance au terrain voisin le plus proche",
-    "type": "texte",
-    "aide": "Au mètre ruban, de la construction prévue jusqu'à la clôture ou la borne. Inutile si vous avez placé votre projet sur le plan.",
-    "exemple": "Exemple : 1,50 m de la clôture du voisin de droite (vu depuis la rue)",
-    "sauf": "plan"
+    "facultatif": true
    }
   ],
   "piscine": [
@@ -194,14 +141,6 @@
     "aide": "S'ils sont prévus : où et quelles dimensions.",
     "exemple": "Exemple : plage en bois de 1 m autour, local technique de 2 m x 1,5 m à côté",
     "facultatif": true
-   },
-   {
-    "id": "limite",
-    "nom": "Distance au terrain voisin le plus proche",
-    "type": "texte",
-    "aide": "Au mètre ruban, de la construction prévue jusqu'à la clôture ou la borne. Inutile si vous avez placé votre projet sur le plan.",
-    "exemple": "Exemple : 1,50 m de la clôture du voisin de droite (vu depuis la rue)",
-    "sauf": "plan"
    }
   ],
   "terrasse": [
@@ -310,17 +249,9 @@
     "id": "porte",
     "nom": "Une mesure de repère sur le côté des travaux",
     "type": "texte",
-    "aide": "Au mètre ruban : la hauteur et la largeur d'une porte, d'une fenêtre ou d'une porte de garage que l'on voit sur la photo. Rien à mesurer sur ce mur ? Donnez sa longueur au sol. Inutile si vos plans montrent les façades.",
+    "aide": "Au mètre ruban : la hauteur et la largeur d'une porte, d'une fenêtre ou d'une porte de garage que l'on voit sur la photo. Ça nous sert à mettre la photo à l'échelle. Si vous ne pouvez pas, on se débrouille avec le cadastre.",
     "exemple": "Exemple : porte d'entrée, 2,15 m de haut et 0,90 m de large",
-    "sauf": "plans"
-   },
-   {
-    "id": "limite",
-    "nom": "Distance au terrain voisin le plus proche",
-    "type": "texte",
-    "aide": "Au mètre ruban, de la construction prévue jusqu'à la clôture ou la borne. Inutile si vous avez placé votre projet sur le plan.",
-    "exemple": "Exemple : 1,50 m de la clôture du voisin de droite (vu depuis la rue)",
-    "sauf": "plan"
+    "facultatif": true
    }
   ],
   "veranda": [
@@ -357,17 +288,9 @@
     "id": "porte",
     "nom": "Une mesure de repère sur la façade concernée",
     "type": "texte",
-    "aide": "Au mètre ruban : la hauteur et la largeur d'une porte, d'une fenêtre ou d'une porte de garage que l'on voit sur la photo. Rien à mesurer sur ce mur ? Donnez sa longueur au sol. Inutile si vos plans montrent les façades.",
+    "aide": "Au mètre ruban : la hauteur et la largeur d'une porte, d'une fenêtre ou d'une porte de garage que l'on voit sur la photo. Ça nous sert à mettre la photo à l'échelle. Si vous ne pouvez pas, on se débrouille avec le cadastre.",
     "exemple": "Exemple : porte d'entrée, 2,15 m de haut et 0,90 m de large",
-    "sauf": "plans"
-   },
-   {
-    "id": "limite",
-    "nom": "Distance au terrain voisin le plus proche",
-    "type": "texte",
-    "aide": "Au mètre ruban, de la construction prévue jusqu'à la clôture ou la borne. Inutile si vous avez placé votre projet sur le plan.",
-    "exemple": "Exemple : 1,50 m de la clôture du voisin de droite (vu depuis la rue)",
-    "sauf": "plan"
+    "facultatif": true
    }
   ],
   "combles": [
@@ -403,9 +326,9 @@
     "id": "porte",
     "nom": "Une mesure de repère sur la façade, sous le toit",
     "type": "texte",
-    "aide": "Au mètre ruban : la hauteur et la largeur d'une porte, d'une fenêtre ou d'une porte de garage que l'on voit sur la photo. Rien à mesurer sur ce mur ? Donnez sa longueur au sol. Inutile si vos plans montrent les façades.",
+    "aide": "Au mètre ruban : la hauteur et la largeur d'une porte, d'une fenêtre ou d'une porte de garage que l'on voit sur la photo. Ça nous sert à mettre la photo à l'échelle. Si vous ne pouvez pas, on se débrouille avec le cadastre.",
     "exemple": "Exemple : porte d'entrée, 2,15 m de haut et 0,90 m de large",
-    "sauf": "plans"
+    "facultatif": true
    }
   ],
   "surelevation": [
@@ -440,9 +363,9 @@
     "id": "porte",
     "nom": "Une mesure de repère sur la façade de devant",
     "type": "texte",
-    "aide": "Au mètre ruban : la hauteur et la largeur d'une porte, d'une fenêtre ou d'une porte de garage que l'on voit sur la photo. Rien à mesurer sur ce mur ? Donnez sa longueur au sol. Inutile si vos plans montrent les façades.",
+    "aide": "Au mètre ruban : la hauteur et la largeur d'une porte, d'une fenêtre ou d'une porte de garage que l'on voit sur la photo. Ça nous sert à mettre la photo à l'échelle. Si vous ne pouvez pas, on se débrouille avec le cadastre.",
     "exemple": "Exemple : porte d'entrée, 2,15 m de haut et 0,90 m de large",
-    "sauf": "plans"
+    "facultatif": true
    }
   ],
   "garage": [
@@ -486,9 +409,9 @@
     "id": "porte",
     "nom": "Une mesure de repère sur la façade concernée",
     "type": "texte",
-    "aide": "Au mètre ruban : la hauteur et la largeur d'une porte, d'une fenêtre ou d'une porte de garage que l'on voit sur la photo. Rien à mesurer sur ce mur ? Donnez sa longueur au sol. Inutile si vos plans montrent les façades.",
+    "aide": "Au mètre ruban : la hauteur et la largeur d'une porte, d'une fenêtre ou d'une porte de garage que l'on voit sur la photo. Ça nous sert à mettre la photo à l'échelle. Si vous ne pouvez pas, on se débrouille avec le cadastre.",
     "exemple": "Exemple : porte d'entrée, 2,15 m de haut et 0,90 m de large",
-    "sauf": "plans"
+    "facultatif": true
    }
   ],
   "menuiseries": [
@@ -513,18 +436,12 @@
     "aide": "Placez-vous bien en face, à 10 ou 15 m, la façade entière dans la photo, sans grand angle."
    },
    {
-    "id": "photo-rapprochee",
-    "nom": "Une photo de près de ce qui sera changé",
-    "type": "photo",
-    "aide": "Une fenêtre ou un volet actuel, de près."
-   },
-   {
     "id": "porte",
     "nom": "Une mesure de repère sur la façade concernée",
     "type": "texte",
-    "aide": "Au mètre ruban : la hauteur et la largeur d'une porte, d'une fenêtre ou d'une porte de garage que l'on voit sur la photo. Rien à mesurer sur ce mur ? Donnez sa longueur au sol. Inutile si vos plans montrent les façades.",
+    "aide": "Au mètre ruban : la hauteur et la largeur d'une porte, d'une fenêtre ou d'une porte de garage que l'on voit sur la photo. Ça nous sert à mettre la photo à l'échelle. Si vous ne pouvez pas, on se débrouille avec le cadastre.",
     "exemple": "Exemple : porte d'entrée, 2,15 m de haut et 0,90 m de large",
-    "sauf": "plans"
+    "facultatif": true
    }
   ],
   "velux": [
@@ -552,9 +469,9 @@
     "id": "porte",
     "nom": "Une mesure de repère sur la façade, sous le toit",
     "type": "texte",
-    "aide": "Au mètre ruban : la hauteur et la largeur d'une porte, d'une fenêtre ou d'une porte de garage que l'on voit sur la photo. Rien à mesurer sur ce mur ? Donnez sa longueur au sol. Inutile si vos plans montrent les façades.",
+    "aide": "Au mètre ruban : la hauteur et la largeur d'une porte, d'une fenêtre ou d'une porte de garage que l'on voit sur la photo. Ça nous sert à mettre la photo à l'échelle. Si vous ne pouvez pas, on se débrouille avec le cadastre.",
     "exemple": "Exemple : porte d'entrée, 2,15 m de haut et 0,90 m de large",
-    "sauf": "plans"
+    "facultatif": true
    }
   ],
   "lucarne": [
@@ -575,9 +492,9 @@
     "id": "porte",
     "nom": "Une mesure de repère sur la façade concernée",
     "type": "texte",
-    "aide": "Au mètre ruban : la hauteur et la largeur d'une porte, d'une fenêtre ou d'une porte de garage que l'on voit sur la photo. Rien à mesurer sur ce mur ? Donnez sa longueur au sol. Inutile si vos plans montrent les façades.",
+    "aide": "Au mètre ruban : la hauteur et la largeur d'une porte, d'une fenêtre ou d'une porte de garage que l'on voit sur la photo. Ça nous sert à mettre la photo à l'échelle. Si vous ne pouvez pas, on se débrouille avec le cadastre.",
     "exemple": "Exemple : porte d'entrée, 2,15 m de haut et 0,90 m de large",
-    "sauf": "plans"
+    "facultatif": true
    }
   ],
   "toiture": [
@@ -629,9 +546,9 @@
     "id": "porte",
     "nom": "Une mesure de repère sur la façade concernée",
     "type": "texte",
-    "aide": "Au mètre ruban : la hauteur et la largeur d'une porte, d'une fenêtre ou d'une porte de garage que l'on voit sur la photo. Rien à mesurer sur ce mur ? Donnez sa longueur au sol. Inutile si vos plans montrent les façades.",
+    "aide": "Au mètre ruban : la hauteur et la largeur d'une porte, d'une fenêtre ou d'une porte de garage que l'on voit sur la photo. Ça nous sert à mettre la photo à l'échelle. Si vous ne pouvez pas, on se débrouille avec le cadastre.",
     "exemple": "Exemple : porte d'entrée, 2,15 m de haut et 0,90 m de large",
-    "sauf": "plans"
+    "facultatif": true
    }
   ],
   "solaire": [
@@ -834,7 +751,7 @@
    "id": "regul-date",
    "nom": "Quand les travaux ont-ils été faits ?",
    "type": "texte",
-   "aide": "À peu près suffit.",
+   "aide": "À peu près suffit. Si la mairie vous a écrit, joignez son courrier dans « Autres documents ».",
    "exemple": "Exemple : été 2019"
   },
   {
@@ -849,14 +766,6 @@
    "nom": "Les travaux tels qu'ils sont aujourd'hui",
    "type": "photo",
    "aide": "Sous tous les angles, de près et de loin."
-  },
-  {
-   "id": "regul-courrier",
-   "nom": "Avez-vous reçu un courrier de la mairie ?",
-   "type": "texte",
-   "aide": "Si oui, envoyez-le dans « Autres documents ».",
-   "exemple": "Exemple : non. Ou : oui, un courrier reçu en septembre",
-   "facultatif": true
   }
  ],
  "situations": {
@@ -888,13 +797,6 @@
     "nom": "Le procès-verbal de l'assemblée qui autorise les travaux",
     "type": "fichier",
     "aide": "Le syndic vous l'envoie après chaque assemblée.",
-    "facultatif": true
-   },
-   {
-    "id": "copro-reglement",
-    "nom": "Le règlement de copropriété",
-    "type": "fichier",
-    "aide": "Il était joint à votre acte d'achat.",
     "facultatif": true
    }
   ],
