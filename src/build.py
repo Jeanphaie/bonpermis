@@ -88,23 +88,28 @@ def head(titre, desc, chemin, base, jsonld):
 '''
 
 
-def entete(base, accueil):
+def entete(base, accueil, simu=None):
     a = '' if accueil else base
     logo = '#top' if accueil else (base or './')
+    liens = f'''<a href="{a}#projets">Projets</a>
+      <a href="{base}regularisation-avant-vente/">Avant une vente</a>
+      <a href="{a}#comment">Comment ça marche</a>
+      <a href="{a}#tarifs">Tarifs</a>
+      <a href="{a}#faq">Questions</a>'''
+    # Sur une page projet, « Commencer » ouvre directement le simulateur de ce projet.
+    cta = (f'<button class="btn" type="button" data-p="{simu}">Mon prix</button>' if simu
+           else f'<a class="btn{" js-start" if accueil else ""}" href="{a}#projets">Commencer</a>')
     return f'''<header class="top">
   <div class="wrap">
     <a class="logo" href="{logo}" aria-label="Le Bon Permis, accueil">
       <img src="/img/logo-le-bon-permis.png" alt="Le Bon Permis" width="198" height="22">
     </a>
     <nav class="links" aria-label="Sections">
-      <a href="{a}#projets">Projets</a>
-      <a href="{base}regularisation-avant-vente/">Avant une vente</a>
-      <a href="{a}#comment">Comment ça marche</a>
-      <a href="{a}#tarifs">Tarifs</a>
-      <a href="{a}#faq">Questions</a>
+      {liens}
     </nav>
     <div class="top-act"><a class="espace-lien" href="/espace/" aria-label="Mon espace"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg><span>Mon espace</span></a>
-    <a class="btn{' js-start' if accueil else ''}" href="{a}#projets">Commencer</a></div>
+    {cta}
+    <details class="mnav"><summary aria-label="Menu"><span></span><span></span><span></span></summary><nav aria-label="Sections">{liens}<a href="/espace/">Mon espace</a></nav></details></div>
   </div>
 </header>
 '''
@@ -161,8 +166,8 @@ def tuiles_accueil():
     out = []
     for g in GROUPS:
         out.append(f'<div class="group"><div class="group-h"><h3>{e(g["t"])}</h3><small>{e(g["s"])}</small></div>'
-                   f'<div class="tiles">{"".join(tuile(k, "") for k in g["k"])}</div></div>')
-    svc = ''.join(f'<a class="svc" href="{URL[s["k"]]}/" data-p="{s["k"]}"><b>{e(s["n"])}</b><span>{e(s["d"])}</span><em>{e(s["p"])}</em></a>' for s in SVCS)
+                   f'<div class="tiles">{"".join(tuile(k, "", False) for k in g["k"])}</div></div>')
+    svc = ''.join(f'<a class="svc" href="{URL[s["k"]]}/"><b>{e(s["n"])}</b><span>{e(s["d"])}</span><em>{e(s["p"])}</em></a>' for s in SVCS)
     out.append(f'<div class="group"><div class="group-h"><h3>Les autres démarches</h3><small>Avant, pendant ou après les travaux</small></div><div class="svcs">{svc}</div></div>')
     return ''.join(out)
 
@@ -290,7 +295,7 @@ def page(k):
 </section>
 </main>
 '''
-    return head(titre, c['desc'], slug + '/', base, ld) + f'<body data-page="{simu}">\n\n' + entete(base, False) + '\n' + corps + '\n' + pied(base) + OVERLAY + scripts(base)
+    return head(titre, c['desc'], slug + '/', base, ld) + f'<body data-page="{simu}">\n\n' + entete(base, False, simu if simu in P or simu == 'regul' else None) + '\n' + corps + '\n' + pied(base) + OVERLAY + scripts(base)
 
 
 COOKIES_SANS = ("<p>Le site n'utilise pas de cookie publicitaire ni de mesure d'audience. Seuls des cookies techniques servent à garder "
