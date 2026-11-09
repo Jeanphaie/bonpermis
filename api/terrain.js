@@ -211,4 +211,28 @@ async function tuile(req, res, url) {
   } catch (e) { journal('terrain tuile', e.message); repondre(res, 502, {erreur: 'Fond de plan indisponible.'}); }
 }
 
-module.exports = {tuile, adresses, terrain, analyserTerrain, reparer, _geo: {dedans, aire, versMetres, centre}};
+// ---------- règlement du PLU (Géoportail de l'urbanisme) : texte des pages demandées, pour préparer les fiches zone ----------
+// GET /api/terrain/reglement?doc=<gpu_doc_id>&part=<partition>&fic=<fichier.pdf>&de=118&a=140
+// Seuls les PDF du Géoportail de l'urbanisme sont acceptés ; le fichier est gardé 30 jours ; 40 pages au plus par appel.
+const {execFile} = require('child_process');
+async function reglement(req, res, url) {
+  const doc = url.searchParams.get('doc') || '', part = url.searchParams.get('part') || '', fic = (url.searchParams.get('fic') || '').replace(/#.*$/, '');
+  const de = Math.max(1, +url.searchParams.get('de') || 1), a = Math.min(de + 39, +url.searchParams.get('a') || de + 19);
+  if (!/^[0-9a-f]{32}$/.test(doc) || !/^(DU|PSMV)_[0-9A-Za-z]{3,20}$/.test(part) || !/^[\w.-]{5,120}\.pdf$/i.test(fic)) return repondre(res, 400, {erreur: 'Document invalide.'});
+  if (B.trop('reglement:' + B.ip(req), 200)) return repondre(res, 429, {erreur: 'Trop de demandes.'});
+  const f = B.chemin('plu', doc, fic);
+  try {
+    let ok = false; try { ok = Date.now() - fs.statSync(f).mtimeMs < 30 * 86400000; } catch {}
+    if (!ok) {
+      const r = await fetch(`${GEOPF}/annexes/gpu/documents/${part}/${doc}/${encodeURIComponent(fic)}`, {signal: AbortSignal.timeout(60000), headers: {'User-Agent': 'bonpermis.fr (service terrain)'}});
+      if (!r.ok) return repondre(res, 404, {erreur: 'Règlement introuvable sur le Géoportail de l\'urbanisme.'});
+      const b = Buffer.from(await r.arrayBuffer()); if (b.length > 150 * 1048576) return repondre(res, 413, {erreur: 'Fichier trop lourd.'});
+      fs.mkdirSync(path.dirname(f), {recursive: true}); fs.writeFileSync(f, b);
+    }
+    const texte = await new Promise((ok, ko) => execFile('pdftotext', ['-layout', '-enc', 'UTF-8', '-f', String(de), '-l', String(a), f, '-'], {timeout: 60000, maxBuffer: 20 * 1048576}, (e, out) => e ? ko(e) : ok(out)));
+    const pages = texte.split('\f').map((p, i) => `===== page ${de + i} =====\n${p.trim()}`).filter(p => !/=====\n$/.test(p));
+    res.writeHead(200, {'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store'}); res.end(pages.join('\n\n'));
+  } catch (e) { journal('terrain reglement', e.message); repondre(res, 502, {erreur: 'Lecture du règlement impossible.'}); }
+}
+
+module.exports = {reglement, tuile, adresses, terrain, analyserTerrain, reparer, _geo: {dedans, aire, versMetres, centre}};

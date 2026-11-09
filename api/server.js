@@ -88,6 +88,7 @@ const ROUTES = {
   'GET /api/terrain/adresses': T.adresses,
   'GET /api/terrain': T.terrain,
   'GET /api/terrain/tuile': T.tuile,
+  'GET /api/terrain/reglement': T.reglement,
   // comptes
   'POST /api/compte/inscription': C.inscription,
   'POST /api/compte/connexion': C.connexion,
