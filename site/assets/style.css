@@ -404,3 +404,15 @@ section.sell-band{padding:0}
 .cookies div{display:flex;gap:10px;flex-shrink:0}
 .cookies .btn{padding:12px 18px}
 @media (max-width:640px){.cookies{flex-direction:column;align-items:stretch}.cookies div .btn{flex:1}}
+
+/* Section PLU : la règle avant le dessin */
+.plu-liste{margin:22px 0 0;padding:0;list-style:none;display:grid;grid-template-columns:1fr 1fr;gap:10px 18px}
+.plu-liste li{padding-left:26px;position:relative;line-height:1.5}
+.plu-liste li::before{content:"";position:absolute;left:0;top:7px;width:14px;height:14px;border-radius:50%;background:var(--accent-soft);box-shadow:inset 0 0 0 4px var(--accent)}
+.plu-ex{background:#fff;border:1px solid var(--line);border-radius:18px;padding:26px 28px;box-shadow:0 20px 50px -30px rgba(15,23,51,.35)}
+.plu-ex-t{display:block;font:600 12px/1 var(--f-body);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+.plu-ex > b{display:block;font-size:19px;margin-bottom:12px}
+.plu-ex ul{margin:0;padding-left:18px;line-height:1.6}
+.plu-ex li+li{margin-top:8px}
+.plu-ex small{display:block;margin-top:16px;color:var(--muted);line-height:1.5}
+@media (max-width:720px){.plu-liste{grid-template-columns:1fr}}

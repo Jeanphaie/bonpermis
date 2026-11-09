@@ -185,8 +185,8 @@ def accueil():
           {"@context": "https://schema.org", "@type": "WebSite", "name": "Le Bon Permis", "url": DOMAINE + "/", "inLanguage": "fr-FR"},
           faq_ld(corps)]
     titre = 'Le Bon Permis : déclaration préalable et permis de construire en ligne'
-    desc = ("Abri, piscine, extension, véranda : on prépare votre dossier de mairie, plans compris, et on vérifie les règles "
-            "de votre commune. Prix connu en une minute, dossier prêt en 48 h.")
+    desc = ("Abri, piscine, extension, véranda : on vérifie les règles d'urbanisme de votre commune (PLU) avant de dessiner, "
+            "puis on prépare votre dossier de mairie, plans compris. Prix connu en une minute, dossier prêt en 48 h.")
     return head(titre, desc, '', '', ld) + '<body>\n\n' + entete('', True) + '\n' + corps + '\n' + pied('') + OVERLAY + scripts('')
 
 
@@ -266,7 +266,7 @@ def page(k):
     <p class="lead">Après le paiement, depuis votre téléphone. Un guide vous accompagne photo par photo.</p>
     {need_html}
     <h2 class="mt">Ce qu'on fait pour vous</h2>
-    <p class="lead">On vérifie les règles de votre commune, on dessine tous les plans demandés par la mairie, on remplit le formulaire officiel. Une deuxième personne relit tout. Vous n'avez plus qu'à déposer, ou on dépose pour vous.</p>
+    <p class="lead">D'abord, on lit le plan local d'urbanisme de votre commune : distances aux voisins, hauteur, emprise, clôtures, couleurs. Si votre projet ne passe pas tel quel, on vous le dit avant de commencer. Ensuite on dessine tous les plans demandés par la mairie et on remplit le formulaire officiel. Une deuxième personne relit tout. Vous n'avez plus qu'à déposer, ou on dépose pour vous.</p>
     <div class="cta-box">
       <div><b>{e(c['prix'])}</b><span>{e(cta_txt)}</span></div>
       <button class="btn blue-btn" type="button" data-p="{simu}">Voir mon prix exact</button>

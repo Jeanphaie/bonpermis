@@ -5,8 +5,8 @@
   <div class="wrap hero-grid">
     <div>
       <span class="eyebrow">Déclaration de travaux et permis de construire</span>
-      <h1>Le bon dossier, <span class="blue">au bon prix.</span></h1>
-      <p class="lead">Un abri, une piscine, une extension ? On prépare votre dossier de mairie, plans compris, en respectant les règles de votre commune. Vous n'avez qu'à le déposer.</p>
+      <h1>Conforme aux règles de votre commune, <span class="blue">prêt à déposer.</span></h1>
+      <p class="lead">Un abri, une piscine, une extension ? Avant de dessiner, on lit le plan local d'urbanisme de votre commune : distances aux voisins, hauteur, emprise, clôtures, couleurs. Puis on prépare votre dossier de mairie, plans compris. Un logiciel ne le fait pas, nous si.</p>
 
       <div class="hero-cta">
         <a class="btn blue-btn js-start" href="#projets">Voir mon prix en une minute</a>
@@ -14,8 +14,8 @@
       </div>
 
       <div class="proof">
+        <span><svg viewBox="0 0 16 16"><path d="M3 8.5l3 3 7-7" fill="none" stroke="var(--accent)" stroke-width="2"/></svg>Règles de votre commune vérifiées avant de dessiner</span>
         <span><svg viewBox="0 0 16 16"><path d="M3 8.5l3 3 7-7" fill="none" stroke="var(--accent)" stroke-width="2"/></svg>Dossier prêt en 48 h</span>
-        <span><svg viewBox="0 0 16 16"><path d="M3 8.5l3 3 7-7" fill="none" stroke="var(--accent)" stroke-width="2"/></svg>Règles de votre commune vérifiées</span>
         <span><svg viewBox="0 0 16 16"><path d="M3 8.5l3 3 7-7" fill="none" stroke="var(--accent)" stroke-width="2"/></svg>Erreur de notre part ? On corrige et on redépose, gratuitement</span>
       </div>
     </div>
@@ -65,7 +65,7 @@
     <div class="steps">
       <article class="step"><img src="img/03-commandez.webp" alt="Un couple sur son canapé commande depuis son téléphone" loading="lazy" width="760" height="760"><div class="body"><span class="n">1 · UNE MINUTE</span><h3>Vous choisissez votre projet</h3><p>Deux ou trois questions, votre prix, le paiement. Pas de devis à attendre, pas de compte à créer.</p></div></article>
       <article class="step"><img src="img/04-envoyez.webp" alt="Une personne photographie la façade de sa maison depuis le jardin" loading="lazy" width="760" height="760"><div class="body"><span class="n">2 · DIX MINUTES</span><h3>Vous nous envoyez vos photos</h3><p>Depuis votre téléphone. Un guide vous dit quoi photographier et quoi mesurer.</p></div></article>
-      <article class="step"><img src="img/05-dessinons.webp" alt="Trois personnes travaillent sur des plans autour d'une table d'atelier" loading="lazy" width="760" height="760"><div class="body"><span class="n">3 · 48 HEURES</span><h3>On prépare votre dossier</h3><p>On vérifie les règles de votre commune, on dessine les plans, on remplit le formulaire. Une deuxième personne relit tout.</p></div></article>
+      <article class="step"><img src="img/05-dessinons.webp" alt="Trois personnes travaillent sur des plans autour d'une table d'atelier" loading="lazy" width="760" height="760"><div class="body"><span class="n">3 · 48 HEURES</span><h3>On vérifie les règles, puis on dessine</h3><p>On lit le plan local d'urbanisme de votre commune et on adapte le projet s'il le faut. Ensuite seulement, on dessine les plans et on remplit le formulaire. Une deuxième personne relit tout.</p></div></article>
       <article class="step"><img src="img/06-deposez.webp" alt="Une personne envoie son dossier depuis son ordinateur, à la table de sa cuisine" loading="lazy" width="760" height="760"><div class="body"><span class="n">4 · DIX MINUTES</span><h3>Vous déposez en mairie</h3><p>En ligne, avec notre guide. Ou on s'en charge pour vous.</p></div></article>
     </div>
   </div>
@@ -93,19 +93,53 @@
   </div>
 </section>
 
+<!-- LA RÈGLE AVANT LE DESSIN -->
+<section id="plu">
+  <div class="wrap split">
+    <div>
+      <span class="eyebrow">Ce qui fait refuser un dossier</span>
+      <h2>Un beau plan ne suffit pas. Il faut qu'il respecte le PLU.</h2>
+      <p class="lead" style="margin-top:16px">Le premier motif de refus n'est pas un plan mal dessiné, c'est une règle du plan local d'urbanisme qui n'a pas été respectée. Chaque commune a les siennes, sur des dizaines de pages. On les lit pour vous, avant de dessiner.</p>
+      <ul class="plu-liste">
+        <li><b>Distances</b> à la rue et aux voisins</li>
+        <li><b>Hauteur</b> maximale, et comment elle se mesure</li>
+        <li><b>Emprise au sol</b> : ce que vous pouvez encore construire</li>
+        <li><b>Clôtures</b> : hauteur, type, mur plein ou pas</li>
+        <li><b>Toits et couleurs</b> : pente, tuiles, enduits, menuiseries</li>
+        <li><b>Stationnement</b>, espaces verts, zones inondables</li>
+      </ul>
+      <p style="margin-top:18px">Si votre projet ne passe pas tel quel, on vous le dit avant de commencer, avec ce qu'il faudrait changer pour qu'il passe.</p>
+    </div>
+    <aside class="plu-ex" aria-label="Exemple de règles lues dans un PLU">
+      <span class="plu-ex-t">Exemple, lu pour un client</span>
+      <b>Tarnos (Landes), zone U40.9</b>
+      <ul>
+        <li>Clôture : <b>1,60 m maximum</b>, haie ou grille ajourée. <b>Pas de mur plein</b> dans cette commune, alors qu'il est admis dans les communes voisines.</li>
+        <li>Emprise au sol : <b>40 % du terrain</b> au plus, bâti existant compris.</li>
+        <li>Hauteur : <b>9 m</b>. Recul de <b>5 m</b> depuis la rue.</li>
+        <li>Toit plat autorisé ici, interdit dans d'autres communes du même PLU.</li>
+      </ul>
+      <small>Règlement écrit du PLUi du Seignanx, approuvé le 18 décembre 2025, pages 34, 52, 121 à 123. Un dossier qui ignore une de ces lignes risque le refus.</small>
+    </aside>
+  </div>
+</section>
+
 <!-- COMPARATIF -->
 <section style="background:var(--surface);border-top:1px solid var(--line);border-bottom:1px solid var(--line)">
   <div class="wrap">
     <div class="head">
       <span class="eyebrow">Pourquoi nous</span>
       <h2>Le travail d'un vrai bureau d'études, au prix d'un outil en ligne.</h2>
+      <p class="lead">Les générateurs automatiques dessinent un plan propre. Mais ils vous laissent vérifier vous-même les règles de votre commune, et c'est là que les dossiers sont refusés.</p>
     </div>
     <div class="compare-scroll">
       <table class="compare">
         <thead><tr><th></th><th>Outil automatique</th><th>Bureau d'études classique</th><th class="us">Le Bon Permis</th></tr></thead>
         <tbody>
-          <tr><td>Qui dessine les plans ?</td><td>Vous, avec un logiciel</td><td>Un dessinateur</td><td class="us">Nous</td></tr>
-          <tr><td>Règles de votre commune</td><td>À vérifier vous-même</td><td>Vérifiées</td><td class="us">Vérifiées avant de dessiner</td></tr>
+          <tr><td>Règles de votre commune (PLU)</td><td>À vérifier vous-même</td><td>Vérifiées</td><td class="us">Lues et vérifiées avant de dessiner</td></tr>
+          <tr><td>Si votre projet ne respecte pas une règle</td><td>Vous l'apprenez par le refus de la mairie</td><td>On vous prévient</td><td class="us">On vous le dit avant de commencer, avec ce qui passerait</td></tr>
+          <tr><td>Qui dessine les plans ?</td><td>Vous, avec un logiciel</td><td>Un dessinateur</td><td class="us">Nous, d'après vos photos</td></tr>
+          <tr><td>Extension, véranda, façade : l'existant dessiné</td><td>Sur devis, ou pas du tout</td><td>Oui</td><td class="us">Oui, compris</td></tr>
           <tr><td>Relu par une deuxième personne</td><td>Non</td><td>Parfois</td><td class="us">Toujours</td></tr>
           <tr><td>Prix d'une déclaration de travaux</td><td>39 à 89 €</td><td>190 à 590 €</td><td class="us">149 €</td></tr>
           <tr><td>Dossier prêt en</td><td>Quelques minutes</td><td>5 à 15 jours</td><td class="us">48 h</td></tr>
@@ -204,6 +238,7 @@
   <div class="wrap">
     <div class="head"><span class="eyebrow">Vous vous demandez peut-être</span><h2>Questions fréquentes</h2></div>
     <div class="faq">
+      <details><summary>Qu'est-ce que vous vérifiez exactement dans le PLU ?</summary><p>Le plan local d'urbanisme de votre commune, zone par zone : les distances à respecter par rapport à la rue et aux voisins, la hauteur maximale, l'emprise au sol, les règles sur les clôtures, les toitures et les couleurs, le stationnement. On le lit avant de dessiner. Si votre projet ne passe pas, on vous le dit tout de suite et on vous propose ce qui passerait. Un générateur de plans automatique ne fait pas cette vérification : il vous la laisse.</p></details>
       <details><summary>Déclaration de travaux ou permis de construire : comment savoir ?</summary><p>Vous n'avez pas à le savoir, c'est notre travail. En général, une déclaration suffit jusqu'à 20 m² créés, ou 40 m² pour une extension en ville. Au-delà, il faut un permis.</p></details>
             <details><summary>Est-ce que vous dessinez le projet, ou je dois tout vous donner ?</summary><p>Pour les petits travaux, vous choisissez le modèle, on le place et on vérifie qu'il est autorisé. Pour un agrandissement, un croquis ou une description suffit. Si vous n'avez qu'une idée, l'option conception (690 €) vous apporte deux propositions, les plans intérieurs et une vue 3D.</p></details>
       <details><summary>Mes travaux sont déjà faits. C'est trop tard ?</summary><p>Non. On les déclare après coup, au même prix, à partir de photos de ce qui existe. Avant une vente, voyez <a href="regularisation-avant-vente/">régulariser avant une vente</a>.</p></details>
