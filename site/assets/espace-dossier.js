@@ -315,7 +315,7 @@
   }
   function brancherPlan() {
     if (!window.BPPlan) return;
-    el.querySelectorAll('[data-plan-ap]').forEach(c => { const p = d.pieces.find(x => x.id === c.dataset.planAp); if (p && p.plan) window.BPPlan.apercu(c, p.plan); });
+    el.querySelectorAll('[data-plan-ap]').forEach(c => { const p = d.pieces.find(x => x.id === c.dataset.planAp); if (p && p.plan) window.BPPlan.apercu(c, p.plan, d.projet); });
     el.querySelectorAll('[data-autrement]').forEach(b => b.addEventListener('click', decrireAutrement));
     el.querySelectorAll('[data-plan]').forEach(b => b.addEventListener('click', () => {
       const p = d.pieces.find(x => x.id === b.dataset.plan);

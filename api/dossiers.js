@@ -480,7 +480,7 @@ async function clientPlan(req, res, url) {
   const plan = {v: 1, mode: MODES_PLAN.includes(pl.mode) ? pl.mode : p.mode, date: new Date().toISOString()};
   for (const k of ['formes', 'cotes', 'facades', 'bats', 'existants']) plan[k] = Array.isArray(pl[k]) ? propre(pl[k]) : [];
   plan.mesures = propre(pl.mesures && typeof pl.mesures === 'object' ? pl.mesures : {});
-  plan.couche = pl.couche === 'plan' ? 'plan' : 'ortho'; plan.marge = num(+pl.marge) || 12;
+  plan.couche = pl.couche === 'ortho' ? 'ortho' : 'cadastre'; plan.marge = num(+pl.marge) || 12;
   if (pl.lieu && Number.isFinite(+pl.lieu.lon) && Number.isFinite(+pl.lieu.lat)) plan.lieu = {lon: num(+pl.lieu.lon), lat: num(+pl.lieu.lat)};
   if (JSON.stringify(plan).length > 50000) return repondre(res, 400, {erreur: 'Plan trop détaillé.'});
   p.plan = plan; p.texte = texteLong(d.resume || '').slice(0, 2000);

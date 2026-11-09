@@ -251,6 +251,7 @@ body[data-page=admin] header.top nav{display:none}
 .plan-consigne{margin:0;padding:10px 18px;font-size:14px;background:var(--warm)}
 .plan-carte{position:relative;background:#E8ECF4}
 .plan-carte svg{display:block;width:100%;height:min(58vh,560px);touch-action:none;cursor:crosshair}
+.plan-ctrl{padding:10px 18px}
 .plan-zoom{position:absolute;right:10px;top:10px;display:flex;flex-direction:column;gap:6px}
 .plan-zoom button{min-width:40px;height:40px;border-radius:10px;border:1px solid var(--line);background:#fff;font:inherit;font-size:15px;cursor:pointer;padding:0 8px}
 .plan-ctrl{padding:10px 18px 0}
@@ -262,21 +263,42 @@ body[data-page=admin] header.top nav{display:none}
 .plan-mes p{margin:6px 0}
 .plan-alerte{padding:8px 10px;border-radius:8px;background:#FFF4E0;color:#7A4B00}
 .plan-pied{display:flex;flex-wrap:wrap;gap:16px;align-items:center;padding:12px 18px 18px}
-.plan-mini svg,.plan-apercu{display:block;width:100%;height:240px;border-radius:10px;background:#E8ECF4;margin-top:8px}
-.pl-parc{fill:rgba(255,255,255,.08);stroke:#FFD43B;stroke-dasharray:none}
-.pl-bat{fill:rgba(255,255,255,.35);stroke:#fff}
-.pl-bat.voisin{fill:rgba(255,255,255,.12);stroke:rgba(255,255,255,.6)}
-.pl-bat.choisi{fill:rgba(1,39,177,.45);stroke:#0127B1}
+.plan-mini svg,.plan-apercu{display:block;width:100%;height:240px;border-radius:10px;background:#FBFBF8;border:1px solid var(--line);margin-top:8px}
+/* Plan dessiné : fond papier (cadastre) ou photo (ortho, variables .photo) */
+.pl-papier{fill:#FBFBF8}
+.pl-grille line{stroke:#E6E8EE}
+.pl-vois{fill:none;stroke:#B9BFCC}
+.pl-num{fill:#9AA1B2;stroke:none;font-weight:500}
+.pl-num.moi{fill:#1C2340;font-weight:700}
+.pl-parc{fill:rgba(255,255,255,0);stroke:#1C2340}
+.pl-bat{fill:#D5D9E2;stroke:#6B7388}
+.pl-bat.voisin{fill:#ECEEF3;stroke:#B9BFCC}
+.pl-bat.choisi{fill:rgba(1,39,177,.35);stroke:#0127B1}
 .pl-bat.dessine{stroke-dasharray:1 .6}
-.pl-cote{stroke:rgba(255,212,59,.35);cursor:pointer}
+.pl-cote{stroke:rgba(28,35,64,.25);cursor:pointer}
 .pl-cote.choisi{stroke:#0127B1}
-.pl-fac{stroke:rgba(255,255,255,.55);cursor:pointer;stroke-linecap:round}
+.pl-fac{stroke:rgba(1,39,177,.35);cursor:pointer;stroke-linecap:round}
 .pl-fac.choisi{stroke:#0127B1}
-.pl-forme{fill:rgba(1,39,177,.35);stroke:#0127B1;cursor:move}
-.pl-forme.choisi{fill:rgba(1,39,177,.5);stroke:#fff}
+.pl-hach{stroke:#0127B1}
+.pl-forme{fill:url(#pl-hach);stroke:#0127B1;cursor:move}
+.pl-forme.choisi{stroke:#0127B1;stroke-dasharray:none;filter:drop-shadow(0 0 1px rgba(1,39,177,.6))}
 .pl-pt{fill:#0127B1;stroke:#fff}
-.pl-ech{stroke:#fff}
-.pl-txt{fill:#fff;paint-order:stroke;stroke:rgba(0,0,0,.6);stroke-width:.3px;font-family:inherit}
+.pl-ech{stroke:#1C2340}
+.pl-nord{fill:#1C2340}
+.pl-cote-l line{stroke:#0127B1}
+.pl-cote-l.maison line{stroke:#7A4B00}
+.pl-cote-l.maison .pl-cote-t{fill:#7A4B00}
+.pl-cote-t,.pl-dim,.pl-lab{fill:#0127B1;font-weight:600}
+.pl-dim{fill:#1C2340;font-weight:500}
+.pl-lab{font-weight:700}
+.pl-poignee{fill:#fff;stroke:#0127B1;stroke-width:.25px;cursor:grab}
+.pl-poignee-l{stroke:#0127B1;stroke-dasharray:.4 .3}
+.pl-txt{fill:#1C2340;paint-order:stroke;stroke:rgba(255,255,255,.9);stroke-width:.3px;font-family:inherit;pointer-events:none}
+.plan-carte svg{background:#FBFBF8}
+.plan-u{display:inline-flex;align-items:center;gap:6px;font-size:15px}
+.plan-champs .plan-u input{width:90px}
+.plan-x-sign{align-self:flex-end;padding-bottom:10px;color:#6B7388}
+.plan-champs label{flex:0 1 auto;min-width:0}
 .sugs{display:flex;flex-direction:column;gap:2px;margin-top:4px}
 .sugs:empty{display:none}
 .sug{font:inherit;font-size:15px;text-align:left;padding:10px 14px;border:1px solid var(--line);border-radius:8px;background:#fff;cursor:pointer}
@@ -351,6 +373,7 @@ body[data-page=admin] header.top nav{display:none}
 .dz-depot input{position:absolute;width:1px;height:1px;opacity:0}
 .dz-plan{background:var(--ink);color:#fff;border-radius:16px;padding:20px 24px;display:flex;flex-wrap:wrap;gap:20px;align-items:center}
 .dz-plan .plan-mini{width:160px;height:110px;border-radius:10px;overflow:hidden;flex:none;background:#27304D}
+.dz-plan .plan-mini .plan-apercu{height:100%;margin:0;border:0;border-radius:0}
 .dz-plan-t{flex:1 1 260px}
 .dz-plan-t h3{margin:0;font-family:var(--f-body);font-weight:600;font-size:17px;letter-spacing:0;color:#fff}
 .dz-plan-t p{margin:4px 0 0;font-size:14px;line-height:1.5;color:#C9D1E4}

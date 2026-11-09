@@ -201,7 +201,7 @@
           <section class="carte"><h3>Historique</h3><ol class="histo">${d.historique.map(h => `<li><b>${court(h.date)}</b> · ${esc(h.texte)}</li>`).join('')}</ol></section>
         </aside></div>`, 'dossier');
     brancherCadre(); brancher(); chargerTerrain();
-    if (window.BPPlan) el.querySelectorAll('[data-plan-ap]').forEach(c => { const p = d.pieces.find(x => x.id === c.dataset.planAp); if (p && p.plan) window.BPPlan.apercu(c, p.plan); });
+    if (window.BPPlan) el.querySelectorAll('[data-plan-ap]').forEach(c => { const p = d.pieces.find(x => x.id === c.dataset.planAp); if (p && p.plan) window.BPPlan.apercu(c, p.plan, d.projet); });
   }
 
   function brancher() {
