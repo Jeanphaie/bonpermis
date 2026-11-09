@@ -46,6 +46,7 @@
   function cadre(contenu, actif) {
     return `<div class="bo"><nav class="bo-nav" aria-label="Équipe">
       <a href="#" class="${actif === 'liste' ? 'on' : ''}">Dossiers</a>
+      <a href="#mails" class="${actif === 'mails' ? 'on' : ''}">E-mails envoyés</a>
       <a href="https://dashboard.stripe.com/payments" target="_blank" rel="noopener">Paiements (Stripe)</a>
       <button type="button" data-out>Se déconnecter</button></nav>
       <main class="bo-main">${contenu}</main></div>`;
@@ -239,9 +240,38 @@
     x.onerror = () => ok({erreur: 'Connexion perdue.'}); x.send(f);
   });
 
+  // ---------- journal des e-mails ----------
+  async function vueMails(msg) {
+    const r = await api('GET', '/mails');
+    if (r.s === 401) return connexion();
+    const d = r.j || {}, L = d.mails || [];
+    const dt = s => new Date(s).toLocaleString('fr-FR', {day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit'});
+    el.innerHTML = cadre(`<h1>E-mails envoyés</h1>
+      <p class="note">Chaque envoi depuis le site, avec la réponse du serveur d'envoi (${esc((d.smtp || {}).hote || '?')}, expéditeur ${esc((d.smtp || {}).expediteur || '?')}).
+      « Remis au serveur » veut dire que Hostinger a accepté l'e-mail : s'il n'arrive pas, c'est la boîte du destinataire qui l'a écarté (regarder alors la boîte contact@bonpermis.fr pour un e-mail de non-remise).</p>
+      <form class="carte rang" id="ft" style="margin:16px 0" novalidate>
+        <label class="field" style="margin:0;flex:1;min-width:220px"><span>Envoyer un e-mail de test à</span><input name="a" type="email" required placeholder="adresse@exemple.fr"></label>
+        <button class="btn blue-btn petit" type="submit" style="align-self:flex-end">Envoyer le test</button>
+      </form>
+      ${msg ? `<p class="${msg.ok ? 'ok-msg' : 'form-err'}">${esc(msg.t)}</p>` : ''}
+      <div class="tbl"><table><thead><tr><th>Date</th><th>Destinataire</th><th>Sujet</th><th>Résultat</th><th>Réponse du serveur</th></tr></thead><tbody>
+      ${L.length ? L.map(m => `<tr><td><small>${dt(m.date)}</small></td><td>${esc(m.a)}</td><td>${esc(m.sujet)}</td>
+        <td><span class="pill ${m.ok ? 'st-valide' : 'st-a_refaire'}">${m.ok ? 'Remis au serveur' : 'Échec : ' + esc(m.etape)}</span></td>
+        <td><small style="word-break:break-word">${esc(m.reponse)}</small></td></tr>`).join('') : '<tr><td colspan="5">Aucun envoi enregistré depuis la mise en place du journal.</td></tr>'}
+      </tbody></table></div>`, 'mails');
+    brancherCadre();
+    const ft = el.querySelector('#ft');
+    ft.addEventListener('submit', async e => {
+      e.preventDefault(); const b = ft.querySelector('button'); b.disabled = true; b.textContent = 'Envoi…';
+      const t = await api('POST', '/mail-test', {a: ft.a.value.trim()});
+      const m = t.j || {};
+      vueMails(t.ok ? {ok: m.ok, t: m.ok ? `Accepté par le serveur d'envoi : ${(m.dernier || {}).reponse || ''}. Vérifiez la réception.` : `Refusé (${(m.dernier || {}).etape || '?'}) : ${(m.dernier || {}).reponse || ''}`} : {ok: false, t: m.erreur || 'Erreur.'});
+    });
+  }
+
   function route() {
     const h = decodeURIComponent(location.hash.slice(1));
-    if (/^BP-[A-Z0-9]{6}$/.test(h)) vueDossier(h); else vueListe();
+    if (h === 'mails') vueMails(); else if (/^BP-[A-Z0-9]{6}$/.test(h)) vueDossier(h); else vueListe();
   }
   window.addEventListener('hashchange', route);
   route();

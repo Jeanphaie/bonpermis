@@ -110,6 +110,16 @@ const ROUTES = {
   'DELETE /api/admin/livrable': D.equipeSupprimerLivrable,
   'POST /api/admin/apercu': D.equipeEnvoyerApercu,
   'GET /api/admin/dossier.zip': D.equipeZip,
+  // journal des e-mails et envoi de test (équipe)
+  'GET /api/admin/mails': (req, res) => C.sessionAdmin(req) ? repondre(res, 200, {mails: B.lireJournalMails(200), smtp: {hote: CONF.smtp.hote, port: CONF.smtp.port, expediteur: CONF.mailDe}}) : repondre(res, 401, {erreur: 'Connexion équipe requise.'}),
+  'POST /api/admin/mail-test': async (req, res) => {
+    const qui = C.sessionAdmin(req); if (!qui) return repondre(res, 401, {erreur: 'Connexion équipe requise.'});
+    const d = await lireJson(req) || {}; const a = texte(d.a, 254).toLowerCase();
+    if (!B.MAIL_RE.test(a)) return repondre(res, 400, {erreur: 'Adresse invalide.'});
+    if (B.trop('mail-test', 20)) return repondre(res, 429, {erreur: 'Trop d\'essais, attendez 10 minutes.'});
+    const ok = await envoyerMail(a, 'Test d\'envoi Le Bon Permis', `Ceci est un e-mail de test envoyé depuis l'espace équipe par ${qui}, le ${new Date().toLocaleString('fr-FR', {timeZone: 'Europe/Paris'})}.\n\nS'il est arrivé, l'envoi vers cette adresse fonctionne.${B.signature}`);
+    repondre(res, 200, {ok, dernier: B.lireJournalMails(1)[0] || null});
+  },
   'GET /api/sante': (req, res) => repondre(res, 200, {ok: true, stripe: !!CONF.stripeCle, mode: CONF.stripeCle.includes('_live_') ? 'reel' : 'test', webhook: !!CONF.stripeWebhook, mail: !!(CONF.smtp.hote && CONF.smtp.pass), images: !!B.OUTILS.magick, pdf: !!B.OUTILS.pdftoppm})
 };
 

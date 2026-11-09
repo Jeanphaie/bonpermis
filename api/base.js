@@ -122,7 +122,8 @@ function reference(sessionId) {
 // ---------- e-mail (SMTP sur TLS, port 465) ----------
 function envoyerMail(a, sujet, texte, repondreA) {
   const {hote, port, user, pass} = CONF.smtp;
-  if (!hote || !user || !pass) { journal('mail non envoyé (SMTP non configuré) :', sujet); return Promise.resolve(false); }
+  if (!hote || !user || !pass) { journal('mail non envoyé (SMTP non configuré) :', sujet); noterMail(a, sujet, false, 'SMTP non configuré', 0); return Promise.resolve(false); }
+  const debut = Date.now(); let derniere = '';
   const b64 = s => Buffer.from(s, 'utf8').toString('base64');
   const message = [
     `From: Le Bon Permis <${CONF.mailDe}>`, `To: <${a}>`, repondreA ? `Reply-To: <${repondreA}>` : null,
@@ -139,7 +140,13 @@ function envoyerMail(a, sujet, texte, repondreA) {
       [235, () => `MAIL FROM:<${CONF.mailDe}>`], [250, () => `RCPT TO:<${a}>`], [250, () => 'DATA'],
       [354, () => message + '\r\n.'], [250, () => 'QUIT']
     ];
-    const fin = (r, why) => { if (!r) journal('échec SMTP :', why); s.destroy(); ok(r); };
+    let fini = false;
+    const fin = (r, why) => {
+      if (fini) return; fini = true;
+      if (!r) journal('échec SMTP :', why);
+      noterMail(a, sujet, r, r ? derniere : why, Date.now() - debut, etape);
+      s.destroy(); ok(r);
+    };
     s.setTimeout(20000, () => fin(false, 'délai dépassé'));
     s.on('error', e => fin(false, e.message));
     s.on('data', d => {
@@ -147,6 +154,7 @@ function envoyerMail(a, sujet, texte, repondreA) {
       const lignes = tampon.split('\r\n'); tampon = lignes.pop();
       for (const l of lignes) {
         if (/^\d{3}-/.test(l)) continue;
+        derniere = l.slice(0, 300);
         const code = +l.slice(0, 3), [attendu, suite] = etapes[etape] || [221];
         if (etape >= etapes.length) return fin(true);
         if (code !== attendu) return fin(false, l);
@@ -157,6 +165,25 @@ function envoyerMail(a, sujet, texte, repondreA) {
   });
 }
 const signature = `\n\nL'équipe Le Bon Permis\n${CONF.site}\n`;
+
+// Journal des e-mails : chaque envoi, accepté ou refusé, avec la dernière réponse du serveur SMTP.
+// Visible dans l'espace équipe (/admin/#mails). Les codes à 6 chiffres sont masqués. Fichier limité à ~2 Mo.
+const ETAPES_SMTP = ['connexion', 'EHLO', 'AUTH', 'identifiant', 'mot de passe', 'expéditeur', 'destinataire', 'DATA', 'envoi du message', 'QUIT'];
+function noterMail(a, sujet, ok, reponse, ms, etape) {
+  try {
+    const f = path.join(CONF.donnees, 'journal', 'mails.jsonl');
+    fs.mkdirSync(path.dirname(f), {recursive: true});
+    try { if (fs.statSync(f).size > 2e6) fs.renameSync(f, f + '.1'); } catch {}
+    const ligne = {date: new Date().toISOString(), a, sujet: String(sujet).replace(/\b\d{6}\b/g, '••••••'), ok: !!ok,
+      etape: ok ? 'remis au serveur' : (ETAPES_SMTP[etape] || '?'), reponse: String(reponse || '').replace(/\b\d{6}\b/g, '••••••'), ms};
+    fs.appendFileSync(f, JSON.stringify(ligne) + '\n');
+  } catch (e) { journal('journal des mails impossible :', e.message); }
+}
+function lireJournalMails(n = 200) {
+  const f = path.join(CONF.donnees, 'journal', 'mails.jsonl');
+  let t = ''; try { t = fs.readFileSync(f, 'utf8'); } catch { return []; }
+  return t.trim().split('\n').filter(Boolean).slice(-n).reverse().map(l => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean);
+}
 
 // ---------- stockage JSON ----------
 const chemin = (...p) => path.join(CONF.donnees, ...p);
@@ -294,7 +321,7 @@ function plusJoursOuvres(d, n) {
 
 module.exports = {
   crypto, fs, path, RACINE, PRIX, DATA, PAGES, P: DATA.P, GROUPS: DATA.GROUPS, NEED: DATA.NEED, E, CONF, SECRET, signer, egal,
-  journal, euro, lireCorps, lireJson, repondre, envoyerFichier, TYPES, ip, trop, tropDeDemandes, lireCookies, cookie,
+  journal, noterMail, lireJournalMails, euro, lireCorps, lireJson, repondre, envoyerFichier, TYPES, ip, trop, tropDeDemandes, lireCookies, cookie,
   encoder, stripe, signatureValide, reference, envoyerMail, signature, chemin, lire, ecrire, creer, liste,
   MAIL_RE, texte, texteLong, nomPropre, id, typeFichier, recevoirFichier, zip, envoyerZip, OUTILS, preparerVue, apercuPdf, plusJoursOuvres
 };
