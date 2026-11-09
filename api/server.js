@@ -63,6 +63,13 @@ function origineOk(req) {
   return o === CONF.site;
 }
 
+// Résultat du dernier envoi d'e-mail, sans adresse ni code : diagnostic possible même quand plus aucun e-mail n'arrive.
+function dernierMail() {
+  const m = B.lireJournalMails(1)[0]; if (!m) return null;
+  const masque = t => String(t || '').replace(/[^\s<>@]+@[^\s<>]+/g, '[adresse]').replace(/\b\d{6}\b/g, '••••••');
+  return {date: m.date, ok: m.ok, etape: m.etape, reponse: masque(m.reponse), ms: m.ms};
+}
+
 const ROUTES = {
   'POST /api/commande': D.commande,
   'GET /api/commande': D.etatCommande,
@@ -120,7 +127,7 @@ const ROUTES = {
     const ok = await envoyerMail(a, 'Test d\'envoi Le Bon Permis', `Ceci est un e-mail de test envoyé depuis l'espace équipe par ${qui}, le ${new Date().toLocaleString('fr-FR', {timeZone: 'Europe/Paris'})}.\n\nS'il est arrivé, l'envoi vers cette adresse fonctionne.${B.signature}`);
     repondre(res, 200, {ok, dernier: B.lireJournalMails(1)[0] || null});
   },
-  'GET /api/sante': (req, res) => repondre(res, 200, {ok: true, stripe: !!CONF.stripeCle, mode: CONF.stripeCle.includes('_live_') ? 'reel' : 'test', webhook: !!CONF.stripeWebhook, mail: !!(CONF.smtp.hote && CONF.smtp.pass), images: !!B.OUTILS.magick, pdf: !!B.OUTILS.pdftoppm})
+  'GET /api/sante': (req, res) => repondre(res, 200, {ok: true, stripe: !!CONF.stripeCle, mode: CONF.stripeCle.includes('_live_') ? 'reel' : 'test', webhook: !!CONF.stripeWebhook, mail: !!(CONF.smtp.hote && CONF.smtp.pass), images: !!B.OUTILS.magick, pdf: !!B.OUTILS.pdftoppm, dernierMail: dernierMail()})
 };
 
 const serveur = http.createServer(async (req, res) => {
