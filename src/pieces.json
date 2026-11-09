@@ -51,10 +51,11 @@
   ],
   "annexe": [
    {
-    "id": "croquis",
-    "nom": "Un croquis ou les plans",
-    "type": "fichier",
-    "aide": "Même dessiné à la main sur une feuille : la forme vue de dessus, longueur, largeur, hauteur au plus haut, et le toit (plat ou en pente). Prenez-le en photo."
+    "id": "dimensions-et-hauteur",
+    "nom": "Dimensions, hauteur, toit",
+    "type": "texte",
+    "aide": "Longueur, largeur, hauteur au plus haut, toit plat ou en pente. Un croquis à la main pris en photo fait aussi l'affaire, dans « Autres documents ».",
+    "exemple": "Exemple : 6 m x 4 m, 3 m de haut, toit à 2 pentes"
    },
    {
     "id": "usage",
@@ -65,10 +66,11 @@
    },
    {
     "id": "materiaux-et-couleurs",
-    "nom": "Matériaux et couleurs",
+    "nom": "Matériaux et couleurs, si différents de la maison",
     "type": "texte",
-    "aide": "Les murs, le toit, les fenêtres.",
-    "exemple": "Exemple : murs enduits beige comme la maison, toit en tuiles rouges, fenêtres alu gris"
+    "aide": "Sans réponse, on prévoit comme l'existant : même enduit, mêmes tuiles, mêmes fenêtres.",
+    "exemple": "Exemple : bardage bois naturel, toit plat",
+    "facultatif": true
    }
   ],
   "carport": [
@@ -174,18 +176,11 @@
   ],
   "cloture": [
    {
-    "id": "longueur-hauteur-et-type",
-    "nom": "Longueur, hauteur et type de clôture",
+    "id": "cloture",
+    "nom": "Hauteur, type et couleur de la clôture",
     "type": "texte",
-    "aide": "",
-    "exemple": "Exemple : 25 m le long de la rue, 1,60 m de haut, muret de 40 cm avec grillage rigide dessus"
-   },
-   {
-    "id": "couleur",
-    "nom": "Couleur",
-    "type": "texte",
-    "aide": "La référence RAL si vous l'avez.",
-    "exemple": "Exemple : gris anthracite (RAL 7016)"
+    "aide": "Et sa longueur si vous ne la tracez pas sur le plan.",
+    "exemple": "Exemple : 1,60 m de haut, muret de 40 cm avec grillage rigide gris anthracite dessus, 25 m le long de la rue"
    },
    {
     "id": "rue",
@@ -220,24 +215,26 @@
   "extension": [
    {
     "id": "surface",
-    "nom": "Surface de votre maison",
+    "nom": "Surface de votre maison, si vous la connaissez",
     "type": "texte",
-    "aide": "Elle est écrite sur l'acte de vente, le diagnostic, l'annonce, ou sur impots.gouv.fr (rubrique Gérer mes biens immobiliers). À peu près suffit, avec sa longueur et sa largeur. Inutile si vous envoyez vos plans.",
-    "exemple": "Exemple : 95 m² environ, maison de 12 m x 8 m à peu près",
-    "sauf": "plans"
+    "aide": "Elle est sur l'acte de vente, le diagnostic ou impots.gouv.fr (rubrique Gérer mes biens immobiliers). Sinon, on l'estime d'après le cadastre.",
+    "exemple": "Exemple : 95 m² environ",
+    "facultatif": true
    },
    {
-    "id": "croquis",
-    "nom": "Un croquis de l'extension",
-    "type": "fichier",
-    "aide": "Même à la main : la forme vue de dessus avec les mesures, la hauteur, le toit (plat ou en pente), et où seront les fenêtres et portes. Prenez-le en photo."
+    "id": "forme",
+    "nom": "L'extension en quelques mots",
+    "type": "texte",
+    "aide": "Hauteur (plain-pied ou étage), toit plat ou en pente, fenêtres et portes voulues. Sa place et sa taille : sur le plan ci-dessus. Un croquis à la main pris en photo est bienvenu, dans « Autres documents » : on dessine une proposition, vous la validez.",
+    "exemple": "Exemple : plain-pied, toit plat, une grande baie vitrée côté jardin"
    },
    {
     "id": "materiaux-et-couleurs",
-    "nom": "Matériaux et couleurs",
+    "nom": "Matériaux et couleurs, si différents de la maison",
     "type": "texte",
-    "aide": "Les murs, le toit, les fenêtres.",
-    "exemple": "Exemple : murs enduits beige comme la maison, toit en tuiles rouges, fenêtres alu gris"
+    "aide": "Sans réponse, on prévoit comme l'existant : même enduit, mêmes tuiles, mêmes fenêtres.",
+    "exemple": "Exemple : bardage bois naturel, toit plat",
+    "facultatif": true
    },
    {
     "id": "facades",
@@ -257,11 +254,11 @@
   "veranda": [
    {
     "id": "surface",
-    "nom": "Surface de votre maison",
+    "nom": "Surface de votre maison, si vous la connaissez",
     "type": "texte",
-    "aide": "Elle est écrite sur l'acte de vente, le diagnostic, l'annonce, ou sur impots.gouv.fr (rubrique Gérer mes biens immobiliers). À peu près suffit, avec sa longueur et sa largeur. Inutile si vous envoyez vos plans.",
-    "exemple": "Exemple : 95 m² environ, maison de 12 m x 8 m à peu près",
-    "sauf": "plans"
+    "aide": "Elle est sur l'acte de vente, le diagnostic ou impots.gouv.fr (rubrique Gérer mes biens immobiliers). Sinon, on l'estime d'après le cadastre.",
+    "exemple": "Exemple : 95 m² environ",
+    "facultatif": true
    },
    {
     "id": "devis",
@@ -296,18 +293,19 @@
   "combles": [
    {
     "id": "surface",
-    "nom": "Surface de votre maison",
+    "nom": "Surface de votre maison, si vous la connaissez",
     "type": "texte",
-    "aide": "Elle est écrite sur l'acte de vente, le diagnostic, l'annonce, ou sur impots.gouv.fr (rubrique Gérer mes biens immobiliers). À peu près suffit, avec sa longueur et sa largeur. Inutile si vous envoyez vos plans.",
-    "exemple": "Exemple : 95 m² environ, maison de 12 m x 8 m à peu près",
-    "sauf": "plans"
+    "aide": "Elle est sur l'acte de vente, le diagnostic ou impots.gouv.fr (rubrique Gérer mes biens immobiliers). Sinon, on l'estime d'après le cadastre.",
+    "exemple": "Exemple : 95 m² environ",
+    "facultatif": true
    },
    {
     "id": "surface-combles",
     "nom": "Surface des combles où l'on tient debout",
     "type": "texte",
-    "aide": "La partie à plus de 1,80 m sous le toit, et la hauteur au plus haut.",
-    "exemple": "Exemple : 35 m² environ, 2,60 m au plus haut"
+    "aide": "La partie à plus de 1,80 m sous le toit, et la hauteur au plus haut. À peu près suffit.",
+    "exemple": "Exemple : 35 m² environ, 2,60 m au plus haut",
+    "sauf": "plans"
    },
    {
     "id": "fenetres",
@@ -334,24 +332,26 @@
   "surelevation": [
    {
     "id": "surface",
-    "nom": "Surface de votre maison",
+    "nom": "Surface de votre maison, si vous la connaissez",
     "type": "texte",
-    "aide": "Elle est écrite sur l'acte de vente, le diagnostic, l'annonce, ou sur impots.gouv.fr (rubrique Gérer mes biens immobiliers). À peu près suffit, avec sa longueur et sa largeur. Inutile si vous envoyez vos plans.",
-    "exemple": "Exemple : 95 m² environ, maison de 12 m x 8 m à peu près",
-    "sauf": "plans"
+    "aide": "Elle est sur l'acte de vente, le diagnostic ou impots.gouv.fr (rubrique Gérer mes biens immobiliers). Sinon, on l'estime d'après le cadastre.",
+    "exemple": "Exemple : 95 m² environ",
+    "facultatif": true
    },
    {
-    "id": "croquis",
-    "nom": "Un croquis de l'étage voulu",
-    "type": "fichier",
-    "aide": "Même à la main : la hauteur ajoutée, la forme du toit, les fenêtres."
+    "id": "forme",
+    "nom": "L'étage voulu en quelques mots",
+    "type": "texte",
+    "aide": "Sur toute la maison ou une partie, forme du toit, fenêtres. Un croquis à la main pris en photo est bienvenu, dans « Autres documents » : on dessine une proposition, vous la validez.",
+    "exemple": "Exemple : un étage complet, même toit en tuiles, 3 fenêtres côté rue comme en bas"
    },
    {
     "id": "materiaux-et-couleurs",
-    "nom": "Matériaux et couleurs",
+    "nom": "Matériaux et couleurs, si différents de la maison",
     "type": "texte",
-    "aide": "Les murs, le toit, les fenêtres.",
-    "exemple": "Exemple : murs enduits beige comme la maison, toit en tuiles rouges, fenêtres alu gris"
+    "aide": "Sans réponse, on prévoit comme l'existant : même enduit, mêmes tuiles, mêmes fenêtres.",
+    "exemple": "Exemple : bardage bois naturel, toit plat",
+    "facultatif": true
    },
    {
     "id": "facades",
@@ -371,11 +371,11 @@
   "garage": [
    {
     "id": "surface",
-    "nom": "Surface de votre maison",
+    "nom": "Surface de votre maison, si vous la connaissez",
     "type": "texte",
-    "aide": "Elle est écrite sur l'acte de vente, le diagnostic, l'annonce, ou sur impots.gouv.fr (rubrique Gérer mes biens immobiliers). À peu près suffit, avec sa longueur et sa largeur. Inutile si vous envoyez vos plans.",
-    "exemple": "Exemple : 95 m² environ, maison de 12 m x 8 m à peu près",
-    "sauf": "plans"
+    "aide": "Elle est sur l'acte de vente, le diagnostic ou impots.gouv.fr (rubrique Gérer mes biens immobiliers). Sinon, on l'estime d'après le cadastre.",
+    "exemple": "Exemple : 95 m² environ",
+    "facultatif": true
    },
    {
     "id": "dimensions-du-garage",
@@ -456,8 +456,9 @@
     "id": "position",
     "nom": "Où sur le toit",
     "type": "texte",
-    "aide": "",
-    "exemple": "Exemple : côté jardin, au-dessus de la chambre, à mi-hauteur du toit"
+    "aide": "Inutile si vous les placez sur le plan.",
+    "exemple": "Exemple : côté jardin, au-dessus de la chambre, à mi-hauteur du toit",
+    "sauf": "plan"
    },
    {
     "id": "photo-du-pan-de-toit",
@@ -630,16 +631,17 @@
   "usage": [
    {
     "id": "nouvel-usage",
-    "nom": "Ce que ça devient",
+    "nom": "Aujourd'hui et demain",
     "type": "texte",
-    "aide": "Et pour combien de logements ou de pièces.",
-    "exemple": "Exemple : un logement de 2 pièces"
+    "aide": "Ce qu'est le local aujourd'hui, ce qu'il devient, pour combien de logements ou de pièces.",
+    "exemple": "Exemple : aujourd'hui une boutique, demain un logement de 2 pièces"
    },
    {
     "id": "preuve-usage",
     "nom": "Un papier qui montre l'usage actuel",
     "type": "fichier",
-    "aide": "Acte de vente ou taxe foncière : on y lit si c'est un commerce, un bureau, un logement."
+    "aide": "Acte de vente ou taxe foncière, si vous l'avez sous la main : on y lit si c'est un commerce, un bureau, un logement.",
+    "facultatif": true
    },
    {
     "id": "surfaces",

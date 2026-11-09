@@ -25,16 +25,16 @@ EX_REPERE = "Exemple : porte d'entrée, 2,15 m de haut et 0,90 m de large"
 def repere(ou='sur la façade concernée'):
     return T('porte', f'Une mesure de repère {ou}', AIDE_REPERE, EX_REPERE, fac=True)
 def surface():
-    return T('surface', 'Surface de votre maison',
-             "Elle est écrite sur l'acte de vente, le diagnostic, l'annonce, ou sur impots.gouv.fr (rubrique Gérer mes biens immobiliers). À peu près suffit, avec sa longueur et sa largeur. Inutile si vous envoyez vos plans.",
-             'Exemple : 95 m² environ, maison de 12 m x 8 m à peu près', sauf='plans')
+    return T('surface', 'Surface de votre maison, si vous la connaissez',
+             "Elle est sur l'acte de vente, le diagnostic ou impots.gouv.fr (rubrique Gérer mes biens immobiliers). Sinon, on l'estime d'après le cadastre.",
+             'Exemple : 95 m² environ', fac=True)
 def facade(nom='La façade concernée, vue de face'):
     return P('facade', nom, "Placez-vous bien en face, à 10 ou 15 m, la façade entière dans la photo, sans grand angle.")
 def facades(debut):
     return P('facades', 'Chaque côté de la maison, vu de face', f"Une photo par côté, la maison entière. Commencez par {debut}.")
 def materiaux():
-    return T('materiaux-et-couleurs', 'Matériaux et couleurs', 'Les murs, le toit, les fenêtres.',
-             'Exemple : murs enduits beige comme la maison, toit en tuiles rouges, fenêtres alu gris')
+    return T('materiaux-et-couleurs', 'Matériaux et couleurs, si différents de la maison', 'Sans réponse, on prévoit comme l\'existant : même enduit, mêmes tuiles, mêmes fenêtres.',
+             'Exemple : bardage bois naturel, toit plat', fac=True)
 def modele(detail):
     return F('modele', 'La fiche du modèle choisi', f"Une photo du catalogue, une capture d'écran ou le devis : on y lit {detail}. Si vous n'avez qu'un lien internet, écrivez-le dans « Le projet en quelques mots ».", fac=True)
 
@@ -54,7 +54,7 @@ D = {
            T('dimensions-et-hauteur', 'Dimensions, hauteur, matériau', 'Longueur, largeur, hauteur au plus haut, matériau, toit plat ou en pente. Inutile si vous envoyez la fiche du modèle.',
              'Exemple : 3 m x 2 m, 2,20 m de haut, bois naturel, toit à 2 pentes', sauf='modele'),
            ],
-  'annexe': [F('croquis', 'Un croquis ou les plans', 'Même dessiné à la main sur une feuille : la forme vue de dessus, longueur, largeur, hauteur au plus haut, et le toit (plat ou en pente). Prenez-le en photo.'),
+  'annexe': [T('dimensions-et-hauteur', 'Dimensions, hauteur, toit', 'Longueur, largeur, hauteur au plus haut, toit plat ou en pente. Un croquis à la main pris en photo fait aussi l\'affaire, dans « Autres documents ».', 'Exemple : 6 m x 4 m, 3 m de haut, toit à 2 pentes'),
              T('usage', 'À quoi servira-t-elle', "Et les raccordements prévus : eau, électricité.", 'Exemple : garage pour une voiture, avec l\'électricité'),
              materiaux()],
   'carport': [modele('les dimensions, la hauteur et la couleur'),
@@ -73,15 +73,14 @@ D = {
                  'Exemple : terrasse en bois de 5 m x 4 m, 40 cm au-dessus du jardin'),
                F('fiche-clim', 'Pour une clim : la fiche du groupe extérieur', "La notice, ou une photo de l'étiquette.", fac=True),
                facade("La façade ou l'endroit concerné, vu de face")],
-  'cloture': [T('longueur-hauteur-et-type', 'Longueur, hauteur et type de clôture', '', 'Exemple : 25 m le long de la rue, 1,60 m de haut, muret de 40 cm avec grillage rigide dessus'),
-              T('couleur', 'Couleur', 'La référence RAL si vous l\'avez.', 'Exemple : gris anthracite (RAL 7016)'),
+  'cloture': [T('cloture', 'Hauteur, type et couleur de la clôture', 'Et sa longueur si vous ne la tracez pas sur le plan.', 'Exemple : 1,60 m de haut, muret de 40 cm avec grillage rigide gris anthracite dessus, 25 m le long de la rue'),
               P('rue', 'La clôture actuelle vue de la rue', 'Tout le long concerné, en plusieurs photos si besoin.')],
   'portail': [modele('la largeur, la hauteur et la couleur'),
               T('largeur-et-hauteur', 'Largeur, hauteur et matériau', 'Battant ou coulissant ? Inutile si vous envoyez la fiche du modèle.',
                 'Exemple : 3,50 m de large, 1,60 m de haut, alu gris, coulissant', sauf='modele'),
               P('rue', "L'entrée actuelle vue de la rue", 'Là où se trouvera le portail.')],
   'extension': [surface(),
-                F('croquis', "Un croquis de l'extension", 'Même à la main : la forme vue de dessus avec les mesures, la hauteur, le toit (plat ou en pente), et où seront les fenêtres et portes. Prenez-le en photo.'),
+                T('forme', "L'extension en quelques mots", 'Hauteur (plain-pied ou étage), toit plat ou en pente, fenêtres et portes voulues. Sa place et sa taille : sur le plan ci-dessus. Un croquis à la main pris en photo est bienvenu, dans « Autres documents » : on dessine une proposition, vous la validez.', 'Exemple : plain-pied, toit plat, une grande baie vitrée côté jardin'),
                 materiaux(), facades("le côté où se fera l'extension"), repere('sur le côté des travaux')],
   'veranda': [surface(),
               F('devis', 'Plans ou devis du vérandaliste', 'Si vous en avez un : on y trouve les dimensions et les couleurs.', fac=True),
@@ -89,12 +88,12 @@ D = {
                 'Exemple : 4 m x 3 m, 2,80 m de haut contre la maison, alu blanc, toit en polycarbonate', sauf='devis'),
               facade(), repere()],
   'combles': [surface(),
-              T('surface-combles', "Surface des combles où l'on tient debout", 'La partie à plus de 1,80 m sous le toit, et la hauteur au plus haut.', 'Exemple : 35 m² environ, 2,60 m au plus haut'),
+              T('surface-combles', "Surface des combles où l'on tient debout", 'La partie à plus de 1,80 m sous le toit, et la hauteur au plus haut. À peu près suffit.', 'Exemple : 35 m² environ, 2,60 m au plus haut', sauf='plans'),
               T('fenetres', 'Fenêtres de toit ou lucarnes prévues', 'Combien, quelle taille, de quel côté.', 'Exemple : 2 fenêtres de toit côté jardin, 78 x 98 cm'),
               P('combles-photos', "Le toit et l'intérieur des combles", "Chaque côté du toit depuis l'extérieur, et l'intérieur des combles."),
               repere('sur la façade, sous le toit')],
   'surelevation': [surface(),
-                   F('croquis', "Un croquis de l'étage voulu", 'Même à la main : la hauteur ajoutée, la forme du toit, les fenêtres.'),
+                   T('forme', "L'étage voulu en quelques mots", 'Sur toute la maison ou une partie, forme du toit, fenêtres. Un croquis à la main pris en photo est bienvenu, dans « Autres documents » : on dessine une proposition, vous la validez.', 'Exemple : un étage complet, même toit en tuiles, 3 fenêtres côté rue comme en bas'),
                    materiaux(), facades('la façade sur rue'), repere('sur la façade de devant')],
   'garage': [surface(),
              T('dimensions-du-garage', 'Dimensions du garage', 'Longueur et largeur. Inutile si vous envoyez vos plans.', 'Exemple : 6 m x 3 m', sauf='plans'),
@@ -107,7 +106,7 @@ D = {
                   facade('Chaque façade où quelque chose change, vue de face'),
                   repere()],
   'velux': [T('nombre-et-reference', 'Combien, et quel modèle', 'La référence du fabricant donne la taille. Sinon la taille approximative.', 'Exemple : 2 Velux GGL MK04 (78 x 98 cm)'),
-            T('position', 'Où sur le toit', '', 'Exemple : côté jardin, au-dessus de la chambre, à mi-hauteur du toit'),
+            T('position', 'Où sur le toit', 'Inutile si vous les placez sur le plan.', 'Exemple : côté jardin, au-dessus de la chambre, à mi-hauteur du toit', sauf='plan'),
             P('photo-du-pan-de-toit', 'Le côté du toit concerné', 'Depuis le jardin ou la rue, tout le pan de toit et la façade en dessous.'),
             repere('sur la façade, sous le toit')],
   'lucarne': [T('type', 'Ce que vous imaginez', 'Même approximatif : forme, largeur, et en quoi (tuiles comme la maison, zinc, bois).', 'Exemple : une lucarne à 2 pans de 1,20 m de large en tuiles, comme chez le voisin'),
@@ -131,8 +130,8 @@ D = {
              T('pente-terrain', 'Votre terrain est-il plat ou en pente ?', "Si vous avez un relevé du géomètre avec les niveaux, envoyez-le dans « Autres documents ».", 'Exemple : plat. Ou : il descend vers le fond, environ 1 m sur toute la longueur'),
              T('assainissement', 'Les eaux usées', "Tout-à-l'égout ou fosse ? Si fosse : l'attestation du SPANC (service de la mairie).", "Exemple : tout-à-l'égout"),
              P('photos-terrain', 'Le terrain et son accès', "Depuis la rue et depuis l'intérieur du terrain : l'entrée, les compteurs, les arbres.")],
-  'usage': [T('nouvel-usage', 'Ce que ça devient', 'Et pour combien de logements ou de pièces.', 'Exemple : un logement de 2 pièces'),
-            F('preuve-usage', "Un papier qui montre l'usage actuel", "Acte de vente ou taxe foncière : on y lit si c'est un commerce, un bureau, un logement."),
+  'usage': [T('nouvel-usage', "Aujourd'hui et demain", "Ce qu'est le local aujourd'hui, ce qu'il devient, pour combien de logements ou de pièces.", 'Exemple : aujourd\'hui une boutique, demain un logement de 2 pièces'),
+            F('preuve-usage', "Un papier qui montre l'usage actuel", "Acte de vente ou taxe foncière, si vous l'avez sous la main : on y lit si c'est un commerce, un bureau, un logement.", fac=True),
             T('surfaces', 'Les surfaces', 'Pièce par pièce. Inutile si vous envoyez vos plans.', 'Exemple : boutique 40 m², réserve 15 m², WC 2 m²', sauf='plans'),
             P('usage-photos', 'Photos dedans et dehors', ''),
             T('modifs-facade', 'Ce qui change sur la façade', '', 'Exemple : la vitrine devient une fenêtre et une porte', fac=True),

@@ -300,6 +300,12 @@
     dl.innerHTML = L.length ? L.map(([a, b]) => `<dt>${a}</dt><dd>${b}</dd>`).join('') : '<dt>Terrain</dt><dd class="note">Données publiques indisponibles pour le moment.</dd>';
     if (t.secteurProtege && note) note.innerHTML = '<p class="dz-abf">L\'architecte des Bâtiments de France donnera son avis : c\'est pour lui qu\'on vous demande les matériaux et teintes exacts.</p>';
     if (zone && window.BPCarte && t.parcelle) window.BPCarte(zone, d.lieu, t, {hauteur: 170});
+    // Surface de la maison estimée d'après le cadastre (emprise x niveaux), proposée en texte grisé.
+    const ts = el.querySelector('[data-texte="surface"]'), bats = (t.batiments || []).filter(b => b.surParcelle && !b.leger && b.emprise >= 20);
+    if (ts && bats.length) {
+      const m2 = bats.reduce((s, b) => s + b.emprise * Math.max(1, b.etages || (b.hauteur > 5 ? 2 : 1)) * 0.85, 0);
+      if (m2 > 15) ts.placeholder = `D'après le cadastre, environ ${Math.round(m2 / 5) * 5} m². Écrivez la vraie surface si vous la connaissez.`;
+    }
   }
 
   // Plan du projet (src/plan.js) : ouverture de l'éditeur, aperçu, repli vers la description écrite.
