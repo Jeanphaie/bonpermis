@@ -37,6 +37,7 @@ function piecesInitiales(kind, p, ctx) {
     out.push(...copie(liste));
     if (c.regul === true || c.regul === 'true') out.push(...copie(PIECES.regul));
     if (commun) out.push(...copie(cm.fin));
+    if (c.regul === true || c.regul === 'true') for (const x of out) if (x.id === 'endroit') x.aide = "À quelques mètres : l'endroit exact où ont été faits les travaux.";
     if (a.abf === 'oui') out.push(...copie(PIECES.situations.secteur_protege));
     if (a.copro === 'oui') out.push(...copie(PIECES.situations.copropriete));
     const vus = new Set();
@@ -64,7 +65,7 @@ function listePieces(cmd) {
   return l.filter(p => !p.facultatif).map(p => '- ' + p.nom).join('\n') + (l.some(p => p.facultatif) ? '\nSi vous les avez :\n' + l.filter(p => p.facultatif).map(p => '- ' + p.nom).join('\n') : '');
 }
 // Une pièce « sauf » n'est plus exigée dès que le client a envoyé un fichier pour la pièce citée (ses plans, la fiche du modèle).
-const couverte = (piece, cmd) => !!piece.sauf && cmd.fichiers.some(f => f.piece === piece.sauf);
+const couverte = (piece, cmd) => !!piece.sauf && (piece.sauf === 'plan' ? cmd.pieces.some(x => x.type === 'plan' && x.plan) : cmd.fichiers.some(f => f.piece === piece.sauf));
 const facultative = (piece, cmd) => !!piece.facultatif || couverte(piece, cmd);
 function etatPiece(piece, cmd) {
   if (piece.statut === 'valide' || piece.statut === 'a_refaire') return piece.statut;

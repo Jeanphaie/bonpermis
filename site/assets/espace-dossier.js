@@ -79,11 +79,11 @@
     if (/^secte-/.test(id)) return 'abf';
     if (/^(copro|lotis|locat)-/.test(id)) return 'situation';
     if (/^regul-/.test(id)) return 'regul';
-    if (['rue', 'endroit', 'loin'].includes(id)) return 'lieu';
+    if (['rue', 'endroit', 'loin', 'pente-terrain'].includes(id)) return 'lieu';
     if (['autre', 'documents'].includes(id)) return 'docs';
     return 'projet';
   }
-  const GROUPES = [['projet', 'Votre projet'], ['lieu', 'Photos du lieu'], ['abf', 'Pour l\'architecte des Bâtiments de France'], ['situation', 'Copropriété, lotissement, location'], ['regul', 'Les travaux déjà faits'], ['docs', 'Documents utiles']];
+  const GROUPES = [['projet', 'Votre projet'], ['lieu', 'Le lieu'], ['abf', 'Pour l\'architecte des Bâtiments de France'], ['situation', 'Copropriété, lotissement, location'], ['regul', 'Les travaux déjà faits'], ['docs', 'Documents utiles']];
 
   function piece(p) {
     const modif = d.statut !== 'livre', fs = d.fichiers.filter(f => f.piece === p.id);
