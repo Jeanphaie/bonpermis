@@ -191,7 +191,7 @@ function envoyerMail(a, sujet, texte, repondreA) {
     brancher(s);
   });
 }
-const signature = `\n\nL'équipe Le Bon Permis\n${CONF.site}\n`;
+const signature = `\n\nL'équipe Le Bon Permis\n01 84 16 65 53, du lundi au vendredi\n${CONF.site}\n`;
 
 // Journal des e-mails : chaque envoi, accepté ou refusé, avec la dernière réponse du serveur SMTP.
 // Visible dans l'espace équipe (/admin/#mails). Les codes à 6 chiffres sont masqués. Fichier limité à ~2 Mo.

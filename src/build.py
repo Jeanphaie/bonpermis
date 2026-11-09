@@ -18,6 +18,8 @@ SRC = Path(__file__).resolve().parent
 SITE = SRC.parent / 'site'
 DOMAINE = 'https://bonpermis.fr'
 EMAIL = 'contact@bonpermis.fr'
+TEL = '01 84 16 65 53'
+TEL_HREF = 'tel:+33184166553'
 # Identifiant Google Ads (AW-XXXXXXXXXX). Vide = aucune balise, aucun bandeau cookies, politique « pas de cookie publicitaire ».
 ADS_ID = ''
 LEGAL = [('mentions-legales', 'Mentions légales'), ('cgv', 'Conditions générales de vente'), ('confidentialite', 'Politique de confidentialité')]
@@ -107,9 +109,9 @@ def entete(base, accueil, simu=None):
     <nav class="links" aria-label="Sections">
       {liens}
     </nav>
-    <div class="top-act"><a class="espace-lien" href="/espace/" aria-label="Mon espace"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg><span>Mon espace</span></a>
+    <div class="top-act"><a class="tel-lien" href="{TEL_HREF}" aria-label="Appeler Le Bon Permis"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/></svg><span>{TEL}</span></a><a class="espace-lien" href="/espace/" aria-label="Mon espace"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg><span>Mon espace</span></a>
     {cta}
-    <details class="mnav"><summary aria-label="Menu"><span></span><span></span><span></span></summary><nav aria-label="Sections">{liens}<a href="/espace/">Mon espace</a></nav></details></div>
+    <details class="mnav"><summary aria-label="Menu"><span></span><span></span><span></span></summary><nav aria-label="Sections">{liens}<a href="/espace/">Mon espace</a><a href="{TEL_HREF}"><b>{TEL}</b></a></nav></details></div>
   </div>
 </header>
 '''
@@ -128,7 +130,7 @@ def pied(base):
     <nav class="plan" aria-label="Tous les projets">{blocs}</nav>
     <div class="legal">
       <span>© 2026 Le Bon Permis, un service de LK Invest. Entreprise privée, sans lien avec les administrations.</span>
-      <span><a href="mailto:{EMAIL}">{EMAIL}</a> · <a href="{base}mentions-legales/">Mentions légales</a> · <a href="{base}cgv/">CGV</a> · <a href="{base}confidentialite/">Confidentialité</a>{' · <a href="#" data-cookies>Cookies</a>' if ADS_ID else ''}</span>
+      <span><a href="{TEL_HREF}">{TEL}</a> · <a href="mailto:{EMAIL}">{EMAIL}</a> · <a href="{base}mentions-legales/">Mentions légales</a> · <a href="{base}cgv/">CGV</a> · <a href="{base}confidentialite/">Confidentialité</a>{' · <a href="#" data-cookies>Cookies</a>' if ADS_ID else ''}</span>
     </div>
   </div>
 </footer>
@@ -174,7 +176,7 @@ def tuiles_accueil():
 
 ORGA = {"@type": "Organization", "@id": DOMAINE + "/#org", "name": "Le Bon Permis", "url": DOMAINE + "/",
         "description": "Dossiers de déclaration préalable et de permis de construire pour les particuliers, partout en France. Un service de LK Invest.",
-        "parentOrganization": {"@type": "Organization", "name": "LK Invest"}, "areaServed": "FR"}
+        "parentOrganization": {"@type": "Organization", "name": "LK Invest"}, "areaServed": "FR", "telephone": "+33184166553", "email": EMAIL}
 
 
 def faq_ld(src):
@@ -272,6 +274,7 @@ def page(k):
     {need_html}
     <h2 class="mt">Ce qu'on fait pour vous</h2>
     <p class="lead">D'abord, on lit le plan local d'urbanisme de votre commune : distances aux voisins, hauteur, emprise, clôtures, couleurs. Si votre projet ne passe pas tel quel, on vous le dit avant de commencer. Ensuite on dessine tous les plans demandés par la mairie et on remplit le formulaire officiel. Une deuxième personne relit tout. Vous n'avez plus qu'à déposer, ou on dépose pour vous.</p>
+    <p class="tel-box">Une question avant de commencer ? <a href="{TEL_HREF}"><b>{TEL}</b></a>, du lundi au vendredi. Vous parlez à la personne qui préparera votre dossier.</p>
     <div class="cta-box">
       <div><b>{e(c['prix'])}</b><span>{e(cta_txt)}</span></div>
       <button class="btn blue-btn" type="button" data-p="{simu}">Voir mon prix exact</button>
@@ -314,7 +317,7 @@ COOKIES_ADS = ("<p>Des cookies techniques servent à garder votre session ouvert
 
 def legale(slug, titre):
     base = '../'
-    corps = (SRC / 'legal' / f'{slug}.html').read_text(encoding='utf-8').replace('{{EMAIL}}', EMAIL).replace('{{COOKIES}}', COOKIES_ADS if ADS_ID else COOKIES_SANS)
+    corps = (SRC / 'legal' / f'{slug}.html').read_text(encoding='utf-8').replace('{{EMAIL}}', EMAIL).replace('{{TEL}}', TEL).replace('{{TEL_HREF}}', TEL_HREF).replace('{{COOKIES}}', COOKIES_ADS if ADS_ID else COOKIES_SANS)
     html_ = f'''<main id="top">
 <section class="page-sec legal-page">
   <div class="wrap narrow">
