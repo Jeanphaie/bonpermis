@@ -264,7 +264,7 @@
             ${prochaine ? `<a class="dz-prochaine" href="#p-${prochaine.id}"><span><small>Prochaine étape</small><b>${esc(prochaine.nom)}</b></span><span class="dz-go">Y aller ↓</span></a>` : ''}
             <p class="note">${d.statut === 'brouillon' ? 'Vous pouvez les envoyer dès maintenant, avant de valider. ' : ''}Tout est enregistré au fur et à mesure : vous pouvez arrêter et revenir plus tard, ou continuer sur votre téléphone.</p></section>
           ${pieces()}
-          ${d.statut === 'elements' ? `<section class="dz-carte dz-fin"><div><h3 style="margin:0">Vous avez tout envoyé ?</h3><p class="note">Prévenez-nous : on vérifie et le délai de préparation démarre.</p><p class="form-err" role="alert" hidden id="errfin"></p></div><button class="btn blue-btn" type="button" data-fin>${manque ? `J'ai tout envoyé (il en manque ${manque})` : 'J\'ai tout envoyé'}</button></section>` : ''}
+          ${d.statut === 'elements' ? `<section class="dz-carte dz-fin"><div><h3 style="margin:0">${manque ? 'Envoyez ce que vous avez' : 'Vous avez tout envoyé ?'}</h3><p class="note">${manque ? 'Pas besoin que tout y soit : on regarde, et on vous écrit s\'il nous manque quelque chose.' : 'Prévenez-nous : on vérifie et le délai de préparation démarre.'}</p><p class="form-err" role="alert" hidden id="errfin"></p></div><button class="btn blue-btn" type="button" data-fin>${manque ? 'C\'est envoyé, regardez' : 'J\'ai tout envoyé'}</button></section>` : ''}
         </div>
       </div>
       ${barrePayer()}
@@ -351,8 +351,6 @@
     const fin = el.querySelector('[data-fin]');
     if (fin) fin.addEventListener('click', async () => {
       if (envois) return alert('Patientez : des fichiers sont encore en cours d\'envoi.');
-      const manque = d.pieces.filter(p => !p.facultatif && p.etat === 'manquant');
-      if (manque.length && !confirm(`Il manque encore : ${manque.map(p => p.nom).join(', ')}. Prévenir l'équipe quand même ?`)) return;
       const r = await api('POST', '/espace/dossier/terminer?ref=' + R);
       if (!r.ok) { const e = el.querySelector('#errfin'); e.textContent = r.j.erreur || 'Erreur.'; e.hidden = false; return; }
       charger();

@@ -542,7 +542,8 @@ async function clientTerminer(req, res, url) {
   cmd.statut = 'verification'; histo(cmd, 'Le client a envoyé ses éléments'); sauver(cmd);
   repondre(res, 200, {ok: true});
   const r = recues(cmd);
-  await envoyerMail(CONF.mailA, `À vérifier ${cmd.ref} : ${cmd.nom}`, `Le client a envoyé ses éléments (${r.n} pièces sur ${r.sur}, ${cmd.fichiers.length} fichiers).\n\n${CONF.site}/admin/#${cmd.ref}\n`, cmd.email);
+  const manque = cmd.pieces.filter(p => !facultative(p, cmd) && etatPiece(p, cmd) === 'manquant').map(p => '- ' + p.nom);
+  await envoyerMail(CONF.mailA, `À vérifier ${cmd.ref} : ${cmd.nom}`, `Le client a envoyé ses éléments (${r.n} pièces sur ${r.sur}, ${cmd.fichiers.length} fichiers).${manque.length ? `\n\nIl manque encore :\n${manque.join('\n')}\nÀ lui réclamer depuis le dossier (« à refaire ») seulement si c'est indispensable.` : ''}\n\n${CONF.site}/admin/#${cmd.ref}\n`, cmd.email);
 }
 async function clientValider(req, res, url) { // le client valide l'aperçu : paiement du solde
   const cmd = cmdClient(req, res, url); if (!cmd) return;
