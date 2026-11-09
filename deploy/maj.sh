@@ -27,6 +27,6 @@ if [ "$voulu" != "$actuel" ]; then
   fi
   exit 0
 fi
-if [ "$avant" != "$apres" ] && git -C "$D" diff --name-only "$avant" "$apres" | grep -qE '^(api/|src/prix\.js|src/data\.json|src/pages\.json)'; then
+if [ "$avant" != "$apres" ] && git -C "$D" diff --name-only "$avant" "$apres" | grep -qE '^(api/|src/prix\.js|src/data\.json|src/pages\.json|src/pieces\.json)'; then
   docker restart bonpermis-paiement >/dev/null 2>&1 || true
 fi

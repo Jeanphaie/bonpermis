@@ -1,0 +1,773 @@
+{
+ "_doc": "Pièces demandées au client, par projet. Types : texte (réponse écrite), photo, fichier (photo ou PDF). Lu par api/dossiers.js (piecesInitiales). Source : doc « documents à fournir par le client » du 09/11/2026.",
+ "commun": [
+  {
+   "id": "rue",
+   "nom": "Photo depuis la rue",
+   "type": "photo",
+   "aide": "De loin, votre maison et ses voisines dans le cadre."
+  },
+  {
+   "id": "endroit",
+   "nom": "Photo de l'endroit des travaux",
+   "type": "photo",
+   "aide": "À 5 ou 10 m, l'endroit exact où se feront les travaux."
+  },
+  {
+   "id": "plans",
+   "nom": "Plans existants",
+   "type": "fichier",
+   "aide": "Ancien permis, plans de vente ou du constructeur, si vous les avez.",
+   "facultatif": true
+  }
+ ],
+ "sansCommun": [
+  "cu",
+  "daact",
+  "modif"
+ ],
+ "projets": {
+  "abri": [
+   {
+    "id": "modele",
+    "nom": "Fiche ou lien du modèle",
+    "type": "fichier",
+    "aide": "Dimensions, hauteur, matériau et couleur.",
+    "facultatif": true
+   },
+   {
+    "id": "dimensions-et-hauteur",
+    "nom": "Dimensions et hauteur",
+    "type": "texte",
+    "aide": "Si vous n'avez pas de fiche modèle."
+   },
+   {
+    "id": "limite",
+    "nom": "Distance à la limite la plus proche",
+    "type": "texte",
+    "aide": "Au mètre ruban, depuis la clôture ou la borne. Facultatif si vous ne savez pas, on la calcule sur le cadastre.",
+    "facultatif": true
+   }
+  ],
+  "annexe": [
+   {
+    "id": "croquis-ou-plans",
+    "nom": "Croquis ou plans",
+    "type": "fichier",
+    "aide": "Même à main levée, avec les dimensions."
+   },
+   {
+    "id": "usage",
+    "nom": "Usage",
+    "type": "texte",
+    "aide": "Garage, studio habitable, pool-house. Raccordements prévus (eau, électricité)."
+   },
+   {
+    "id": "materiaux-et-couleurs",
+    "nom": "Matériaux et couleurs",
+    "type": "texte",
+    "aide": "Murs, toit, menuiseries."
+   },
+   {
+    "id": "limite",
+    "nom": "Distance à la limite la plus proche",
+    "type": "texte",
+    "aide": "Au mètre ruban, depuis la clôture ou la borne. Facultatif si vous ne savez pas, on la calcule sur le cadastre.",
+    "facultatif": true
+   }
+  ],
+  "carport": [
+   {
+    "id": "modele",
+    "nom": "Fiche ou lien du modèle",
+    "type": "fichier",
+    "aide": "Dimensions, hauteur, couleur.",
+    "facultatif": true
+   },
+   {
+    "id": "dimensions-et-hauteur",
+    "nom": "Dimensions et hauteur",
+    "type": "texte",
+    "aide": "Si vous n'avez pas de fiche modèle."
+   },
+   {
+    "id": "limite",
+    "nom": "Distance à la limite la plus proche",
+    "type": "texte",
+    "aide": "Au mètre ruban, depuis la clôture ou la borne. Facultatif si vous ne savez pas, on la calcule sur le cadastre.",
+    "facultatif": true
+   }
+  ],
+  "pergola": [
+   {
+    "id": "modele",
+    "nom": "Fiche ou lien du modèle",
+    "type": "fichier",
+    "aide": "Dimensions, toiture (lames, toile, vitrée), couleur.",
+    "facultatif": true
+   },
+   {
+    "id": "facade",
+    "nom": "Photo de face de la façade concernée",
+    "type": "photo",
+    "aide": "Bien en face, façade entière, sans grand angle."
+   },
+   {
+    "id": "porte",
+    "nom": "Hauteur et largeur de votre porte d'entrée",
+    "type": "texte",
+    "aide": "Au mètre ruban. Elle nous sert de repère pour calculer le reste de la façade."
+   },
+   {
+    "id": "adossee-ou-autoportante",
+    "nom": "Adossée ou autoportante",
+    "type": "texte",
+    "aide": "Fixée à la maison ou indépendante."
+   }
+  ],
+  "piscine": [
+   {
+    "id": "dimensions-et-profondeur-du",
+    "nom": "Dimensions et profondeur du bassin",
+    "type": "texte",
+    "aide": "Et la forme : rectangle, ovale, libre."
+   },
+   {
+    "id": "enterree-ou-hors-sol-abri-ev",
+    "nom": "Enterrée ou hors-sol, abri éventuel",
+    "type": "texte",
+    "aide": "Si abri : sa hauteur."
+   },
+   {
+    "id": "local-technique-et-plage",
+    "nom": "Local technique et plage",
+    "type": "texte",
+    "aide": "Emplacement et dimensions, s'ils existent.",
+    "facultatif": true
+   },
+   {
+    "id": "limite",
+    "nom": "Distance à la limite la plus proche",
+    "type": "texte",
+    "aide": "Au mètre ruban, depuis la clôture ou la borne. Facultatif si vous ne savez pas, on la calcule sur le cadastre.",
+    "facultatif": true
+   }
+  ],
+  "terrasse": [
+   {
+    "id": "ce-que-vous-faites",
+    "nom": "Ce que vous faites",
+    "type": "texte",
+    "aide": "Terrasse, mur ou climatisation."
+   },
+   {
+    "id": "dimensions",
+    "nom": "Dimensions",
+    "type": "texte",
+    "aide": "Terrasse : surface et hauteur au-dessus du sol. Mur : longueur et hauteur."
+   },
+   {
+    "id": "fiche-de-l-unite-exterieure",
+    "nom": "Fiche de l'unité extérieure",
+    "type": "fichier",
+    "aide": "Pour une clim : dimensions et emplacement sur la façade.",
+    "facultatif": true
+   },
+   {
+    "id": "facade",
+    "nom": "Photo de face de la façade concernée",
+    "type": "photo",
+    "aide": "Bien en face, façade entière, sans grand angle."
+   }
+  ],
+  "cloture": [
+   {
+    "id": "longueur-hauteur-et-type",
+    "nom": "Longueur, hauteur et type",
+    "type": "texte",
+    "aide": "Grillage, panneaux, muret et grille."
+   },
+   {
+    "id": "couleur",
+    "nom": "Couleur",
+    "type": "texte",
+    "aide": "Référence RAL si vous l'avez."
+   },
+   {
+    "id": "photos-depuis-la-rue",
+    "nom": "Photos depuis la rue",
+    "type": "photo",
+    "aide": "Tout le linéaire concerné."
+   }
+  ],
+  "portail": [
+   {
+    "id": "modele",
+    "nom": "Fiche ou lien du modèle",
+    "type": "fichier",
+    "aide": "Largeur, hauteur, matériau, couleur.",
+    "facultatif": true
+   },
+   {
+    "id": "rue",
+    "nom": "Photo depuis la rue",
+    "type": "photo",
+    "aide": "Avec l'emplacement du portail."
+   },
+   {
+    "id": "largeur-et-hauteur",
+    "nom": "Largeur et hauteur",
+    "type": "texte",
+    "aide": "Si vous n'avez pas de fiche modèle."
+   }
+  ],
+  "extension": [
+   {
+    "id": "surface",
+    "nom": "Surface de votre maison",
+    "type": "texte",
+    "aide": "Sur l'acte de vente, un diagnostic, l'annonce ou impots.gouv.fr (Gérer mes biens immobiliers)."
+   },
+   {
+    "id": "croquis",
+    "nom": "Croquis",
+    "type": "fichier",
+    "aide": "Même à main levée : emprise, hauteur, forme du toit."
+   },
+   {
+    "id": "materiaux-et-couleurs",
+    "nom": "Matériaux et couleurs",
+    "type": "texte",
+    "aide": "Murs, toit, menuiseries."
+   },
+   {
+    "id": "facade",
+    "nom": "Photo de face de la façade concernée",
+    "type": "photo",
+    "aide": "Bien en face, façade entière, sans grand angle."
+   },
+   {
+    "id": "porte",
+    "nom": "Hauteur et largeur de votre porte d'entrée",
+    "type": "texte",
+    "aide": "Au mètre ruban. Elle nous sert de repère pour calculer le reste de la façade."
+   },
+   {
+    "id": "photos-de-toutes-les-facades",
+    "nom": "Photos de toutes les façades",
+    "type": "photo",
+    "aide": "Une photo de face par côté de la maison."
+   },
+   {
+    "id": "limite",
+    "nom": "Distance à la limite la plus proche",
+    "type": "texte",
+    "aide": "Au mètre ruban, depuis la clôture ou la borne. Facultatif si vous ne savez pas, on la calcule sur le cadastre.",
+    "facultatif": true
+   }
+  ],
+  "veranda": [
+   {
+    "id": "surface",
+    "nom": "Surface de votre maison",
+    "type": "texte",
+    "aide": "Sur l'acte de vente, un diagnostic, l'annonce ou impots.gouv.fr (Gérer mes biens immobiliers)."
+   },
+   {
+    "id": "plans-ou-devis-du-verandalis",
+    "nom": "Plans ou devis du vérandaliste",
+    "type": "fichier",
+    "aide": "Dimensions, profilés, toiture, couleur.",
+    "facultatif": true
+   },
+   {
+    "id": "facade",
+    "nom": "Photo de face de la façade concernée",
+    "type": "photo",
+    "aide": "Bien en face, façade entière, sans grand angle."
+   },
+   {
+    "id": "porte",
+    "nom": "Hauteur et largeur de votre porte d'entrée",
+    "type": "texte",
+    "aide": "Au mètre ruban. Elle nous sert de repère pour calculer le reste de la façade."
+   },
+   {
+    "id": "limite",
+    "nom": "Distance à la limite la plus proche",
+    "type": "texte",
+    "aide": "Au mètre ruban, depuis la clôture ou la borne. Facultatif si vous ne savez pas, on la calcule sur le cadastre.",
+    "facultatif": true
+   }
+  ],
+  "combles": [
+   {
+    "id": "surface",
+    "nom": "Surface de votre maison",
+    "type": "texte",
+    "aide": "Sur l'acte de vente, un diagnostic, l'annonce ou impots.gouv.fr (Gérer mes biens immobiliers)."
+   },
+   {
+    "id": "surface-des-combles-a-plus-d",
+    "nom": "Surface des combles à plus de 1,80 m",
+    "type": "texte",
+    "aide": "Et la hauteur sous le faîtage."
+   },
+   {
+    "id": "fenetres-de-toit-ou-lucarnes",
+    "nom": "Fenêtres de toit ou lucarnes prévues",
+    "type": "texte",
+    "aide": "Nombre, dimensions, côté du toit."
+   },
+   {
+    "id": "photos-de-la-toiture-et-de-l",
+    "nom": "Photos de la toiture et de l'intérieur des combles",
+    "type": "photo",
+    "aide": ""
+   }
+  ],
+  "surelevation": [
+   {
+    "id": "surface",
+    "nom": "Surface de votre maison",
+    "type": "texte",
+    "aide": "Sur l'acte de vente, un diagnostic, l'annonce ou impots.gouv.fr (Gérer mes biens immobiliers)."
+   },
+   {
+    "id": "plans",
+    "nom": "Plans existants",
+    "type": "fichier",
+    "aide": "Fortement recommandés pour une surélévation.",
+    "facultatif": true
+   },
+   {
+    "id": "croquis-de-l-etage-voulu",
+    "nom": "Croquis de l'étage voulu",
+    "type": "fichier",
+    "aide": "Hauteur ajoutée, matériaux."
+   },
+   {
+    "id": "photos-de-toutes-les-facades",
+    "nom": "Photos de toutes les façades",
+    "type": "photo",
+    "aide": "Une photo de face par côté."
+   },
+   {
+    "id": "porte",
+    "nom": "Hauteur et largeur de votre porte d'entrée",
+    "type": "texte",
+    "aide": "Au mètre ruban. Elle nous sert de repère pour calculer le reste de la façade."
+   }
+  ],
+  "garage": [
+   {
+    "id": "surface",
+    "nom": "Surface de votre maison",
+    "type": "texte",
+    "aide": "Sur l'acte de vente, un diagnostic, l'annonce ou impots.gouv.fr (Gérer mes biens immobiliers)."
+   },
+   {
+    "id": "dimensions-du-garage",
+    "nom": "Dimensions du garage",
+    "type": "texte",
+    "aide": "Longueur, largeur, hauteur."
+   },
+   {
+    "id": "ce-qui-remplace-la-porte",
+    "nom": "Ce qui remplace la porte",
+    "type": "texte",
+    "aide": "Baie, fenêtre, mur."
+   },
+   {
+    "id": "places-de-stationnement-rest",
+    "nom": "Places de stationnement restantes",
+    "type": "texte",
+    "aide": "Combien de voitures peuvent encore se garer sur le terrain."
+   },
+   {
+    "id": "facade",
+    "nom": "Photo de face de la façade concernée",
+    "type": "photo",
+    "aide": "Bien en face, façade entière, sans grand angle."
+   },
+   {
+    "id": "porte",
+    "nom": "Hauteur et largeur de votre porte d'entrée",
+    "type": "texte",
+    "aide": "Au mètre ruban. Elle nous sert de repère pour calculer le reste de la façade."
+   }
+  ],
+  "menuiseries": [
+   {
+    "id": "liste-des-elements-changes",
+    "nom": "Liste des éléments changés",
+    "type": "texte",
+    "aide": "Où ils sont, dimensions, matériau, couleur (RAL), type d'ouverture."
+   },
+   {
+    "id": "devis-ou-fiche-du-menuisier",
+    "nom": "Devis ou fiche du menuisier",
+    "type": "fichier",
+    "aide": "",
+    "facultatif": true
+   },
+   {
+    "id": "facade",
+    "nom": "Photo de face de la façade concernée",
+    "type": "photo",
+    "aide": "Bien en face, façade entière, sans grand angle."
+   },
+   {
+    "id": "photo-rapprochee-de-l-exista",
+    "nom": "Photo rapprochée de l'existant",
+    "type": "photo",
+    "aide": ""
+   },
+   {
+    "id": "porte",
+    "nom": "Hauteur et largeur de votre porte d'entrée",
+    "type": "texte",
+    "aide": "Au mètre ruban. Elle nous sert de repère pour calculer le reste de la façade."
+   }
+  ],
+  "velux": [
+   {
+    "id": "nombre-et-reference",
+    "nom": "Nombre et référence",
+    "type": "texte",
+    "aide": "La référence du fabricant donne les dimensions."
+   },
+   {
+    "id": "photo-du-pan-de-toit",
+    "nom": "Photo du pan de toit",
+    "type": "photo",
+    "aide": ""
+   },
+   {
+    "id": "position-sur-le-toit",
+    "nom": "Position sur le toit",
+    "type": "texte",
+    "aide": "Hauteur et emplacement approximatifs."
+   }
+  ],
+  "lucarne": [
+   {
+    "id": "type-largeur-et-hauteur",
+    "nom": "Type, largeur et hauteur",
+    "type": "texte",
+    "aide": "Ce que vous imaginez, même approximatif."
+   },
+   {
+    "id": "photos-de-la-toiture-et-de-l",
+    "nom": "Photos de la toiture et de la façade",
+    "type": "photo",
+    "aide": ""
+   },
+   {
+    "id": "porte",
+    "nom": "Hauteur et largeur de votre porte d'entrée",
+    "type": "texte",
+    "aide": "Au mètre ruban. Elle nous sert de repère pour calculer le reste de la façade."
+   }
+  ],
+  "toiture": [
+   {
+    "id": "materiau-actuel-et-futur",
+    "nom": "Matériau actuel et futur",
+    "type": "texte",
+    "aide": "Référence et teinte."
+   },
+   {
+    "id": "changement-de-pente-ou-de-ha",
+    "nom": "Changement de pente ou de hauteur",
+    "type": "texte",
+    "aide": "Isolation par l'extérieur : épaisseur.",
+    "facultatif": true
+   },
+   {
+    "id": "photos-de-tous-les-pans-visi",
+    "nom": "Photos de tous les pans visibles",
+    "type": "photo",
+    "aide": ""
+   }
+  ],
+  "facade": [
+   {
+    "id": "teinte",
+    "nom": "Teinte",
+    "type": "texte",
+    "aide": "Référence du nuancier."
+   },
+   {
+    "id": "isolation-par-l-exterieur",
+    "nom": "Isolation par l'extérieur",
+    "type": "texte",
+    "aide": "Si oui : épaisseur.",
+    "facultatif": true
+   },
+   {
+    "id": "photos-de-chaque-facade-conc",
+    "nom": "Photos de chaque façade concernée",
+    "type": "photo",
+    "aide": "De face, entière."
+   },
+   {
+    "id": "porte",
+    "nom": "Hauteur et largeur de votre porte d'entrée",
+    "type": "texte",
+    "aide": "Au mètre ruban. Elle nous sert de repère pour calculer le reste de la façade."
+   }
+  ],
+  "solaire": [
+   {
+    "id": "nombre-et-dimensions-des-pan",
+    "nom": "Nombre et dimensions des panneaux",
+    "type": "texte",
+    "aide": "Référence du fabricant si vous l'avez."
+   },
+   {
+    "id": "pose",
+    "nom": "Pose",
+    "type": "texte",
+    "aide": "Intégrée au toit, posée dessus, ou au sol."
+   },
+   {
+    "id": "photo-du-pan-de-toit",
+    "nom": "Photo du pan de toit",
+    "type": "photo",
+    "aide": ""
+   },
+   {
+    "id": "rue",
+    "nom": "Photo depuis la rue",
+    "type": "photo",
+    "aide": ""
+   }
+  ],
+  "maison": [
+   {
+    "id": "plans-de-la-maison",
+    "nom": "Plans de la maison",
+    "type": "fichier",
+    "aide": "Du constructeur ou les vôtres : plans, façades, coupe. PDF ou DWG."
+   },
+   {
+    "id": "plan-de-bornage-ou-plan-de-v",
+    "nom": "Plan de bornage ou plan de vente du lot",
+    "type": "fichier",
+    "aide": ""
+   },
+   {
+    "id": "notice-descriptive-du-constr",
+    "nom": "Notice descriptive du constructeur",
+    "type": "fichier",
+    "aide": "Pour l'attestation énergétique : isolation, chauffage, menuiseries.",
+    "facultatif": true
+   },
+   {
+    "id": "reglement-de-lotissement",
+    "nom": "Règlement de lotissement",
+    "type": "fichier",
+    "aide": "Si le terrain est dans un lotissement.",
+    "facultatif": true
+   },
+   {
+    "id": "assainissement",
+    "nom": "Assainissement",
+    "type": "texte",
+    "aide": "Tout-à-l'égout ou fosse. Si fosse : attestation du SPANC."
+   },
+   {
+    "id": "photos-du-terrain-et-des-acc",
+    "nom": "Photos du terrain et des accès",
+    "type": "photo",
+    "aide": "Compteurs, regards, arbres à abattre."
+   }
+  ],
+  "usage": [
+   {
+    "id": "usage-actuel-du-local",
+    "nom": "Usage actuel du local",
+    "type": "fichier",
+    "aide": "Acte ou taxe foncière qui le prouve."
+   },
+   {
+    "id": "surfaces-ou-plans-existants",
+    "nom": "Surfaces ou plans existants",
+    "type": "texte",
+    "aide": "Sinon les mesures pièce par pièce."
+   },
+   {
+    "id": "photos-interieur-et-exterieu",
+    "nom": "Photos intérieur et extérieur",
+    "type": "photo",
+    "aide": ""
+   },
+   {
+    "id": "modifications-de-facade-prev",
+    "nom": "Modifications de façade prévues",
+    "type": "texte",
+    "aide": "",
+    "facultatif": true
+   },
+   {
+    "id": "assainissement",
+    "nom": "Assainissement",
+    "type": "texte",
+    "aide": "Tout-à-l'égout ou fosse."
+   }
+  ],
+  "demolition": [
+   {
+    "id": "ce-qui-est-demoli",
+    "nom": "Ce qui est démoli",
+    "type": "texte",
+    "aide": "Totalement ou en partie, avec la surface."
+   },
+   {
+    "id": "photos-de-la-construction-a",
+    "nom": "Photos de la construction à démolir",
+    "type": "photo",
+    "aide": "Et de ses abords."
+   }
+  ],
+  "cu": [
+   {
+    "id": "type-de-certificat",
+    "nom": "Type de certificat",
+    "type": "texte",
+    "aide": "Simple information, ou faisabilité d'un projet précis."
+   },
+   {
+    "id": "description-du-projet",
+    "nom": "Description du projet",
+    "type": "texte",
+    "aide": "Pour la faisabilité : destination, surface, nombre de logements.",
+    "facultatif": true
+   },
+   {
+    "id": "croquis-d-implantation",
+    "nom": "Croquis d'implantation",
+    "type": "fichier",
+    "aide": "Pour la faisabilité, si vous en avez un.",
+    "facultatif": true
+   }
+  ],
+  "modif": [
+   {
+    "id": "arrete-du-permis-accorde",
+    "nom": "Arrêté du permis accordé",
+    "type": "fichier",
+    "aide": ""
+   },
+   {
+    "id": "dossier-depose-a-l-epoque",
+    "nom": "Dossier déposé à l'époque",
+    "type": "fichier",
+    "aide": "Cerfa et plans."
+   },
+   {
+    "id": "ce-qui-change",
+    "nom": "Ce qui change",
+    "type": "texte",
+    "aide": "Description précise, plans de l'entreprise si disponibles."
+   }
+  ],
+  "daact": [
+   {
+    "id": "arrete-de-l-autorisation",
+    "nom": "Arrêté de l'autorisation",
+    "type": "fichier",
+    "aide": "Avec son numéro."
+   },
+   {
+    "id": "date-de-fin-des-travaux",
+    "nom": "Date de fin des travaux",
+    "type": "texte",
+    "aide": ""
+   },
+   {
+    "id": "attestation-energetique-de-f",
+    "nom": "Attestation énergétique de fin de travaux",
+    "type": "fichier",
+    "aide": "Pour une maison neuve.",
+    "facultatif": true
+   }
+  ]
+ },
+ "regul": [
+  {
+   "id": "regul-date-approximative-des-trava",
+   "nom": "Date approximative des travaux",
+   "type": "texte",
+   "aide": ""
+  },
+  {
+   "id": "regul-factures",
+   "nom": "Factures",
+   "type": "fichier",
+   "aide": "Si vous les avez.",
+   "facultatif": true
+  },
+  {
+   "id": "regul-photos-de-l-etat-actuel",
+   "nom": "Photos de l'état actuel",
+   "type": "photo",
+   "aide": "Sous tous les angles."
+  }
+ ],
+ "situations": {
+  "secteur_protege": [
+   {
+    "id": "secte-references-exactes-des-mater",
+    "nom": "Références exactes des matériaux et teintes",
+    "type": "texte",
+    "aide": "RAL, nuancier, fiche fabricant."
+   },
+   {
+    "id": "secte-photos-rapprochees-des-menui",
+    "nom": "Photos rapprochées des menuiseries et matériaux existants",
+    "type": "photo",
+    "aide": ""
+   }
+  ],
+  "copropriete": [
+   {
+    "id": "copro-reglement-de-copropriete",
+    "nom": "Règlement de copropriété",
+    "type": "fichier",
+    "aide": ""
+   },
+   {
+    "id": "copro-pv-d-assemblee-generale-auto",
+    "nom": "PV d'assemblée générale autorisant les travaux",
+    "type": "fichier",
+    "aide": "Ou la date de la prochaine AG.",
+    "facultatif": true
+   },
+   {
+    "id": "copro-plan-du-lot",
+    "nom": "Plan du lot",
+    "type": "fichier",
+    "aide": "",
+    "facultatif": true
+   }
+  ],
+  "lotissement": [
+   {
+    "id": "lotis-reglement-et-cahier-des-char",
+    "nom": "Règlement et cahier des charges du lotissement",
+    "type": "fichier",
+    "aide": ""
+   }
+  ],
+  "locataire": [
+   {
+    "id": "locat-accord-ecrit-du-proprietaire",
+    "nom": "Accord écrit du propriétaire",
+    "type": "fichier",
+    "aide": ""
+   }
+  ]
+ }
+}

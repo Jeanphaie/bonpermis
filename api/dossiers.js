@@ -6,7 +6,7 @@
 
 const B = require('./base');
 const C = require('./comptes');
-const {fs, path, CONF, P, NEED, PAGES, PRIX, lire, ecrire, creer, repondre, lireJson, texte, texteLong, MAIL_RE, journal, euro, envoyerMail, signature, stripe, reference, envoyerFichier, TYPES} = B;
+const {fs, path, CONF, P, NEED, PIECES, PAGES, PRIX, lire, ecrire, creer, repondre, lireJson, texte, texteLong, MAIL_RE, journal, euro, envoyerMail, signature, stripe, reference, envoyerFichier, TYPES} = B;
 
 const REF_RE = /^BP-[2-9A-HJ-NP-Z]{6}$/;
 const LIM = {fichier: 25 * 1048576, nb: 60, total: 500 * 1048576, livrable: 60 * 1048576};
@@ -17,12 +17,29 @@ const STATUTS = {
 const dDir = ref => B.chemin('dossiers', ref);
 
 // ---------- pièces demandées ----------
-function piecesInitiales(kind, p) {
-  const nd = NEED[p] || NEED.extension;
+// Liste propre à chaque projet (src/pieces.json) : description, pièces du projet, pièces communes,
+// pièces liées à la situation (secteur protégé, copropriété) et aux travaux déjà faits, puis « Autres documents ».
+// ctx = {regul, reponses} (réponses du simulateur, en JSON). Sans fichier ou projet inconnu : liste générique.
+function piecesInitiales(kind, p, ctx) {
+  const nd = NEED[p] || NEED.extension, c = ctx || {};
+  const autre = {id: 'autre', nom: 'Autres documents', type: 'fichier', facultatif: true, aide: 'Tout ce qui peut nous aider : croquis, devis, inspiration…'};
+  const liste = PIECES && PIECES.projets[p];
+  if (liste) {
+    let a = {}; try { a = JSON.parse(c.reponses || '{}'); } catch {}
+    const copie = l => (l || []).map(x => Object.assign({}, x));
+    const out = [{id: 'projet', nom: kind === 'svc' ? 'Votre demande' : 'Le projet en quelques mots', type: 'texte', aide: nd[0]}];
+    out.push(...copie(liste));
+    if (c.regul === true || c.regul === 'true') out.push(...copie(PIECES.regul));
+    if (!PIECES.sansCommun.includes(p)) out.push(...copie(PIECES.commun));
+    if (a.abf === 'oui') out.push(...copie(PIECES.situations.secteur_protege));
+    if (a.copro === 'oui') out.push(...copie(PIECES.situations.copropriete));
+    const vus = new Set();
+    return out.filter(x => !vus.has(x.id) && vus.add(x.id)).concat(autre);
+  }
   if (kind === 'svc') return [
     {id: 'projet', nom: 'Votre demande', type: 'texte', aide: nd[0]},
     {id: 'documents', nom: 'Vos documents', type: 'fichier', aide: nd[2] || 'Les documents dont vous disposez (arrêté, plans déposés…)'},
-    {id: 'autre', nom: 'Autres documents', type: 'fichier', facultatif: true, aide: 'Tout ce qui peut nous aider.'}
+    autre
   ];
   return [
     {id: 'projet', nom: 'Le projet', type: 'texte', aide: nd[0]},
@@ -32,8 +49,13 @@ function piecesInitiales(kind, p) {
     {id: 'loin', nom: 'Le terrain vu de loin', type: 'photo', aide: 'Reculez au maximum : la maison et les limites du terrain.'},
     {id: 'abords', nom: 'Les abords proches', type: 'photo', aide: 'Jardin, clôture, maisons voisines.'},
     {id: 'plans', nom: 'Plans existants', type: 'fichier', facultatif: true, aide: 'Si vous en avez : plans de la maison, ancien permis.'},
-    {id: 'autre', nom: 'Autres documents', type: 'fichier', facultatif: true, aide: 'Croquis, devis, inspiration…'}
+    autre
   ];
+}
+// Pièces à fournir, pour les e-mails : obligatoires d'abord, puis « si vous l'avez ».
+function listePieces(cmd) {
+  const l = cmd.pieces.filter(p => p.id !== 'autre');
+  return l.filter(p => !p.facultatif).map(p => '- ' + p.nom).join('\n') + (l.some(p => p.facultatif) ? '\nSi vous les avez :\n' + l.filter(p => p.facultatif).map(p => '- ' + p.nom).join('\n') : '');
 }
 function etatPiece(piece, cmd) {
   if (piece.statut === 'valide' || piece.statut === 'a_refaire') return piece.statut;
@@ -53,7 +75,7 @@ function norm(cmd) {
   cmd.paiements = cmd.paiements || {acompte: {montant: cmd.montant, date: cmd.date, session: cmd.session}};
   if (cmd.solde <= 0 && !cmd.paiements.solde) cmd.paiements.solde = {montant: 0, date: cmd.date, ancien: true};
   cmd.kind = cmd.kind || 'dp';
-  cmd.pieces = cmd.pieces || piecesInitiales(cmd.kind, cmd.projet);
+  cmd.pieces = cmd.pieces || piecesInitiales(cmd.kind, cmd.projet, {regul: cmd.regul, reponses: cmd.reponses});
   cmd.fichiers = cmd.fichiers || []; cmd.messages = cmd.messages || []; cmd.livrables = cmd.livrables || []; cmd.historique = cmd.historique || [];
   const st = lireOld(cmd.ref);
   cmd.statut = cmd.statut || (st.termine ? 'verification' : 'elements');
@@ -226,7 +248,7 @@ async function paiementRecu(s) {
     projet: m.projet, kind: m.kind || 'dp', nom: m.nom, regul: m.regul, adresse: m.adresse, reponses: m.reponses, options: m.options, lignes,
     total, acompte, solde: Math.round((total - acompte) * 100) / 100,
     paiements: {acompte: {montant: s.amount_total / 100, date: new Date().toISOString(), session: s.id, pi: s.payment_intent || null}},
-    statut: 'elements', pieces: piecesInitiales(m.kind || 'dp', m.projet), fichiers: [], messages: [], livrables: [],
+    statut: 'elements', pieces: piecesInitiales(m.kind || 'dp', m.projet, {regul: m.regul, reponses: m.reponses}), fichiers: [], messages: [], livrables: [],
     historique: [{date: new Date().toISOString(), texte: `Acompte reçu : ${euro(s.amount_total / 100)}`}]
   };
   if (!m.type) { // commande de la première version : payée en une fois
@@ -236,11 +258,10 @@ async function paiementRecu(s) {
   if (u && !u.commandes.includes(ref)) { u.commandes.unshift(ref); C.ecrireUser(u); }
   const sim = m.pid && lireProjet(m.pid); if (sim) { sim.statut = 'commande'; sim.ref = ref; ecrire(sim, 'projets', sim.id + '.json'); }
   journal('acompte payé', ref, m.projet, cmd.paiements.acompte.montant + ' €');
-  const need = NEED[m.projet] || NEED.extension;
   await envoyerMail(CONF.mailA, `Nouvelle commande ${ref} : ${m.nom} (acompte ${euro(cmd.paiements.acompte.montant)})`,
     `Commande ${ref}, acompte payé.\n\nProjet : ${m.nom}\nAdresse des travaux : ${m.adresse}\nClient : ${nomClient} <${email}>\nPrix total : ${euro(total)} TTC, acompte ${euro(acompte)}, solde ${euro(cmd.solde)}\nOptions : ${m.options}\nRéponses : ${m.reponses}\n\nBackoffice : ${CONF.site}/admin/#${ref}\nStripe : https://dashboard.stripe.com/payments/${s.payment_intent || ''}\n`, email);
   if (email && u) await envoyerMail(email, `Votre commande ${ref} : la suite`,
-    `Bonjour${nomClient ? ' ' + nomClient : ''},\n\nMerci, votre acompte de ${euro(cmd.paiements.acompte.montant)} est bien reçu.\nRéférence : ${ref}\nProjet : ${m.nom}\nAdresse des travaux : ${m.adresse}\nPrix total : ${euro(total)}. Le solde de ${euro(cmd.solde)} se règle quand vous aurez relu et validé vos plans.\n\nPour lancer votre dossier, envoyez-nous vos photos et vos mesures dans votre espace, depuis votre téléphone :\n${C.lienLong(u, '/espace/dossier/?ref=' + ref)}\n\nCe qu'il nous faut :\n- Le projet : ${need[0]}\n- Les mesures : ${need[1]}\n- Les photos : ${need[2]}\n\nLe délai de préparation commence quand toutes les pièces sont reçues. Une question ? Répondez à cet e-mail.${signature}`, CONF.mailA);
+    `Bonjour${nomClient ? ' ' + nomClient : ''},\n\nMerci, votre acompte de ${euro(cmd.paiements.acompte.montant)} est bien reçu.\nRéférence : ${ref}\nProjet : ${m.nom}\nAdresse des travaux : ${m.adresse}\nPrix total : ${euro(total)}. Le solde de ${euro(cmd.solde)} se règle quand vous aurez relu et validé vos plans.\n\nPour lancer votre dossier, envoyez-nous vos photos et vos mesures dans votre espace, depuis votre téléphone :\n${C.lienLong(u, '/espace/dossier/?ref=' + ref)}\n\nCe qu'il nous faut :\n${listePieces(cmd)}\n\nLe délai de préparation commence quand toutes les pièces sont reçues. Une question ? Répondez à cet e-mail.${signature}`, CONF.mailA);
 }
 
 async function soldeRecu(s, m) {
@@ -512,5 +533,5 @@ module.exports = {
   REF_RE, lireCmd, sauver, vueCmd, commande, etatCommande, paiementRecu, enregistrerProjet, supprimerProjet, commanderProjet, espace,
   clientDossier, clientTexte, clientFichier, clientSupprimerFichier, clientMessage, clientTerminer, clientValider, clientVoir, clientTelecharger,
   equipeListe, equipeDossier, equipeVoir, equipePiece, equipeClasser, equipeFichier, equipeMessage, equipeLancer, equipeLivrable,
-  equipeSupprimerLivrable, equipeEnvoyerApercu, equipeZip, analyser, partAcompte
+  equipeSupprimerLivrable, equipeEnvoyerApercu, equipeZip, analyser, partAcompte, piecesInitiales, listePieces
 };

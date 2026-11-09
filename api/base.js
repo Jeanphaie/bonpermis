@@ -14,6 +14,7 @@ const RACINE = path.join(__dirname, '..');
 const PRIX = require(path.join(RACINE, 'src', 'prix.js'));
 const DATA = JSON.parse(fs.readFileSync(path.join(RACINE, 'src', 'data.json'), 'utf8'));
 const PAGES = JSON.parse(fs.readFileSync(path.join(RACINE, 'src', 'pages.json'), 'utf8')).pages;
+let PIECES = null; try { PIECES = JSON.parse(fs.readFileSync(path.join(RACINE, 'src', 'pieces.json'), 'utf8')); } catch { PIECES = null; }
 
 const E = process.env;
 const CONF = {
@@ -320,7 +321,7 @@ function plusJoursOuvres(d, n) {
 }
 
 module.exports = {
-  crypto, fs, path, RACINE, PRIX, DATA, PAGES, P: DATA.P, GROUPS: DATA.GROUPS, NEED: DATA.NEED, E, CONF, SECRET, signer, egal,
+  crypto, fs, path, RACINE, PRIX, DATA, PAGES, P: DATA.P, GROUPS: DATA.GROUPS, NEED: DATA.NEED, PIECES, E, CONF, SECRET, signer, egal,
   journal, noterMail, lireJournalMails, euro, lireCorps, lireJson, repondre, envoyerFichier, TYPES, ip, trop, tropDeDemandes, lireCookies, cookie,
   encoder, stripe, signatureValide, reference, envoyerMail, signature, chemin, lire, ecrire, creer, liste,
   MAIL_RE, texte, texteLong, nomPropre, id, typeFichier, recevoirFichier, zip, envoyerZip, OUTILS, preparerVue, apercuPdf, plusJoursOuvres
