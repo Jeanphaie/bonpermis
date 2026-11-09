@@ -46,6 +46,7 @@
   function cadre(contenu, actif) {
     return `<div class="bo"><nav class="bo-nav" aria-label="Équipe">
       <a href="#" class="${actif === 'liste' ? 'on' : ''}">Dossiers</a>
+      <a href="#promos" class="${actif === 'promos' ? 'on' : ''}">Codes promo</a>
       <a href="#mails" class="${actif === 'mails' ? 'on' : ''}">E-mails envoyés</a>
       <a href="https://dashboard.stripe.com/payments" target="_blank" rel="noopener">Paiements (Stripe)</a>
       <button type="button" data-out>Se déconnecter</button></nav>
@@ -294,9 +295,45 @@
     });
   }
 
+  // ---------- codes promo ----------
+  async function vuePromos(msg) {
+    const r = await api('GET', '/promos');
+    if (r.s === 401) return connexion();
+    const L = (r.j || {}).codes || [];
+    const TY = {pourcent: v => `-${v} %`, montant: v => `-${euro(v)}`, prix: v => `Prix final ${euro(v)}`};
+    el.innerHTML = cadre(`<h1>Codes promo</h1>
+      <p class="note">Le client saisit le code au moment de payer (« J'ai un code promo »). Le prix est recalculé par le serveur. Prix minimum après remise : 1 € (payé 0,50 € d'acompte + 0,50 € de solde). Un code est compté comme utilisé quand l'acompte est payé.</p>
+      <form class="carte" id="fp" style="margin:16px 0" novalidate>
+        <div class="rang" style="align-items:flex-end">
+          <label class="field" style="margin:0;flex:1;min-width:140px"><span>Code</span><input name="code" required placeholder="TEST1" style="text-transform:uppercase"></label>
+          <label class="field" style="margin:0;min-width:170px"><span>Type</span><select name="type"><option value="prix">Prix final fixe</option><option value="pourcent">Remise en %</option><option value="montant">Remise en €</option></select></label>
+          <label class="field" style="margin:0;width:110px"><span>Valeur</span><input name="valeur" type="number" min="0" step="0.01" required value="1"></label>
+          <label class="field" style="margin:0;width:120px"><span>Utilisations max</span><input name="max" type="number" min="0" step="1" placeholder="illimité"></label>
+          <label class="field" style="margin:0;width:160px"><span>Valable jusqu'au</span><input name="expire" type="date"></label>
+        </div>
+        <label class="field"><span>Note (interne)</span><input name="note" placeholder="Test paiement réel par JP"></label>
+        <button class="btn blue-btn petit" type="submit" style="margin-top:12px">Créer ou mettre à jour le code</button>
+      </form>
+      ${msg ? `<p class="${msg.ok ? 'ok-msg' : 'form-err'}">${esc(msg.t)}</p>` : ''}
+      <div class="tbl"><table><thead><tr><th>Code</th><th>Effet</th><th>Utilisé</th><th>Fin</th><th>Note</th><th>État</th></tr></thead><tbody>
+      ${L.length ? L.map(p => `<tr><td><b>${esc(p.code)}</b></td><td>${(TY[p.type] || String)(p.valeur)}</td><td>${p.utilises || 0}${p.max ? ' / ' + p.max : ''}</td><td>${p.expire ? esc(p.expire) : '<small>aucune</small>'}</td><td><small>${esc(p.note || '')}</small></td>
+        <td><button class="lien" type="button" data-bascule="${esc(p.code)}" data-actif="${p.actif ? '0' : '1'}">${p.actif ? 'Actif · désactiver' : 'Inactif · activer'}</button></td></tr>`).join('') : '<tr><td colspan="6">Aucun code pour l\'instant.</td></tr>'}
+      </tbody></table></div>`, 'promos');
+    brancherCadre();
+    const fp = el.querySelector('#fp');
+    fp.addEventListener('submit', async e => {
+      e.preventDefault();
+      const t = await api('POST', '/promos', {code: fp.code.value, type: fp.type.value, valeur: fp.valeur.value, max: fp.max.value, expire: fp.expire.value, note: fp.note.value});
+      vuePromos(t.ok ? {ok: true, t: 'Code enregistré.'} : {ok: false, t: (t.j || {}).erreur || 'Erreur.'});
+    });
+    el.querySelectorAll('[data-bascule]').forEach(b => b.addEventListener('click', async () => {
+      await api('POST', '/promos/actif', {code: b.dataset.bascule, actif: b.dataset.actif === '1'}); vuePromos();
+    }));
+  }
+
   function route() {
     const h = decodeURIComponent(location.hash.slice(1));
-    if (h === 'mails') vueMails(); else if (/^BP-[A-Z0-9]{6}$/.test(h)) vueDossier(h); else vueListe();
+    if (h === 'promos') vuePromos(); else if (h === 'mails') vueMails(); else if (/^BP-[A-Z0-9]{6}$/.test(h)) vueDossier(h); else vueListe();
   }
   window.addEventListener('hashchange', route);
   route();

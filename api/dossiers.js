@@ -6,6 +6,7 @@
 
 const B = require('./base');
 const C = require('./comptes');
+const PROMOS = require('./promos');
 const {fs, path, CONF, P, NEED, PIECES, PAGES, PRIX, lire, ecrire, creer, repondre, lireJson, texte, texteLong, MAIL_RE, journal, euro, envoyerMail, signature, stripe, reference, envoyerFichier, TYPES} = B;
 
 const REF_RE = /^BP-[2-9A-HJ-NP-Z]{6}$/;
@@ -156,7 +157,22 @@ function lieuValide(l) {
 }
 const lireLieu = s => { const m = /^(-?\d+\.\d+),(-?\d+\.\d+)$/.exec(s || ''); return m ? {lon: +m[1], lat: +m[2]} : null; };
 const centimes = n => Math.round(n * 100);
-const partAcompte = total => Math.round(centimes(total) * CONF.acompte) / 100;
+// Acompte : 30 %, mais jamais moins de 0,50 € (minimum Stripe) ni plus que le prix ; le solde garde lui aussi 0,50 € minimum.
+function partAcompte(total) {
+  let a = Math.round(centimes(total) * CONF.acompte) / 100;
+  a = Math.min(total, Math.max(0.5, a));
+  const reste = Math.round((total - a) * 100) / 100;
+  if (reste > 0 && reste < 0.5) a = Math.round((total - 0.5) * 100) / 100;
+  return a;
+}
+// Code promo : ajoute une ligne négative et recalcule le total. Renvoie une erreur si le code n'est pas valable.
+function avecPromo(x, code) {
+  if (!code) return x;
+  const r = PROMOS.appliquer(code, x.total);
+  if (!r) return x;
+  if (r.erreur) return {erreur: r.erreur};
+  return {...x, total: r.total, promo: r.code, lignes: [...x.lignes, {label: r.libelle, prix: -r.remise}]};
+}
 
 async function ouvrirPaiementAcompte(x, email, adresse, uid, pid, lieu) {
   const acompte = partAcompte(x.total);
@@ -165,7 +181,7 @@ async function ouvrirPaiementAcompte(x, email, adresse, uid, pid, lieu) {
     type: 'acompte', projet: x.p, kind: x.v.kind, nom: x.nom.slice(0, 200), regul: String(x.regul), adresse: adresse.slice(0, 480),
     reponses: JSON.stringify(x.a).slice(0, 480), options: Object.keys(x.opt).filter(k => x.opt[k]).join(',') || 'aucune',
     total: String(x.total), acompte: String(acompte), lignes: JSON.stringify(x.lignes.map(l => [l.label.slice(0, 60), l.prix])).slice(0, 490),
-    uid: uid || '', pid: pid || '', lieu: lieu || ''
+    uid: uid || '', pid: pid || '', lieu: lieu || '', promo: x.promo || ''
   };
   const params = {
     mode: 'payment', locale: 'fr', customer_email: email,
@@ -188,13 +204,30 @@ async function ouvrirPaiementAcompte(x, email, adresse, uid, pid, lieu) {
 async function commande(req, res) {
   if (B.tropDeDemandes(req)) return repondre(res, 429, {erreur: 'Trop de demandes. Réessayez dans quelques minutes.'});
   const d = await lireJson(req); if (!d) return repondre(res, 400, {erreur: 'Demande illisible.'});
-  const x = analyser(d); if (x.erreur) return repondre(res, 400, x);
+  let x = analyser(d); if (x.erreur) return repondre(res, 400, x);
+  x = avecPromo(x, d.promo); if (x.erreur) return repondre(res, 400, {erreur: x.erreur, champ: 'promo'});
   const u = C.sessionClient(req);
   const email = u ? u.email : texte(d.email, 254), adresse = texte(d.adresse, 300);
   if (!MAIL_RE.test(email)) return repondre(res, 400, {erreur: 'Adresse e-mail invalide.'});
   if (adresse.length < 5) return repondre(res, 400, {erreur: 'Indiquez l\'adresse des travaux.'});
   try { const s = await ouvrirPaiementAcompte(x, email, adresse, u && u.id, null, lieuValide(d.lieu)); repondre(res, 200, {url: s.url}); }
   catch (e) { journal('erreur Stripe :', e.message); repondre(res, 502, {erreur: 'Le paiement n\'a pas pu s\'ouvrir.'}); }
+}
+
+// POST /api/promo : vérifie un code pour la simulation en cours (prix recalculé ici, jamais celui de la page).
+async function verifierPromo(req, res) {
+  if (B.trop('promo:' + B.ip(req), 20)) return repondre(res, 429, {erreur: 'Trop d\'essais. Réessayez dans 10 minutes.'});
+  const d = await lireJson(req); if (!d) return repondre(res, 400, {erreur: 'Demande illisible.'});
+  let x;
+  if (d.projet) { // simulation enregistrée (espace client)
+    const u = C.sessionClient(req), s = lireProjet(d.projet);
+    if (!u || !s || s.uid !== u.id) return repondre(res, 404, {erreur: 'Projet introuvable.'});
+    x = {total: s.total, lignes: s.lignes};
+  } else { x = analyser(d); if (x.erreur) return repondre(res, 400, x); }
+  const r = PROMOS.appliquer(d.code, x.total);
+  if (!r) return repondre(res, 400, {erreur: 'Indiquez un code.'});
+  if (r.erreur) return repondre(res, 400, r);
+  repondre(res, 200, {code: r.code, remise: r.remise, total: r.total, acompte: partAcompte(r.total), solde: Math.round((r.total - partAcompte(r.total)) * 100) / 100});
 }
 
 // ---------- simulations enregistrées ----------
@@ -228,7 +261,8 @@ async function commanderProjet(req, res, url) {
   const adresse = texte(d.adresse, 300) || s.adresse;
   if (adresse.length < 5) return repondre(res, 400, {erreur: 'Indiquez l\'adresse des travaux.'});
   // Prix figé : celui de la simulation enregistrée, même si la grille a changé depuis.
-  const x = {p: s.p, regul: s.regul, a: s.a, v: {kind: s.kind}, opt: s.opt, lignes: s.lignes, total: s.total, nom: s.nom};
+  let x = {p: s.p, regul: s.regul, a: s.a, v: {kind: s.kind}, opt: s.opt, lignes: s.lignes, total: s.total, nom: s.nom};
+  x = avecPromo(x, d.promo); if (x.erreur) return repondre(res, 400, {erreur: x.erreur, champ: 'promo'});
   try { const ss = await ouvrirPaiementAcompte(x, u.email, adresse, u.id, s.id); repondre(res, 200, {url: ss.url}); }
   catch (e) { journal('erreur Stripe :', e.message); repondre(res, 502, {erreur: 'Le paiement n\'a pas pu s\'ouvrir.'}); }
 }
@@ -266,6 +300,7 @@ async function paiementRecu(s) {
   if (u && !u.commandes.includes(ref)) { u.commandes.unshift(ref); C.ecrireUser(u); }
   const sim = m.pid && lireProjet(m.pid); if (sim) { sim.statut = 'commande'; sim.ref = ref; ecrire(sim, 'projets', sim.id + '.json'); }
   journal('acompte payé', ref, m.projet, cmd.paiements.acompte.montant + ' €');
+  if (m.promo) { cmd.promo = m.promo; sauver(cmd); PROMOS.compterUtilisation(m.promo); }
   await envoyerMail(CONF.mailA, `Nouvelle commande ${ref} : ${m.nom} (acompte ${euro(cmd.paiements.acompte.montant)})`,
     `Commande ${ref}, acompte payé.\n\nProjet : ${m.nom}\nAdresse des travaux : ${m.adresse}\nClient : ${nomClient} <${email}>\nPrix total : ${euro(total)} TTC, acompte ${euro(acompte)}, solde ${euro(cmd.solde)}\nOptions : ${m.options}\nRéponses : ${m.reponses}\n\nBackoffice : ${CONF.site}/admin/#${ref}\nStripe : https://dashboard.stripe.com/payments/${s.payment_intent || ''}\n`, email);
   if (email && u) await envoyerMail(email, `Votre commande ${ref} : la suite`,
@@ -559,6 +594,7 @@ function equipeZip(req, res, url) {
 }
 
 module.exports = {
+  verifierPromo,
   REF_RE, lireCmd, sauver, vueCmd, commande, etatCommande, paiementRecu, enregistrerProjet, supprimerProjet, commanderProjet, espace,
   clientDossier, clientTexte, clientPlan, clientFichier, clientSupprimerFichier, clientMessage, clientTerminer, clientValider, clientVoir, clientTelecharger,
   equipeListe, equipeDossier, equipeVoir, equipePiece, equipeClasser, equipeFichier, equipeMessage, equipeLancer, equipeLivrable,

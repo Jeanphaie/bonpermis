@@ -14,6 +14,7 @@ const http = require('http');
 const B = require('./base');
 const C = require('./comptes');
 const D = require('./dossiers');
+const PR = require('./promos');
 const T = require('./terrain');
 const {crypto, CONF, P, repondre, lireCorps, lireJson, texte, journal, envoyerMail, signatureValide} = B;
 
@@ -77,6 +78,10 @@ const ROUTES = {
   'GET /api/commande': D.etatCommande,
   'POST /api/stripe-webhook': webhook,
   'POST /api/rappel': rappel,
+  'POST /api/promo': D.verifierPromo,
+  'GET /api/admin/promos': PR.liste,
+  'POST /api/admin/promos': PR.enregistrer,
+  'POST /api/admin/promos/actif': PR.basculer,
   // terrain (données IGN) : simulateur et plan du projet
   'GET /api/terrain/adresses': T.adresses,
   'GET /api/terrain': T.terrain,
