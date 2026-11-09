@@ -7,6 +7,7 @@ const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 const tls = require('tls');
+const net = require('net');
 // Node 22 : 250 ms par essai IPv4/IPv6 par défaut, trop court depuis le serveur (pas d'IPv6). Vaut aussi pour fetch (Stripe, HIBP).
 try { require('net').setDefaultAutoSelectFamilyAttemptTimeout(2500); } catch {}
 const zlib = require('zlib');
@@ -122,7 +123,7 @@ function reference(sessionId) {
   return 'BP-' + s;
 }
 
-// ---------- e-mail (SMTP sur TLS, port 465) ----------
+// ---------- e-mail (SMTP : port 587 + STARTTLS, ou 465 en TLS direct) ----------
 function envoyerMail(a, sujet, texte, repondreA) {
   const {hote, port, user, pass} = CONF.smtp;
   if (!hote || !user || !pass) { journal('mail non envoyé (SMTP non configuré) :', sujet); noterMail(a, sujet, false, 'SMTP non configuré', 0); return Promise.resolve(false); }
@@ -135,39 +136,59 @@ function envoyerMail(a, sujet, texte, repondreA) {
     'Content-Type: text/plain; charset=utf-8', 'Content-Transfer-Encoding: base64', '',
     b64(texte).replace(/.{76}/g, '$&\r\n')
   ].filter(l => l !== null).join('\r\n');
+  // Port 465 (TLS direct) bloqué en sortie par Hetzner Cloud : on passe par le port 587 avec STARTTLS (chiffré aussi).
+  // SMTP_TLS_DIRECT=1 pour revenir au 465 si Hetzner le débloque.
+  const direct = E.SMTP_TLS_DIRECT === '1';
+  const portUtilise = direct ? port : (port === 465 ? 587 : port);
   return new Promise((ok) => {
-    // IPv4 forcé : sans IPv6 dans le conteneur, la course IPv4/IPv6 de Node 22 (250 ms par essai) échoue en ETIMEDOUT
-    // dès que le serveur SMTP répond un peu lentement.
-    const s = tls.connect({host: hote, port, servername: hote, family: 4, autoSelectFamily: false}, () => {});
-    let tampon = '', etape = 0;
+    // IPv4 forcé : sans IPv6 dans le conteneur, la course IPv4/IPv6 de Node 22 échoue en ETIMEDOUT.
+    const opts = {host: hote, port: portUtilise, family: 4, autoSelectFamily: false};
+    let s = direct ? tls.connect({...opts, servername: hote}) : net.connect(opts);
+    let tampon = '', etape = 0, fini = false;
+    // [code attendu, ce qu'on envoie alors, nom de l'étape pour le journal]
     const etapes = [
-      [220, () => `EHLO bonpermis.fr`], [250, () => 'AUTH LOGIN'], [334, () => b64(user)], [334, () => b64(pass)],
-      [235, () => `MAIL FROM:<${CONF.mailDe}>`], [250, () => `RCPT TO:<${a}>`], [250, () => 'DATA'],
-      [354, () => message + '\r\n.'], [250, () => 'QUIT']
+      ...(direct ? [] : [[220, () => 'EHLO bonpermis.fr', 'connexion'], [250, () => 'STARTTLS', 'EHLO'], [220, 'TLS', 'STARTTLS']]),
+      [direct ? 220 : 0, () => 'EHLO bonpermis.fr', direct ? 'connexion' : 'passage en TLS'], [250, () => 'AUTH LOGIN', 'EHLO'],
+      [334, () => b64(user), 'AUTH'], [334, () => b64(pass), 'identifiant'],
+      [235, () => `MAIL FROM:<${CONF.mailDe}>`, 'mot de passe'], [250, () => `RCPT TO:<${a}>`, 'expéditeur'], [250, () => 'DATA', 'destinataire'],
+      [354, () => message + '\r\n.', 'DATA'], [250, () => 'QUIT', 'envoi du message']
     ];
-    let fini = false;
+    let minuterie = null;
     const fin = (r, why) => {
-      if (fini) return; fini = true;
+      if (fini) return; fini = true; clearTimeout(minuterie);
       if (!r) journal('échec SMTP :', why);
-      noterMail(a, sujet, r, r ? derniere : why, Date.now() - debut, etape);
+      noterMail(a, sujet, r, r ? derniere : why, Date.now() - debut, (etapes[etape] || [])[2] || 'fin', portUtilise);
       s.destroy(); ok(r);
     };
-    s.setTimeout(20000, () => fin(false, 'délai dépassé'));
-    s.on('error', e => fin(false, [e.code, e.message].filter(Boolean).join(' ') || 'erreur réseau sans détail'));
-    s.on('end', () => fin(false, 'connexion fermée par le serveur' + (derniere ? ' après : ' + derniere : '') + (tampon ? ' | reçu : ' + tampon.slice(0, 200) : '')));
-    s.on('data', d => {
+    minuterie = setTimeout(() => fin(false, `délai dépassé (port ${portUtilise})`), 25000);
+    const surDonnees = d => {
       tampon += d.toString();
       const lignes = tampon.split('\r\n'); tampon = lignes.pop();
       for (const l of lignes) {
         if (/^\d{3}-/.test(l)) continue;
         derniere = l.slice(0, 300);
-        const code = +l.slice(0, 3), [attendu, suite] = etapes[etape] || [221];
-        if (etape >= etapes.length) return fin(true);
+        const code = +l.slice(0, 3), [attendu, action] = etapes[etape] || [221];
         if (code !== attendu) return fin(false, l || `ligne vide reçue (attendu ${attendu})`);
-        etape++; s.write(suite() + '\r\n');
+        etape++;
+        if (action === 'TLS') return passerEnTls();
+        s.write(action() + '\r\n');
         if (etape === etapes.length) return fin(true);
       }
-    });
+    };
+    const brancher = sock => {
+      sock.on('error', e => fin(false, [e.code, e.message].filter(Boolean).join(' ') || 'erreur réseau sans détail'));
+      sock.on('end', () => fin(false, 'connexion fermée par le serveur' + (derniere ? ' après : ' + derniere : '')));
+      sock.on('data', surDonnees);
+    };
+    // Après « 220 Ready to start TLS » : on chiffre la connexion, puis on redit bonjour (EHLO) sur le canal chiffré.
+    function passerEnTls() {
+      s.removeAllListeners('data'); s.removeAllListeners('end'); s.removeAllListeners('error');
+      const brut = s; tampon = '';
+      s = tls.connect({socket: brut, servername: hote}, () => { etape++; s.write('EHLO bonpermis.fr\r\n'); });
+      brancher(s);
+      brut.on('error', () => {});
+    }
+    brancher(s);
   });
 }
 const signature = `\n\nL'équipe Le Bon Permis\n${CONF.site}\n`;
@@ -175,13 +196,13 @@ const signature = `\n\nL'équipe Le Bon Permis\n${CONF.site}\n`;
 // Journal des e-mails : chaque envoi, accepté ou refusé, avec la dernière réponse du serveur SMTP.
 // Visible dans l'espace équipe (/admin/#mails). Les codes à 6 chiffres sont masqués. Fichier limité à ~2 Mo.
 const ETAPES_SMTP = ['connexion', 'EHLO', 'AUTH', 'identifiant', 'mot de passe', 'expéditeur', 'destinataire', 'DATA', 'envoi du message', 'QUIT'];
-function noterMail(a, sujet, ok, reponse, ms, etape) {
+function noterMail(a, sujet, ok, reponse, ms, etape, port) {
   try {
     const f = path.join(CONF.donnees, 'journal', 'mails.jsonl');
     fs.mkdirSync(path.dirname(f), {recursive: true});
     try { if (fs.statSync(f).size > 2e6) fs.renameSync(f, f + '.1'); } catch {}
     const ligne = {date: new Date().toISOString(), a, sujet: String(sujet).replace(/\b\d{6}\b/g, '••••••'), ok: !!ok,
-      etape: ok ? 'remis au serveur' : (ETAPES_SMTP[etape] || '?'), reponse: String(reponse || '').replace(/\b\d{6}\b/g, '••••••'), ms};
+      etape: ok ? 'remis au serveur' : (typeof etape === 'string' ? etape : ETAPES_SMTP[etape] || '?'), reponse: String(reponse || '').replace(/\b\d{6}\b/g, '••••••'), ms, port};
     fs.appendFileSync(f, JSON.stringify(ligne) + '\n');
   } catch (e) { journal('journal des mails impossible :', e.message); }
 }
