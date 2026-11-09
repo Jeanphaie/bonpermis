@@ -149,7 +149,8 @@ function envoyerMail(a, sujet, texte, repondreA) {
       s.destroy(); ok(r);
     };
     s.setTimeout(20000, () => fin(false, 'délai dépassé'));
-    s.on('error', e => fin(false, e.message));
+    s.on('error', e => fin(false, [e.code, e.message].filter(Boolean).join(' ') || 'erreur réseau sans détail'));
+    s.on('end', () => fin(false, 'connexion fermée par le serveur' + (derniere ? ' après : ' + derniere : '') + (tampon ? ' | reçu : ' + tampon.slice(0, 200) : '')));
     s.on('data', d => {
       tampon += d.toString();
       const lignes = tampon.split('\r\n'); tampon = lignes.pop();
@@ -158,7 +159,7 @@ function envoyerMail(a, sujet, texte, repondreA) {
         derniere = l.slice(0, 300);
         const code = +l.slice(0, 3), [attendu, suite] = etapes[etape] || [221];
         if (etape >= etapes.length) return fin(true);
-        if (code !== attendu) return fin(false, l);
+        if (code !== attendu) return fin(false, l || `ligne vide reçue (attendu ${attendu})`);
         etape++; s.write(suite() + '\r\n');
         if (etape === etapes.length) return fin(true);
       }
