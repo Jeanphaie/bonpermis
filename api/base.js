@@ -7,6 +7,8 @@ const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 const tls = require('tls');
+// Node 22 : 250 ms par essai IPv4/IPv6 par défaut, trop court depuis le serveur (pas d'IPv6). Vaut aussi pour fetch (Stripe, HIBP).
+try { require('net').setDefaultAutoSelectFamilyAttemptTimeout(2500); } catch {}
 const zlib = require('zlib');
 const {execFile, execFileSync} = require('child_process');
 
@@ -134,7 +136,9 @@ function envoyerMail(a, sujet, texte, repondreA) {
     b64(texte).replace(/.{76}/g, '$&\r\n')
   ].filter(l => l !== null).join('\r\n');
   return new Promise((ok) => {
-    const s = tls.connect({host: hote, port, servername: hote}, () => {});
+    // IPv4 forcé : sans IPv6 dans le conteneur, la course IPv4/IPv6 de Node 22 (250 ms par essai) échoue en ETIMEDOUT
+    // dès que le serveur SMTP répond un peu lentement.
+    const s = tls.connect({host: hote, port, servername: hote, family: 4, autoSelectFamily: false}, () => {});
     let tampon = '', etape = 0;
     const etapes = [
       [220, () => `EHLO bonpermis.fr`], [250, () => 'AUTH LOGIN'], [334, () => b64(user)], [334, () => b64(pass)],
