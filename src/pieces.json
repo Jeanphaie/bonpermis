@@ -1,5 +1,5 @@
 {
- "_doc": "Pièces demandées au client, par projet. Types : texte (réponse écrite), photo, fichier (photo ou PDF). Lu par api/dossiers.js (piecesInitiales). Source : doc « documents à fournir par le client » du 09/11/2026.",
+ "_doc": "Pièces demandées au client, par projet. Types : texte (réponse écrite), photo, fichier (photo ou PDF). Lu par api/dossiers.js (piecesInitiales). Source : doc « documents à fournir par le client » du 09/11/2026. « modes » : geste demandé sur le plan du terrain (src/plan.js), par projet ; absent = pas de plan.",
  "commun": [
   {
    "id": "rue",
@@ -769,5 +769,30 @@
     "aide": ""
    }
   ]
+ },
+ "modes": {
+  "abri": "rect",
+  "annexe": "rect",
+  "carport": "rect",
+  "pergola": "accole",
+  "piscine": "rect",
+  "terrasse": "polygone",
+  "cloture": "limites",
+  "portail": "point",
+  "extension": "accole",
+  "veranda": "accole",
+  "combles": "batiment",
+  "surelevation": "batiment",
+  "garage": "batiment",
+  "menuiseries": "facades",
+  "velux": "toit",
+  "lucarne": "toit",
+  "toiture": "batiment",
+  "facade": "facades",
+  "solaire": "toit",
+  "maison": "rects",
+  "usage": "batiment",
+  "demolition": "batiment",
+  "cu": "parcelle"
  }
 }

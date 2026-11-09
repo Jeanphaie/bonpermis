@@ -80,6 +80,7 @@ const ROUTES = {
   // terrain (données IGN) : simulateur et plan du projet
   'GET /api/terrain/adresses': T.adresses,
   'GET /api/terrain': T.terrain,
+  'GET /api/terrain/tuile': T.tuile,
   // comptes
   'POST /api/compte/inscription': C.inscription,
   'POST /api/compte/connexion': C.connexion,
@@ -98,6 +99,7 @@ const ROUTES = {
   'POST /api/projets/commander': D.commanderProjet,
   'GET /api/espace/dossier': D.clientDossier,
   'POST /api/espace/dossier/texte': D.clientTexte,
+  'POST /api/espace/dossier/plan': D.clientPlan,
   'POST /api/espace/dossier/fichier': D.clientFichier,
   'DELETE /api/espace/dossier/fichier': D.clientSupprimerFichier,
   'POST /api/espace/dossier/message': D.clientMessage,

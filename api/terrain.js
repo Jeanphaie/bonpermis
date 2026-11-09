@@ -174,4 +174,25 @@ async function terrain(req, res, url) {
   repondre(res, 200, v);
 }
 
-module.exports = {adresses, terrain, analyserTerrain, reparer, _geo: {dedans, aire, versMetres, centre}};
+// ---------- fonds de plan (tuiles IGN relayées par bonpermis.fr : la page n'appelle que son propre site) ----------
+const COUCHES = {
+  ortho: {layer: 'ORTHOIMAGERY.ORTHOPHOTOS', format: 'image/jpeg', ext: 'jpg', max: 20},
+  plan: {layer: 'GEOGRAPHICALGRIDSYSTEMS.PLANIGNV2', format: 'image/png', ext: 'png', max: 19}
+};
+async function tuile(req, res, url) {
+  const c = COUCHES[url.searchParams.get('c')], z = +url.searchParams.get('z'), x = +url.searchParams.get('x'), y = +url.searchParams.get('y');
+  if (!c || !Number.isInteger(z) || !Number.isInteger(x) || !Number.isInteger(y) || z < 12 || z > c.max || x < 0 || y < 0 || x >= 2 ** z || y >= 2 ** z) return repondre(res, 400, {erreur: 'Tuile invalide.'});
+  const f = B.chemin('tuiles', url.searchParams.get('c'), String(z), String(x), y + '.' + c.ext);
+  const envoyer = b => { res.writeHead(200, {'Content-Type': c.format, 'Content-Length': b.length, 'Cache-Control': 'public, max-age=2592000', 'X-Content-Type-Options': 'nosniff'}); res.end(b); };
+  try { const st = fs.statSync(f); if (Date.now() - st.mtimeMs < 90 * 86400000) return envoyer(fs.readFileSync(f)); } catch {}
+  if (B.trop('tuile:' + B.ip(req), 3000)) return repondre(res, 429, {erreur: 'Trop de demandes.'});
+  try {
+    const r = await fetch(`${GEOPF}/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=${c.layer}&STYLE=normal&TILEMATRIXSET=PM&TILEMATRIX=${z}&TILEROW=${y}&TILECOL=${x}&FORMAT=${encodeURIComponent(c.format)}`, {signal: AbortSignal.timeout(DELAI), headers: {'User-Agent': 'bonpermis.fr (service terrain)'}});
+    if (!r.ok || !String(r.headers.get('content-type') || '').startsWith('image/')) return repondre(res, 404, {erreur: 'Tuile indisponible.'});
+    const b = Buffer.from(await r.arrayBuffer());
+    try { fs.mkdirSync(path.dirname(f), {recursive: true}); fs.writeFileSync(f, b); } catch {}
+    envoyer(b);
+  } catch (e) { journal('terrain tuile', e.message); repondre(res, 502, {erreur: 'Fond de plan indisponible.'}); }
+}
+
+module.exports = {tuile, adresses, terrain, analyserTerrain, reparer, _geo: {dedans, aire, versMetres, centre}};

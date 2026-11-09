@@ -53,7 +53,9 @@
       const fs = d.fichiers.filter(f => f.piece === p.id);
       const etat = p.etat, peutAjouter = modif && etat !== 'valide';
       let corps = '';
-      if (p.type === 'texte') corps = modif && etat !== 'valide'
+      if (p.type === 'plan') corps = `${p.plan ? `<div class="plan-mini" data-plan-ap="${p.id}"></div>${p.texte ? `<p style="white-space:pre-wrap;margin:8px 0 0;font-size:14px">${esc(p.texte)}</p>` : ''}` : ''}
+        ${modif && etat !== 'valide' ? `<div class="rang" style="margin-top:8px;gap:14px"><button class="btn petit${p.plan ? ' ghost' : ' blue-btn'}" type="button" data-plan="${p.id}">${p.plan ? 'Modifier sur le plan' : 'Placer mon projet sur le plan'}</button><button class="lien" type="button" data-autrement>Je préfère décrire autrement</button></div>` : ''}`;
+      else if (p.type === 'texte') corps = modif && etat !== 'valide'
         ? `<label class="field" style="margin-top:8px"><span class="sr-only">${esc(p.nom)}</span><textarea data-texte="${p.id}" rows="3" maxlength="5000" aria-label="${esc(p.nom)}">${esc(p.texte)}</textarea></label><p class="save" data-save="${p.id}" aria-live="polite"></p>`
         : `<p style="white-space:pre-wrap;margin:8px 0 0">${esc(p.texte) || '<span class="note">(vide)</span>'}</p>`;
       else corps = `${fs.length ? `<div class="vignettes">${fs.map(vig).join('')}</div>` : ''}
@@ -115,7 +117,23 @@
     brancher();
   }
 
+  // Plan du projet (src/plan.js) : ouverture de l'éditeur, aperçu, repli vers la description écrite.
+  function decrireAutrement() {
+    const t = el.querySelector('[data-texte="projet"]') || el.querySelector('[data-texte]');
+    if (t) { t.scrollIntoView({behavior: 'smooth', block: 'center'}); setTimeout(() => t.focus(), 400); }
+  }
+  function brancherPlan() {
+    if (!window.BPPlan) return;
+    el.querySelectorAll('[data-plan-ap]').forEach(c => { const p = d.pieces.find(x => x.id === c.dataset.planAp); if (p && p.plan) window.BPPlan.apercu(c, p.plan); });
+    el.querySelectorAll('[data-autrement]').forEach(b => b.addEventListener('click', decrireAutrement));
+    el.querySelectorAll('[data-plan]').forEach(b => b.addEventListener('click', () => {
+      const p = d.pieces.find(x => x.id === b.dataset.plan);
+      window.BPPlan.ouvrir({mode: p.mode, projet: d.projet, lieu: d.lieu, adresse: d.adresse, plan: p.plan, titre: d.nom, autrement: decrireAutrement,
+        enregistrer: async (plan, resume) => { const r = await api('POST', '/espace/dossier/plan?ref=' + R, {plan, resume}); if (r.ok) { d = r.j; afficher(); } return r.ok; }});
+    }));
+  }
   function brancher() {
+    brancherPlan();
     // textes : enregistrement automatique
     el.querySelectorAll('[data-texte]').forEach(t => { let m; t.addEventListener('input', () => {
       const s = el.querySelector(`[data-save="${t.dataset.texte}"]`); s.textContent = '…'; clearTimeout(m);

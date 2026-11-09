@@ -240,3 +240,44 @@ body[data-page=admin] header.top nav{display:none}
 @media (prefers-reduced-motion:reduce){.a-btn.charge::after{animation:none}}
 .a-info-bas{margin:20px 0 0;font-size:13px}
 .a-info-bas .a-lien{font-size:13px}
+
+/* ---------- Plan du projet (plan.js) ---------- */
+.plan-fen{position:fixed;inset:0;z-index:100;background:rgba(15,23,51,.55);display:flex;align-items:center;justify-content:center;padding:12px}
+.plan-boite{background:#fff;border-radius:16px;width:min(980px,100%);max-height:100%;display:flex;flex-direction:column;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.plan-tete{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-bottom:1px solid var(--line)}
+.plan-x{font-size:26px;line-height:1;border:0;background:none;cursor:pointer;color:var(--ink);padding:0 4px}
+.plan-corps{padding:18px}
+.plan-consigne{margin:0;padding:10px 18px;font-size:14px;background:var(--warm)}
+.plan-carte{position:relative;background:#E8ECF4}
+.plan-carte svg{display:block;width:100%;height:min(58vh,560px);touch-action:none;cursor:crosshair}
+.plan-zoom{position:absolute;right:10px;top:10px;display:flex;flex-direction:column;gap:6px}
+.plan-zoom button{min-width:40px;height:40px;border-radius:10px;border:1px solid var(--line);background:#fff;font:inherit;font-size:15px;cursor:pointer;padding:0 8px}
+.plan-ctrl{padding:10px 18px 0}
+.plan-champs{display:flex;flex-wrap:wrap;gap:12px}
+.plan-champs label{display:flex;flex-direction:column;font-size:13px;gap:4px;flex:1;min-width:140px}
+.plan-champs input[type=number]{font:inherit;font-size:16px;padding:8px 10px;border:1px solid var(--line-2,#CBD3E3);border-radius:8px}
+.plan-btns{display:flex;flex-wrap:wrap;gap:14px;margin-top:8px;align-items:center}
+.plan-mes{padding:6px 18px;font-size:14px}
+.plan-mes p{margin:6px 0}
+.plan-alerte{padding:8px 10px;border-radius:8px;background:#FFF4E0;color:#7A4B00}
+.plan-pied{display:flex;flex-wrap:wrap;gap:16px;align-items:center;padding:12px 18px 18px}
+.plan-mini svg,.plan-apercu{display:block;width:100%;height:240px;border-radius:10px;background:#E8ECF4;margin-top:8px}
+.pl-parc{fill:rgba(255,255,255,.08);stroke:#FFD43B;stroke-dasharray:none}
+.pl-bat{fill:rgba(255,255,255,.35);stroke:#fff}
+.pl-bat.voisin{fill:rgba(255,255,255,.12);stroke:rgba(255,255,255,.6)}
+.pl-bat.choisi{fill:rgba(1,39,177,.45);stroke:#0127B1}
+.pl-bat.dessine{stroke-dasharray:1 .6}
+.pl-cote{stroke:rgba(255,212,59,.35);cursor:pointer}
+.pl-cote.choisi{stroke:#0127B1}
+.pl-fac{stroke:rgba(255,255,255,.55);cursor:pointer;stroke-linecap:round}
+.pl-fac.choisi{stroke:#0127B1}
+.pl-forme{fill:rgba(1,39,177,.35);stroke:#0127B1;cursor:move}
+.pl-forme.choisi{fill:rgba(1,39,177,.5);stroke:#fff}
+.pl-pt{fill:#0127B1;stroke:#fff}
+.pl-ech{stroke:#fff}
+.pl-txt{fill:#fff;paint-order:stroke;stroke:rgba(0,0,0,.6);stroke-width:.3px;font-family:inherit}
+.sugs{display:flex;flex-direction:column;gap:2px;margin-top:4px}
+.sugs:empty{display:none}
+.sug{font:inherit;font-size:15px;text-align:left;padding:10px 14px;border:1px solid var(--line);border-radius:8px;background:#fff;cursor:pointer}
+.sug:hover,.sug:focus{border-color:var(--accent);outline:none}
+.plan-pied{position:sticky;bottom:0;background:#fff;border-top:1px solid var(--line)}

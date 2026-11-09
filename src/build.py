@@ -291,7 +291,7 @@ def page_app(chemin, titre, desc, ident, script, large=False):
     h = head(f'{titre} | Le Bon Permis', desc, chemin, base, [])
     h = h.replace('<meta charset="utf-8">', '<meta charset="utf-8">\n<meta name="robots" content="noindex">\n<meta name="referrer" content="same-origin">')
     h = h.replace('</head>', f'<link rel="stylesheet" href="{base}assets/espace.css">\n</head>')
-    return h + f'<body data-page="{ident}">\n\n' + entete(base, False) + '\n' + corps + '\n' + (pied(base) if not large else '') + f'<script src="{base}assets/{script}"></script>\n</body>\n</html>\n'
+    return h + f'<body data-page="{ident}">\n\n' + entete(base, False) + '\n' + corps + '\n' + (pied(base) if not large else '') + (f'<script src="{base}assets/plan.js"></script>\n' if script in ('espace-dossier.js', 'admin.js') else '') + f'<script src="{base}assets/{script}"></script>\n</body>\n</html>\n'
 
 
 APPS = [
@@ -312,7 +312,7 @@ def main():
     (SITE / 'assets').mkdir(exist_ok=True)
     data = {'P': P, 'GROUPS': GROUPS, 'SVCS': SVCS, 'NEED': NEED, 'URL': URL}
     (SITE / 'assets' / 'data.js').write_text('window.OP = ' + json.dumps(data, ensure_ascii=False) + ';\n', encoding='utf-8')
-    for f in ('app.js', 'prix.js', 'merci.js', 'dossier.js', 'espace.js', 'espace-dossier.js', 'admin.js', 'espace.css'):
+    for f in ('app.js', 'prix.js', 'merci.js', 'dossier.js', 'espace.js', 'espace-dossier.js', 'admin.js', 'espace.css', 'plan.js'):
         shutil.copy(SRC / f, SITE / 'assets' / f)
     shutil.copy(SRC / 'style.css', SITE / 'assets' / 'style.css')
     shutil.copytree(SRC / 'fonts', SITE / 'assets' / 'fonts', dirs_exist_ok=True)

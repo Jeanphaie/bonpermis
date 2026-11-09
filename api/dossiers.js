@@ -28,6 +28,8 @@ function piecesInitiales(kind, p, ctx) {
     let a = {}; try { a = JSON.parse(c.reponses || '{}'); } catch {}
     const copie = l => (l || []).map(x => Object.assign({}, x));
     const out = [{id: 'projet', nom: kind === 'svc' ? 'Votre demande' : 'Le projet en quelques mots', type: 'texte', aide: nd[0]}];
+    if (PIECES.modes && PIECES.modes[p]) out.push({id: 'plan', nom: 'Emplacement sur le plan', type: 'plan', mode: PIECES.modes[p], facultatif: true,
+      aide: 'Placez votre projet sur le plan de votre terrain. Si vous n\'y arrivez pas, décrivez-le simplement dans « Le projet en quelques mots ».'});
     out.push(...copie(liste));
     if (c.regul === true || c.regul === 'true') out.push(...copie(PIECES.regul));
     if (!PIECES.sansCommun.includes(p)) out.push(...copie(PIECES.commun));
@@ -59,7 +61,7 @@ function listePieces(cmd) {
 }
 function etatPiece(piece, cmd) {
   if (piece.statut === 'valide' || piece.statut === 'a_refaire') return piece.statut;
-  const plein = piece.type === 'texte' ? !!(piece.texte || '').trim() : cmd.fichiers.some(f => f.piece === piece.id);
+  const plein = piece.type === 'texte' ? !!(piece.texte || '').trim() : piece.type === 'plan' ? !!piece.plan : cmd.fichiers.some(f => f.piece === piece.id);
   return plein ? 'a_verifier' : 'manquant';
 }
 const recues = cmd => { const ob = cmd.pieces.filter(p => !p.facultatif); return {n: ob.filter(p => etatPiece(p, cmd) !== 'manquant').length, sur: ob.length}; };
@@ -109,7 +111,7 @@ function vueCmd(cmd, pourEquipe) {
     ref: cmd.ref, nom: cmd.nom, adresse: cmd.adresse, statut: cmd.statut, statutTexte: STATUTS[cmd.statut], date: cmd.date,
     echeance: cmd.echeance || null, delai: delaiJours(cmd), options: cmd.options, kind: cmd.kind, lieu: cmd.lieu || null, projet: cmd.projet,
     total: cmd.total, acompte: cmd.acompte, solde: cmd.solde, paiements: {acompte: cmd.paiements.acompte ? {montant: cmd.paiements.acompte.montant, date: cmd.paiements.acompte.date} : null, solde: cmd.paiements.solde ? {montant: cmd.paiements.solde.montant, date: cmd.paiements.solde.date} : null},
-    pieces: cmd.pieces.map(p => ({id: p.id, nom: p.nom, aide: p.aide, type: p.type, facultatif: !!p.facultatif, texte: p.texte || '', etat: etatPiece(p, cmd), motif: p.motif || ''})),
+    pieces: cmd.pieces.map(p => ({id: p.id, nom: p.nom, aide: p.aide, type: p.type, facultatif: !!p.facultatif, texte: p.texte || '', etat: etatPiece(p, cmd), motif: p.motif || '', ...(p.type === 'plan' ? {mode: p.mode, plan: p.plan || null} : {})})),
     fichiers: cmd.fichiers.map(fichierPublic), messages: cmd.messages, recues: r,
     livrables: cmd.livrables.map(l => ({id: l.id, code: l.code, nom: l.nom, pages: l.pages, taille: l.taille, date: l.date})),
     telechargeable: !!cmd.paiements.solde, demandes: NEED[cmd.projet] || NEED.extension
@@ -324,6 +326,27 @@ async function clientTexte(req, res, url) {
   p.texte = texteLong(d.texte); if (p.statut === 'a_refaire') { p.statut = null; p.motif = ''; }
   sauver(cmd); repondre(res, 200, {ok: true});
 }
+// Plan du projet (src/plan.js) : formes en longitude / latitude, mesures et résumé lisible.
+const MODES_PLAN = ['rect', 'rects', 'accole', 'polygone', 'limites', 'point', 'facades', 'toit', 'batiment', 'parcelle'];
+async function clientPlan(req, res, url) {
+  const cmd = cmdClient(req, res, url); if (!cmd) return;
+  const d = await lireJson(req, 60000); if (!d || !d.plan || typeof d.plan !== 'object') return repondre(res, 400, {erreur: 'Plan illisible.'});
+  const p = cmd.pieces.find(x => x.type === 'plan'); if (!p) return repondre(res, 400, {erreur: 'Pas de plan pour ce projet.'});
+  if (!modifiable(cmd) || p.statut === 'valide') return repondre(res, 409, {erreur: 'Plan déjà validé : écrivez-nous pour le changer.'});
+  const pl = d.plan, num = v => (typeof v === 'number' && Number.isFinite(v) ? Math.round(v * 1e7) / 1e7 : null);
+  const propre = v => Array.isArray(v) ? v.slice(0, 400).map(propre) : v && typeof v === 'object' ? Object.fromEntries(Object.entries(v).slice(0, 40).filter(([k]) => /^[a-zA-Z]{1,20}$/.test(k)).map(([k, x]) => [k, propre(x)])) : typeof v === 'number' ? num(v) : typeof v === 'string' ? v.slice(0, 300) : typeof v === 'boolean' ? v : null;
+  const plan = {v: 1, mode: MODES_PLAN.includes(pl.mode) ? pl.mode : p.mode, date: new Date().toISOString()};
+  for (const k of ['formes', 'cotes', 'facades', 'bats', 'existants']) plan[k] = Array.isArray(pl[k]) ? propre(pl[k]) : [];
+  plan.mesures = propre(pl.mesures && typeof pl.mesures === 'object' ? pl.mesures : {});
+  plan.couche = pl.couche === 'plan' ? 'plan' : 'ortho'; plan.marge = num(+pl.marge) || 12;
+  if (pl.lieu && Number.isFinite(+pl.lieu.lon) && Number.isFinite(+pl.lieu.lat)) plan.lieu = {lon: num(+pl.lieu.lon), lat: num(+pl.lieu.lat)};
+  if (JSON.stringify(plan).length > 50000) return repondre(res, 400, {erreur: 'Plan trop détaillé.'});
+  p.plan = plan; p.texte = texteLong(d.resume || '').slice(0, 2000);
+  if (!cmd.lieu && plan.lieu) cmd.lieu = plan.lieu;
+  if (p.statut === 'a_refaire') { p.statut = null; p.motif = ''; }
+  histo(cmd, 'Plan du projet enregistré par le client'); sauver(cmd);
+  repondre(res, 200, vueCmd(cmd));
+}
 async function televerser(req, res, cmd, piece, par) {
   if (!modifiable(cmd) && par === 'client') { req.resume(); return repondre(res, 409, {erreur: 'Dossier livré : pour ajouter un document, écrivez-nous.'}); }
   const p = cmd.pieces.find(x => x.id === piece && x.type !== 'texte') || cmd.pieces.find(x => x.id === 'autre');
@@ -528,7 +551,7 @@ async function equipeEnvoyerApercu(req, res, url) {
 }
 function equipeZip(req, res, url) {
   const cmd = cmdEquipe(req, res, url); if (!cmd) return;
-  const d = dDir(cmd.ref), txt = cmd.pieces.filter(p => p.type === 'texte').map(p => `${p.nom} :\n${p.texte || '(rien)'}\n`).join('\n');
+  const d = dDir(cmd.ref), txt = cmd.pieces.filter(p => p.type === 'texte' || p.type === 'plan').map(p => `${p.nom} :\n${p.texte || '(rien)'}\n`).join('\n');
   const fiche = Buffer.from(`Dossier ${cmd.ref}\nProjet : ${cmd.nom}\nAdresse des travaux : ${cmd.adresse}\nClient : ${cmd.nom_client || ''} <${cmd.email}>\nPrix : ${euro(cmd.total)} (acompte ${euro(cmd.acompte)})\nOptions : ${cmd.options}\nRéponses : ${cmd.reponses}\n\n${txt}\nMessages :\n${cmd.messages.map(m => `[${m.date.slice(0, 16)}] ${m.de} : ${m.texte}`).join('\n')}\n`, 'utf8');
   const ent = [{nom: cmd.ref + '-fiche.txt', data: fiche}];
   for (const f of cmd.fichiers) { try { ent.push({nom: `${f.piece}/${f.id.slice(1, 5)}-${f.nom}`, data: fs.readFileSync(path.join(d, 'fichiers', f.id + '.' + f.type))}); } catch {} }
@@ -537,7 +560,7 @@ function equipeZip(req, res, url) {
 
 module.exports = {
   REF_RE, lireCmd, sauver, vueCmd, commande, etatCommande, paiementRecu, enregistrerProjet, supprimerProjet, commanderProjet, espace,
-  clientDossier, clientTexte, clientFichier, clientSupprimerFichier, clientMessage, clientTerminer, clientValider, clientVoir, clientTelecharger,
+  clientDossier, clientTexte, clientPlan, clientFichier, clientSupprimerFichier, clientMessage, clientTerminer, clientValider, clientVoir, clientTelecharger,
   equipeListe, equipeDossier, equipeVoir, equipePiece, equipeClasser, equipeFichier, equipeMessage, equipeLancer, equipeLivrable,
   equipeSupprimerLivrable, equipeEnvoyerApercu, equipeZip, analyser, partAcompte, piecesInitiales, listePieces
 };

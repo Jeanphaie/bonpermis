@@ -171,6 +171,7 @@
           <section class="carte"><h3>Terrain</h3><p style="margin:0 0 8px;font-size:14px">${esc(d.adresse)}</p>
             <p class="rang" style="font-size:13px;gap:12px"><a href="https://www.geoportail.gouv.fr/carte?q=${encodeURIComponent(d.adresse)}" target="_blank" rel="noopener">Géoportail</a><a href="https://cadastre.data.gouv.fr/" target="_blank" rel="noopener">Cadastre</a><a href="https://www.geoportail-urbanisme.gouv.fr/map/" target="_blank" rel="noopener">PLU</a></p><div data-tq>${ficheTerrain()}</div></section>
           <section class="carte"><h3>Réponses au simulateur</h3>${(d.reponsesLisibles || []).map(([k, v]) => `<p style="margin:0 0 8px;font-size:13px"><span class="note" style="display:block;margin:0">${esc(k)}</span><b style="font-weight:500">${esc(v)}</b></p>`).join('') || '<p class="note">-</p>'}${d.regul === 'true' ? '<p class="note">Travaux déjà réalisés (régularisation)</p>' : ''}</section>
+          ${d.pieces.filter(p => p.type === 'plan').map(p => `<section class="carte"><h3>${esc(p.nom)} <span class="pill st-${p.etat}" style="text-transform:none;letter-spacing:0">${EP[p.etat]}</span></h3>${p.plan ? `<div class="plan-mini" data-plan-ap="${p.id}"></div><p style="margin:8px 0 0;font-size:13px;white-space:pre-wrap">${esc(p.texte)}</p><div class="rang" style="margin-top:8px"><button class="lien" type="button" data-tv="${p.id}">Valider</button><button class="lien" type="button" data-tr="${p.id}" style="color:#8A1C1C">À refaire</button></div>` : '<p class="note" style="margin:0">Pas encore placé par le client.</p>'}</section>`).join('')}
           ${textes.map(p => `<section class="carte"><h3>${esc(p.nom)} <span class="pill st-${p.etat}" style="text-transform:none;letter-spacing:0">${EP[p.etat]}</span></h3><p style="margin:0;font-size:14px;white-space:pre-wrap">${esc(p.texte) || '<span class="note">(vide)</span>'}</p>
             ${p.texte ? `<div class="rang" style="margin-top:8px"><button class="lien" type="button" data-tv="${p.id}">Valider</button><button class="lien" type="button" data-tr="${p.id}" style="color:#8A1C1C">À refaire</button></div>` : ''}</section>`).join('')}
         </aside>
@@ -198,6 +199,7 @@
           <section class="carte"><h3>Historique</h3><ol class="histo">${d.historique.map(h => `<li><b>${court(h.date)}</b> · ${esc(h.texte)}</li>`).join('')}</ol></section>
         </aside></div>`, 'dossier');
     brancherCadre(); brancher(); chargerTerrain();
+    if (window.BPPlan) el.querySelectorAll('[data-plan-ap]').forEach(c => { const p = d.pieces.find(x => x.id === c.dataset.planAp); if (p && p.plan) window.BPPlan.apercu(c, p.plan); });
   }
 
   function brancher() {
