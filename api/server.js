@@ -3,7 +3,7 @@
    Routes principales :
    - simulateur      POST /api/commande (acompte 30 %), POST /api/rappel, GET /api/commande?ref=cs_... (page « Commande reçue »)
    - Stripe          POST /api/stripe-webhook (acompte ou solde, signature vérifiée)
-   - comptes         POST /api/compte/{inscription,connexion,lien,mot-de-passe,premier-mot-de-passe,deconnexion}, GET /api/compte/lien
+   - comptes         POST /api/compte/{inscription,code,verifier,connexion,lien,mot-de-passe,premier-mot-de-passe,deconnexion}, GET /api/compte/lien
    - espace client   GET /api/espace, POST/DELETE /api/projets, POST /api/projets/commander, /api/espace/dossier/...
    - équipe          POST /api/admin/{code,connexion,deconnexion}, /api/admin/dossiers, /api/admin/dossier/...
    - GET /api/sante  état du service (sans aucun secret)
@@ -55,7 +55,10 @@ function ancienLien(req, res, url) {
 }
 
 // Les demandes qui modifient quelque chose doivent venir du site lui-même.
+// Origin quand le navigateur l'envoie, et Sec-Fetch-Site (tous les navigateurs récents) : refuse les envois depuis un autre site.
 function origineOk(req) {
+  const sfs = req.headers['sec-fetch-site'];
+  if (sfs && sfs !== 'same-origin' && sfs !== 'none') return false;
   const o = req.headers.origin; if (!o) return true;
   return o === CONF.site;
 }
@@ -68,6 +71,8 @@ const ROUTES = {
   // comptes
   'POST /api/compte/inscription': C.inscription,
   'POST /api/compte/connexion': C.connexion,
+  'POST /api/compte/code': C.demanderCode,
+  'POST /api/compte/verifier': C.verifierCodeRoute,
   'POST /api/compte/lien': C.demanderLien,
   'GET /api/compte/lien': C.suivreLien,
   'POST /api/compte/mot-de-passe': C.changerMdp,

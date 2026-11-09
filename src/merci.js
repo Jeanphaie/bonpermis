@@ -23,7 +23,7 @@
     ${mdp ? `<form class="carte" id="fm" style="margin-top:22px" novalidate>
       <b style="font-family:var(--f-display);font-size:20px">Votre espace est prêt</b>
       <p class="note">Choisissez un mot de passe pour suivre votre dossier depuis n'importe quel appareil. Votre navigateur peut en proposer un et le retenir.</p>
-      <label class="field"><span>Mot de passe</span><input name="mdp" type="password" autocomplete="new-password" minlength="10" required><small>10 caractères minimum.</small></label>
+      <label class="field"><span>Mot de passe</span><input name="mdp" type="password" autocomplete="new-password" minlength="12" maxlength="256" required><small>12 caractères minimum. Le plus simple : 3 ou 4 mots sans rapport.</small></label>
       <p class="form-err" role="alert" hidden></p>
       <button class="btn blue-btn" type="submit" style="width:100%;margin-top:12px">Enregistrer et ouvrir mon dossier</button>
       <p class="note" style="text-align:center"><a href="${esc(d.espace)}">Plus tard</a> : le lien est aussi dans l'e-mail.</p></form>` : ''}
@@ -34,7 +34,7 @@
   const fm = document.getElementById('fm');
   if (fm) fm.addEventListener('submit', async e => {
     e.preventDefault(); const err = fm.querySelector('.form-err');
-    if (fm.mdp.value.length < 10) { err.textContent = 'Au moins 10 caractères.'; err.hidden = false; fm.mdp.focus(); return; }
+    if ([...fm.mdp.value].length < 12) { err.textContent = 'Au moins 12 caractères.'; err.hidden = false; fm.mdp.focus(); return; }
     const r = await fetch('/api/compte/premier-mot-de-passe', {method: 'POST', headers: {'Content-Type': 'application/json'}, credentials: 'same-origin', body: JSON.stringify({session: sid, mdp: fm.mdp.value})});
     const j = await r.json().catch(() => ({}));
     if (!r.ok) { err.textContent = j.erreur || 'Erreur.'; err.hidden = false; return; }
