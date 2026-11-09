@@ -427,14 +427,7 @@ section.sell-band{padding:0}
 @media (max-width:720px){.plu-liste{grid-template-columns:1fr}}
 
 /* Téléphone */
-.tel-lien{display:flex;align-items:center;gap:7px;text-decoration:none;color:var(--ink);font-weight:600;font-size:15px;white-space:nowrap;margin-right:6px}
-.tel-lien svg{color:var(--accent)}
-@media (max-width:1040px){.tel-lien span{display:none}.tel-lien{margin-right:0}}
-@media (max-width:860px){.tel-lien{width:40px;height:40px;justify-content:center;border:1px solid var(--line);border-radius:10px}}
 .mnav nav a b{color:var(--accent)}
-.hero-tel{margin:18px 0 0;font-size:15px;color:var(--muted)}
-.hero-tel a{color:var(--ink);text-decoration:none}
-.hero-tel a:hover{text-decoration:underline}
 .tel-grand{display:inline-flex;align-items:center;gap:14px;margin-top:22px;padding:14px 20px;border:1px solid var(--line);border-radius:14px;text-decoration:none;color:var(--ink);background:#fff}
 .tel-grand svg{color:var(--accent);flex:none}
 .tel-grand b{display:block;font-size:22px;letter-spacing:.02em}
@@ -448,9 +441,6 @@ section.sell-band{padding:0}
 
 .btn-tel{display:inline-flex;align-items:center;gap:8px;font-weight:600;letter-spacing:.02em}
 .btn-tel svg{color:var(--accent)}
-.hero-tel{margin-top:12px;font-size:14px}
-.facts .fact-tel{text-decoration:none;background:var(--accent-soft);border-color:transparent}
-.facts .fact-tel b{color:var(--accent)}
 /* Barre fixe en bas sur mobile : appeler ou voir son prix */
 .barre-mobile{display:none}
 @media (max-width:860px){
@@ -461,3 +451,32 @@ section.sell-band{padding:0}
   .barre-mobile .bm-prix{background:var(--accent);color:#fff;border:0}
   body:has(.barre-mobile){padding-bottom:72px}
 }
+
+/* Téléphone, version mise en avant */
+.tel-lien{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--accent);white-space:nowrap;margin-right:8px;padding:5px 14px 5px 5px;border-radius:999px;background:var(--accent-soft);border:1.5px solid var(--accent)}
+.tel-lien i{width:34px;height:34px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;flex:none}
+.tel-lien i svg{width:17px;height:17px}
+.tel-lien span{display:flex;flex-direction:column;line-height:1.1;font-weight:700;font-size:16px;letter-spacing:.02em}
+.tel-lien small{font-weight:500;font-size:11px;color:var(--ink);letter-spacing:0;opacity:.75}
+.tel-lien:hover{background:var(--accent);color:#fff}.tel-lien:hover small{color:#fff}
+.tel-lien:hover i{background:#fff;color:var(--accent)}
+@media (max-width:1100px){nav.links{gap:20px}}
+@media (max-width:1040px){.tel-lien small{display:none}}
+@media (max-width:860px){.tel-lien{padding:0;border:0;background:none;margin-right:0}.tel-lien span{display:none}.tel-lien i{width:40px;height:40px}}
+.hero-tel{display:inline-flex;align-items:center;gap:16px;margin-top:22px;padding:14px 22px 14px 14px;border-radius:18px;background:var(--accent-soft);border:1.5px solid var(--accent);text-decoration:none;color:var(--ink);max-width:100%}
+.hero-tel i{width:54px;height:54px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;flex:none;box-shadow:0 8px 20px -8px rgba(1,39,177,.6)}
+.hero-tel span{display:flex;flex-direction:column;gap:2px}
+.hero-tel b{font-size:clamp(26px,3vw,32px);line-height:1.1;color:var(--accent);letter-spacing:.03em;font-weight:800}
+.hero-tel small{font-size:13px;color:var(--muted);display:flex;align-items:center;gap:7px}
+.hero-tel:hover{background:#fff}
+.pt-vert{width:8px;height:8px;border-radius:50%;background:#1F9D55;box-shadow:0 0 0 3px rgba(31,157,85,.18);display:inline-block}
+.facts .fact-tel{text-decoration:none;background:var(--accent);border-color:var(--accent);color:#DCE3FB;flex-direction:row;align-items:center;gap:12px}
+.facts .fact-tel i{width:36px;height:36px;border-radius:50%;background:#fff;color:var(--accent);display:grid;place-items:center;flex:none}
+.facts .fact-tel span{display:flex;flex-direction:column;gap:2px;background:none;border:0;padding:0;color:inherit}
+.facts .fact-tel b{color:#fff;font-size:18px;letter-spacing:.02em}
+.facts .fact-tel:hover{filter:brightness(1.1)}
+.barre-mobile .bm-tel{font-size:16px}
+nav.links a,.espace-lien{white-space:nowrap}
+@media (max-width:1320px){nav.links{gap:18px}.top-act .espace-lien span{display:none}}
+@media (max-width:1180px){nav.links a[href$="#faq"],nav.links a[href$="#comment"]{display:none}}
+@media (max-width:860px){.barre-mobile .bm-tel{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);font-weight:700}.hero-tel{display:flex}}
