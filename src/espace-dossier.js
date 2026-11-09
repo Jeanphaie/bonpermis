@@ -90,7 +90,7 @@
     const [lib, cls] = p.facultatif && etat === 'manquant' ? ['Si vous l\'avez', 'st-simulation'] : ETATS[etat];
     let corps = '';
     if (p.type === 'texte') corps = modif && etat !== 'valide'
-      ? `<textarea class="dz-texte" data-texte="${p.id}" rows="3" maxlength="5000" aria-label="${esc(p.nom)}">${esc(p.texte)}</textarea><p class="save" data-save="${p.id}" aria-live="polite"></p>`
+      ? `<textarea class="dz-texte" data-texte="${p.id}" rows="2" maxlength="5000" aria-label="${esc(p.nom)}" placeholder="${esc(exempleTexte(p))}">${esc(p.texte)}</textarea><p class="save" data-save="${p.id}" aria-live="polite"></p>`
       : `<p class="dz-lu">${esc(p.texte) || '<span class="note">(vide)</span>'}</p>`;
     else {
       const ex = peutAjouter && !fs.length ? exemples(p) : null;
@@ -104,6 +104,18 @@
     return `<div class="dz-piece" id="p-${p.id}">
       <div class="dz-piece-t"><div><h4>${esc(p.nom)}</h4>${p.aide ? `<p>${esc(p.aide)}</p>` : ''}</div><span class="pill ${cls}">${lib}</span></div>
       ${etat === 'a_refaire' && p.motif ? `<p class="motif">${esc(p.motif)}</p>` : ''}${corps}</div>`;
+  }
+
+  // Exemple écrit dans le champ vide, pour que chacun voie quoi répondre.
+  function exempleTexte(p) {
+    const n = (p.id + ' ' + p.nom).toLowerCase();
+    if (/porte/.test(n)) return 'Exemple : 2,15 m de haut, 0,90 m de large';
+    if (/adoss|autoport/.test(n)) return 'Exemple : adossée à la maison';
+    if (/mat[ée]riau|teinte/.test(n)) return 'Exemple : aluminium gris anthracite (RAL 7016), lames orientables';
+    if (/date/.test(n)) return 'Exemple : été 2019';
+    if (/mesure/.test(n)) return 'Exemple : 4 m x 3 m, à 2 m de la clôture du voisin';
+    if (p.id === 'projet') return 'Exemple : pergola en aluminium gris de 4 m x 3 m, contre la façade arrière, toit en lames orientables';
+    return 'Écrivez votre réponse ici';
   }
 
   function carteplan(p) {
@@ -234,6 +246,7 @@
     const statut = d.statut === 'brouillon' ? ['Non validé : acompte à régler', 'attente'] : d.statut === 'elements' && manque ? [`À vous : ${manque} pièce${manque > 1 ? 's' : ''} à envoyer`, 'attente'] : d.statut === 'apercu' ? ['À vous : relire vos plans', 'attente'] : [d.statutTexte, d.statut === 'livre' ? 'ok' : 'info'];
     const kind = {dp: 'Déclaration préalable', pc: 'Permis de construire', pd: 'Permis de démolir'}[d.kind] || '';
     const pct = Math.round(d.recues.n / Math.max(1, d.recues.sur) * 100);
+    const prochaine = d.statut === 'livre' ? null : d.pieces.find(p => !p.facultatif && p.type !== 'plan' && (p.etat === 'a_refaire' || p.etat === 'manquant'));
     el.innerHTML = `<a href="/espace/" class="dz-retour">← Mes dossiers</a>
       <div class="dz-tete"><div><p class="eyebrow" style="margin:0">Dossier ${esc(d.ref)}${kind ? ' · ' + kind : ''}</p><h1>${esc(d.nom)}</h1></div>
         <span class="dz-statut ${statut[1]}"><i aria-hidden="true"></i>${esc(statut[0])}</span></div>
@@ -244,9 +257,10 @@
         <aside class="dz-gauche">${terrainBloc()}${commandeBloc()}${messages()}</aside>
         <div class="dz-droite">
           ${apercu()}
-          <section class="dz-carte"><div class="rang ecart" style="align-items:baseline"><h2 class="dz-h2" style="margin:0">Vos pièces</h2><span class="note" style="margin:0;font-size:15px"><b style="color:var(--ink)">${d.recues.n} sur ${d.recues.sur}</b> envoyées${d.statut === 'elements' ? ' · environ 10 minutes' : ''}</span></div>
+          <section class="dz-carte dz-entete-pieces"><div class="dz-ep-l"><h2 class="dz-h2">Vos pièces</h2><span><b>${d.recues.n} sur ${d.recues.sur}</b> envoyées</span></div>
             <div class="dz-barre" aria-hidden="true"><i style="width:${pct}%"></i></div>
-            <p class="note">${d.statut === 'brouillon' ? 'Vous pouvez les envoyer dès maintenant, avant de valider le dossier. ' : ''}Chaque pièce est enregistrée dès l'envoi. Vous pouvez revenir quand vous voulez, ou continuer sur votre téléphone : même compte, même lien.</p></section>
+            ${prochaine ? `<a class="dz-prochaine" href="#p-${prochaine.id}"><span><small>Prochaine étape</small><b>${esc(prochaine.nom)}</b></span><span class="dz-go">Y aller ↓</span></a>` : ''}
+            <p class="note">${d.statut === 'brouillon' ? 'Vous pouvez les envoyer dès maintenant, avant de valider. ' : ''}Tout est enregistré au fur et à mesure : vous pouvez arrêter et revenir plus tard, ou continuer sur votre téléphone.</p></section>
           ${pieces()}
           ${d.statut === 'elements' ? `<section class="dz-carte dz-fin"><div><h3 style="margin:0">Vous avez tout envoyé ?</h3><p class="note">Prévenez-nous : on vérifie et le délai de préparation démarre.</p><p class="form-err" role="alert" hidden id="errfin"></p></div><button class="btn blue-btn" type="button" data-fin>${manque ? `J'ai tout envoyé (il en manque ${manque})` : 'J\'ai tout envoyé'}</button></section>` : ''}
         </div>
@@ -274,7 +288,7 @@
   async function terrainCharger() {
     const zone = el.querySelector('[data-carte]'), dl = el.querySelector('[data-terrain-dl]'), note = el.querySelector('[data-terrain-note]');
     if (!d.lieu || !dl) return;
-    if (zone && window.BPCarte) window.BPCarte(zone, d.lieu, terrainCache, {hauteur: 200});
+    if (zone && window.BPCarte) window.BPCarte(zone, d.lieu, terrainCache, {hauteur: 170});
     if (!terrainCache) { try { terrainCache = await (await fetch(`/api/terrain?lon=${d.lieu.lon}&lat=${d.lieu.lat}`)).json(); } catch (e) { terrainCache = {}; } }
     const t = terrainCache || {}, L = [];
     if (t.parcelle) L.push(['Parcelle', `${esc(t.parcelle.section)} ${esc(String(t.parcelle.numero).replace(/^0+/, ''))}${t.parcelle.contenance ? ', ' + t.parcelle.contenance.toLocaleString('fr-FR') + ' m²' : ''}`]);
@@ -283,7 +297,7 @@
     if (t.protections && t.protections.length) L.push(['Protection', esc(t.protections[0].libelle) + (t.protections[0].nom ? ' « ' + esc(t.protections[0].nom) + ' »' : '')]);
     dl.innerHTML = L.length ? L.map(([a, b]) => `<dt>${a}</dt><dd>${b}</dd>`).join('') : '<dt>Terrain</dt><dd class="note">Données publiques indisponibles pour le moment.</dd>';
     if (t.secteurProtege && note) note.innerHTML = '<p class="dz-abf">L\'architecte des Bâtiments de France donnera son avis : c\'est pour lui qu\'on vous demande les matériaux et teintes exacts.</p>';
-    if (zone && window.BPCarte && t.parcelle) window.BPCarte(zone, d.lieu, t, {hauteur: 200});
+    if (zone && window.BPCarte && t.parcelle) window.BPCarte(zone, d.lieu, t, {hauteur: 170});
   }
 
   // Plan du projet (src/plan.js) : ouverture de l'éditeur, aperçu, repli vers la description écrite.
