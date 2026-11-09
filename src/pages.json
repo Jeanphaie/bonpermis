@@ -1,5 +1,5 @@
 {
- "_maj": "2026-11-09",
+ "_maj": "2026-11-07",
  "_sources": {
   "DP": ["Déclaration préalable de travaux", "https://www.service-public.gouv.fr/particuliers/vosdroits/F17578"],
   "PC": ["Permis de construire", "https://www.service-public.gouv.fr/particuliers/vosdroits/F1986"],
@@ -275,6 +275,7 @@
   },
   "vente": {
    "slug": "regularisation-avant-vente",
+   "maj": "2026-11-09",
    "n": "Régulariser avant une vente",
    "simu": "regul",
    "img": "38-regularisation",

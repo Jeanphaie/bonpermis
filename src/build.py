@@ -30,8 +30,17 @@ URL = {k: v['slug'] for k, v in PAGES.items()}
 REGUL_IMG = '38-regularisation'
 
 MOIS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre']
-y, m, d = MAJ.split('-')
-MAJ_TXT = f"{int(d)} {MOIS[int(m) - 1]} {y}"
+def date_txt(iso):
+    y, m, d = iso.split('-')
+    return f"{int(d)} {MOIS[int(m) - 1]} {y}"
+
+
+MAJ_TXT = date_txt(MAJ)
+
+
+def maj(k):
+    # Date de dernière relecture propre à une page (champ « maj » de pages.json), sinon la date générale.
+    return PAGES.get(k, {}).get('maj', MAJ)
 
 # Prix de base par projet (pour les données structurées). Même grille que le simulateur.
 BASE = {'petits': 149, 'ext': 149, 'agrandir': 349, 'garage': 319, 'toit': 349, 'maison': 590,
@@ -247,7 +256,7 @@ def page(k):
     <h2>Quelle démarche pour votre projet ?</h2>
     <table class="rules"><thead><tr><th scope="col">Votre situation</th><th scope="col">Ce qu'il faut</th></tr></thead><tbody>{regles}</tbody></table>
     <p class="rules-note">{e(c['note'])}</p>
-    <p class="rules-src">Règles générales du code de l'urbanisme. Le plan local d'urbanisme de votre commune peut être plus strict : on le vérifie avec votre adresse avant de dessiner. Sources : {srcs}. Mis à jour le {MAJ_TXT}.</p>
+    <p class="rules-src">Règles générales du code de l'urbanisme. Le plan local d'urbanisme de votre commune peut être plus strict : on le vérifie avec votre adresse avant de dessiner. Sources : {srcs}. Mis à jour le {date_txt(maj(k))}.</p>
   </div>
 </section>
 
@@ -347,7 +356,8 @@ APPS = [
 
 
 def sitemap(chemins):
-    urls = ''.join(f'<url><loc>{DOMAINE}/{c}</loc><lastmod>{MAJ}</lastmod></url>\n' for c in chemins)
+    dates = {URL[k] + '/': maj(k) for k in PAGES}
+    urls = ''.join(f'<url><loc>{DOMAINE}/{c}</loc><lastmod>{dates.get(c, MAJ)}</lastmod></url>\n' for c in chemins)
     return f'<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n{urls}</urlset>\n'
 
 
