@@ -342,7 +342,7 @@ a.tile,a.svc{color:inherit;text-decoration:none}
 /* Adresse : suggestions et lecture du terrain */
 .adr-wrap{position:relative}
 .adr-wrap input{box-sizing:border-box}
-.sugs{position:absolute;left:0;right:0;top:100%;z-index:30;list-style:none;margin:6px 0 0;padding:6px;background:#fff;border:1px solid var(--line-2);border-radius:12px;box-shadow:0 16px 36px -14px rgba(15,23,51,.3);max-height:320px;overflow:auto}
+.sugs{position:relative;list-style:none;margin:6px 0 0;padding:6px;background:#fff;border:1px solid var(--line-2);border-radius:12px;box-shadow:0 16px 36px -14px rgba(15,23,51,.3);max-height:320px;overflow:auto}
 .sugs:empty{display:none}
 .sug{display:flex;flex-direction:column;gap:1px;padding:9px 12px;border-radius:8px;cursor:pointer;line-height:1.35}
 .sug b{font-weight:500;font-size:15px;color:var(--ink)}
