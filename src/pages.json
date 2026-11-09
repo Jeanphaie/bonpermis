@@ -210,8 +210,8 @@
    "h1": "Permis de construire pour une maison neuve",
    "chapo": "Toute maison neuve demande un permis de construire. Jusqu'à 150 m², vous n'êtes pas obligé de passer par un architecte. La mairie a deux mois pour répondre.",
    "regles": [["Maison jusqu'à 150 m²", "Permis de construire, sans architecte obligatoire"], ["Maison de plus de 150 m²", "Permis signé par un architecte"], ["Délai de réponse", "2 mois, 3 mois près d'un monument historique"]],
-   "note": "Une attestation énergétique (réglementation environnementale) est obligatoire avec le dossier : elle est établie par un bureau d'études thermiques, à 159 €.",
-   "prix": "590 € + 159 € d'attestation énergétique", "delai": "5 jours", "sources": ["PC"], "liens": ["extension", "annexe", "demolition", "cu"]
+   "note": "L'attestation énergétique (RE2020) exigée avec le permis d'une maison neuve n'est pas comprise : elle est établie par un bureau d'études thermiques, en général celui de votre constructeur. Nous vous indiquons où la glisser dans le dossier.",
+   "prix": "590 €", "delai": "5 jours", "sources": ["PC"], "liens": ["extension", "annexe", "demolition", "cu"]
   },
   "usage": {
    "slug": "transformer-en-logement",

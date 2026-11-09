@@ -134,7 +134,7 @@
       const ndP = S.opt.concept ? 'Ce que vous voulez : la surface, à quoi ça servira (chambre, salon…), le style qui vous plaît, et une photo d\'inspiration si vous en avez' : nd[0];
       const DO = S.opt.concept ? 'On vous propose deux projets, avec les plans de l\'intérieur et une vue 3D. Vous choisissez, on ajuste, puis on prépare tout le dossier.'
         : canC ? 'On dessine votre projet en respectant les règles de votre commune, on l\'ajuste avec vous, puis on prépare tout le dossier.'
-        : c==='maison' ? 'On prépare tout le dossier de permis à partir de vos plans, on le vérifie avec les règles de votre commune, et on fait établir l\'attestation énergétique.'
+        : c==='maison' ? 'On prépare tout le dossier de permis à partir de vos plans, on le vérifie avec les règles de votre commune, et on vous dit où joindre l\'attestation énergétique de votre constructeur.'
         : v.kind==='svc' ? 'On prépare et on remplit tout. Il ne vous reste qu\'à envoyer.'
         : 'On place votre projet au bon endroit, on vérifie qu\'il respecte les règles de votre commune, et on dessine tous les plans.';
       const KIND = {dp:['Déclaration de travaux','Une déclaration de travaux suffit.'], pc:['Permis de construire','Il vous faut un permis de construire.'], pd:['Permis de démolir','Il vous faudra peut-être un permis de démolir.'], svc:[v.title, v.h3]}[v.kind];

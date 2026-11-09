@@ -55,12 +55,13 @@
     if (c==='agrandir') v = (a.size==='pc') ? {kind:'pc',base:490,label:'Permis d\'extension'} : {kind:'dp',base:349,label:'Agrandissement'};
     if (c==='toit') v = {kind:'dp',base:349,label:'Travaux sur le toit'};
     if (c==='garage') v = {kind:'dp',base:319,label:'Garage transformé'};
-    if (c==='maison') v = {kind:'pc',base:590,label:'Maison neuve',re:159};
+    if (c==='maison') v = {kind:'pc',base:590,label:'Maison neuve'};
     v.note = [];
     if (small) v.note.push('Dans un quartier protégé, même les petites constructions demandent une déclaration. On le vérifie avec votre adresse avant de commencer.');
     if (c==='usage' && a.facade==='nsp') v.note.push('Si la façade ou la structure change, il faut un permis à 490 €. On le vérifie sur vos photos et on vous prévient avant de commencer.');
     if (c==='demol') v.note.push('Il n\'est obligatoire que dans un quartier protégé, ou si votre commune l\'a décidé. On le vérifie avec votre adresse et on vous le dit avant de commencer.');
-    if (c==='daact') v.note.push('Pour une maison neuve, la mairie demande aussi une attestation énergétique de fin de chantier. On vous met en relation avec un bureau d\'études.');
+    if (c==='maison') v.note.push('L\'attestation énergétique (RE2020) exigée avec le permis d\'une maison neuve n\'est pas comprise : elle est établie par un bureau d\'études thermiques, en général celui de votre constructeur. Nous vous indiquons où la glisser dans le dossier.');
+    if (c==='daact') v.note.push('Pour une maison neuve, la mairie demande aussi une attestation énergétique de fin de chantier. Elle est établie par le bureau d\'études thermiques de votre constructeur ; elle n\'est pas comprise.');
     if (c==='combles' || p.n==='Combles aménagés') v.note.push('Les fenêtres de toit sont comprises dans le dossier.');
     if (regul) v.note.unshift('Travaux déjà faits : le dossier décrit ce qui existe. Vous nous envoyez des photos de ce qui est construit.');
     if (a.size==='nsp') v.note.push('Pas de souci si vous ne connaissez pas la surface : on la calcule avec vos mesures. S\'il faut un permis plutôt qu\'une déclaration, on vous prévient avant de commencer.');
