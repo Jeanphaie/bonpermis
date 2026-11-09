@@ -536,3 +536,68 @@ body[data-page=dossier] .esp{padding-top:20px}
 .dz-gauche{max-width:320px}
 .esp .dz-h2{margin:0}
 .dz-carte.dz-side.dz-terrain{padding:0}
+
+/* ---------- Dossier guidé : frise fixe des étapes, une chose à la fois ---------- */
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.dz-frise{position:sticky;top:76px;z-index:15;background:#fff;border:1px solid var(--line);border-radius:16px;padding:6px;box-shadow:0 10px 24px -20px rgba(15,23,51,.5)}
+.dz-frise ol{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(var(--n),minmax(0,1fr));gap:4px;counter-reset:none}
+.dz-frise li{position:relative}
+.dz-frise li:not(:last-child)::after{content:"";position:absolute;top:22px;left:calc(50% + 20px);right:calc(-50% + 20px);height:2px;background:var(--line)}
+.dz-frise li.fait:not(:last-child)::after{background:#1F7A45}
+.dz-frise button{all:unset;box-sizing:border-box;cursor:pointer;width:100%;display:flex;flex-direction:column;align-items:center;gap:5px;padding:8px 4px;border-radius:12px;text-align:center}
+.dz-frise button:hover{background:var(--warm)}
+.dz-frise button:focus-visible{outline:3px solid var(--accent);outline-offset:1px}
+.dz-frise li.ouv button{background:var(--accent-soft)}
+.dz-frise i{font-style:normal;width:30px;height:30px;border-radius:50%;box-sizing:border-box;border:2px solid var(--line-2);background:#fff;color:var(--accent);font-weight:700;font-size:14px;display:inline-flex;align-items:center;justify-content:center;position:relative;z-index:1}
+.dz-frise span{font-size:13px;font-weight:600;line-height:1.2;color:var(--ink)}
+.dz-frise li.ouv i{border:7px solid var(--accent);color:transparent;font-size:0}
+.dz-frise li.fait i{background:#1F7A45;border-color:#1F7A45}
+.dz-frise li.refaire i{background:#FFF4DB;border-color:#D98E04;color:#7A4B00;font-weight:800}
+.dz-frise li.reparle i{background:#EEF0F5;border-color:#9AA6C2;color:#566079}
+.dz-frise li.facult i{border-style:dashed;border-color:#9AA6C2;color:#566079}
+.dz-frise li.payer i{background:var(--accent);border-color:var(--accent)}
+.dz-frise li.ouv.fait i,.dz-frise li.ouv.payer i{border-width:2px;color:#fff;font-size:14px;box-shadow:0 0 0 3px var(--accent-soft),0 0 0 5px var(--accent)}
+.dz-et{margin-top:12px;padding:22px 24px}
+.dz-et-n{margin:0 0 4px;font-size:13px;color:var(--muted);font-weight:500}
+.dz-et .dz-h2{margin:0 0 6px}
+.dz-et > p{margin:0 0 12px}
+.dz-un .dz-piece{border:0;padding:0;margin:0}
+.dz-un .dz-piece h4{font-size:22px;font-weight:800;letter-spacing:-.02em;margin:0}
+.dz-un .dz-piece-t p{font-size:15px}
+.dz-un .dz-ajout{gap:14px}
+.dz-un .dz-ex{flex:1 1 200px}
+.dz-act{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;margin-top:16px}
+.dz-act .btn{min-height:50px}
+.dz-reparle{margin:14px 0 0;background:#EEF0F5;border-radius:12px;padding:12px 14px;font-size:15px;line-height:1.45}
+.dz-liste{margin-top:20px;border-top:1px solid var(--line);padding-top:10px}
+.dz-liste > p{margin:0 0 4px;font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.dz-liste button{all:unset;box-sizing:border-box;cursor:pointer;width:100%;display:flex;align-items:center;gap:10px;padding:9px 8px;border-radius:10px;font-size:15px}
+.dz-liste button:hover{background:var(--warm)}
+.dz-liste button:focus-visible{outline:3px solid var(--accent)}
+.dz-liste button span{flex:1}
+.dz-liste button small{font-size:12.5px;font-weight:600;color:var(--muted)}
+.dz-liste button i{flex:none;width:20px;height:20px;border-radius:50%;box-sizing:border-box;border:2px solid var(--line-2)}
+.dz-liste button.ouv{background:var(--accent-soft);font-weight:600}
+.dz-liste button.ouv i{border:6px solid var(--accent)}
+.dz-liste button.ouv small{color:var(--accent)}
+.dz-liste button.fait i{background:#1F7A45;border-color:#1F7A45}
+.dz-liste button.fait small{color:#1F7A45}
+.dz-liste button.refaire i{background:#FFF4DB;border-color:#D98E04}
+.dz-liste button.refaire small{color:#7A4B00}
+.dz-liste button.reparle i{background:#EEF0F5;border-color:#9AA6C2}
+.dz-liste button.facult i{border-style:dashed;border-color:#9AA6C2}
+.dz-et .dz-valider{margin:0;border:0;box-shadow:none;padding:0}
+.dz-et .dz-plan{margin:0}
+.dz-ensuite{margin:12px 4px 0;font-size:13.5px;color:var(--muted);line-height:1.5}
+@media (max-width:720px){
+  .dz-frise{top:72px;margin:0 -6px;padding:4px}
+  .dz-frise ol{display:flex;overflow-x:auto;scrollbar-width:none}
+  .dz-frise li{flex:1 0 64px}
+  .dz-frise li:not(:last-child)::after{display:none}
+  .dz-frise span{font-size:11.5px}
+  .dz-frise i{width:28px;height:28px;font-size:13px}
+  .dz-et{padding:18px 16px}
+  .dz-un .dz-piece h4{font-size:20px}
+  .dz-act .btn{width:100%}
+  .dz-act .lien{margin:0 auto}
+}

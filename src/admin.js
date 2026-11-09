@@ -73,7 +73,7 @@
       <div class="tbl"><table><thead><tr><th>Réf.</th><th>Client · projet</th><th>Commune</th><th>Pièces</th><th>Statut</th><th>Échéance</th><th>Paiement</th></tr></thead><tbody>
       ${L.length ? L.map(x => `<tr${x.retard ? ' style="background:#FFF5F5"' : x.statut === 'verification' ? ' style="background:#FFFBF0"' : ''}>
         <td><a href="#${x.ref}">${x.ref}</a></td><td><b style="font-weight:500">${esc(x.client)}</b><br><small>${esc(x.nom)}</small></td><td>${esc(x.commune)}</td>
-        <td><span class="barre"><i style="width:${x.recues.sur ? Math.round(x.recues.n / x.recues.sur * 100) : 0}%"></i></span>${x.recues.n} / ${x.recues.sur}${x.aVerifier ? `<br><small>${x.aVerifier} à vérifier</small>` : ''}</td>
+        <td><span class="barre"><i style="width:${x.recues.sur ? Math.round(x.recues.n / x.recues.sur * 100) : 0}%"></i></span>${x.recues.n} / ${x.recues.sur}${x.aVerifier ? `<br><small>${x.aVerifier} à vérifier</small>` : ''}${x.plusTard ? `<br><small>${x.plusTard} on en reparle</small>` : ''}</td>
         <td><span class="pill st-${STC[x.statut]}">${ST[x.statut]}</span></td>
         <td>${x.retard ? `<b style="color:#8A1C1C;font-weight:500">Dépassée (${jour(x.echeance)})</b>` : x.echeance && x.statut === 'preparation' ? jour(x.echeance) : '-'}</td>
         <td>${euro(x.total)}<br><small>${x.paiement === 'solde' ? 'soldé' : 'acompte payé'}</small></td></tr>`).join('') : '<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:30px">Aucun dossier.</td></tr>'}
@@ -181,7 +181,7 @@
         <aside class="pile">
           <section class="carte"><h3>Pièces demandées · ${d.recues.n} / ${d.recues.sur}</h3>
             ${d.pieces.map(p => { const n = d.fichiers.filter(f => f.piece === p.id).length; const cur = sel && sel.k === 'f' && (d.fichiers.find(f => f.id === sel.id) || {}).piece === p.id;
-              return `<div class="pl${cur ? ' sel' : ''}"><button class="nm" type="button" data-pp="${p.id}">${esc(p.nom)}${n ? ` · ${n}` : ''}${p.facultatif ? ' <small class="note" style="display:inline">(facult.)</small>' : ''}</button><span class="pill st-${p.etat}">${EP[p.etat]}</span></div>`; }).join('')}
+              return `<div class="pl${cur ? ' sel' : ''}"><button class="nm" type="button" data-pp="${p.id}">${esc(p.nom)}${n ? ` · ${n}` : ''}${p.facultatif ? ' <small class="note" style="display:inline">(facult.)</small>' : ''}</button><span class="pill st-${p.etat}">${p.plusTard ? 'On en reparle' : EP[p.etat]}</span></div>`; }).join('')}
             <details style="margin-top:10px"><summary class="lien" style="display:inline">+ Demander une pièce</summary>
               <form id="fpiece" class="pile" style="margin-top:8px"><label class="field" style="margin:0"><span>Nom</span><input name="nom" placeholder="Ex. : Accord de la copropriété"></label>
               <label class="field" style="margin:0"><span>Explication pour le client</span><input name="aide"></label>

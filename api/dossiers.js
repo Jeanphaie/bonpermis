@@ -121,7 +121,7 @@ function vueCmd(cmd, pourEquipe) {
     ref: cmd.ref, nom: cmd.nom, adresse: cmd.adresse, statut: cmd.statut, statutTexte: STATUTS[cmd.statut], date: cmd.date,
     echeance: cmd.echeance || null, delai: delaiJours(cmd), options: cmd.options, kind: cmd.kind, lieu: cmd.lieu || null, projet: cmd.projet,
     total: cmd.total, acompte: cmd.acompte, solde: cmd.solde, paiements: {acompte: cmd.paiements.acompte ? {montant: cmd.paiements.acompte.montant, date: cmd.paiements.acompte.date} : null, solde: cmd.paiements.solde ? {montant: cmd.paiements.solde.montant, date: cmd.paiements.solde.date} : null},
-    pieces: cmd.pieces.map(p => ({id: p.id, nom: p.nom, aide: p.aide, exemple: p.exemple || '', type: p.type, facultatif: facultative(p, cmd), couverte: couverte(p, cmd) && etatPiece(p, cmd) === 'manquant', texte: p.texte || '', etat: etatPiece(p, cmd), motif: p.motif || '', ...(p.type === 'plan' ? {mode: p.mode, plan: p.plan || null} : {})})),
+    pieces: cmd.pieces.map(p => ({id: p.id, nom: p.nom, aide: p.aide, exemple: p.exemple || '', type: p.type, facultatif: facultative(p, cmd), couverte: couverte(p, cmd) && etatPiece(p, cmd) === 'manquant', texte: p.texte || '', etat: etatPiece(p, cmd), motif: p.motif || '', plusTard: !!p.plusTard && etatPiece(p, cmd) === 'manquant', ...(p.type === 'plan' ? {mode: p.mode, plan: p.plan || null} : {})})),
     fichiers: cmd.fichiers.map(fichierPublic), messages: cmd.messages, recues: r,
     livrables: cmd.livrables.map(l => ({id: l.id, code: l.code, nom: l.nom, pages: l.pages, taille: l.taille, date: l.date})),
     telechargeable: !!cmd.paiements.solde, demandes: NEED[cmd.projet] || NEED.extension,
@@ -142,7 +142,7 @@ function resume(cmd) {
   return {ref: cmd.ref, nom: cmd.nom, client: cmd.nom_client || cmd.email, email: cmd.email, commune, statut: cmd.statut, recues: r,
     echeance: cmd.echeance || null, retard: !!retard, total: cmd.total, solde: cmd.solde, paiement: cmd.paiements.solde ? 'solde' : 'acompte',
     date: cmd.date, dernierMessage: cmd.messages.length ? cmd.messages[cmd.messages.length - 1] : null,
-    aVerifier: cmd.pieces.filter(p => etatPiece(p, cmd) === 'a_verifier').length};
+    aVerifier: cmd.pieces.filter(p => etatPiece(p, cmd) === 'a_verifier').length, plusTard: cmd.pieces.filter(p => p.plusTard && etatPiece(p, cmd) === 'manquant').length};
 }
 
 // ---------- paiement de l'acompte ----------
@@ -468,6 +468,15 @@ async function clientTexte(req, res, url) {
   p.texte = texteLong(d.texte); if (p.statut === 'a_refaire') { p.statut = null; p.motif = ''; }
   sauver(cmd); repondre(res, 200, {ok: true});
 }
+// « Je ne l'ai pas » : la pièce reste attendue mais ne bloque rien ; l'équipe la voit « On en reparle ».
+async function clientPlusTard(req, res, url) {
+  const cmd = cmdClient(req, res, url); if (!cmd) return;
+  const d = await lireJson(req, 2000); if (!d) return repondre(res, 400, {erreur: 'Demande illisible.'});
+  const p = cmd.pieces.find(x => x.id === d.piece); if (!p) return repondre(res, 400, {erreur: 'Pièce inconnue.'});
+  if (!modifiable(cmd)) return repondre(res, 409, {erreur: 'Dossier livré : écrivez-nous un message.'});
+  p.plusTard = d.oui !== false;
+  sauver(cmd); repondre(res, 200, vueCmd(cmd));
+}
 // Plan du projet (src/plan.js) : formes en longitude / latitude, mesures et résumé lisible.
 const MODES_PLAN = ['rect', 'rects', 'accole', 'polygone', 'limites', 'point', 'facades', 'toit', 'batiment', 'parcelle'];
 async function clientPlan(req, res, url) {
@@ -704,7 +713,7 @@ function equipeZip(req, res, url) {
 module.exports = {
   verifierPromo, creerDossier, payerDossier,
   REF_RE, lireCmd, sauver, vueCmd, commande, etatCommande, paiementRecu, enregistrerProjet, supprimerProjet, commanderProjet, espace,
-  clientDossier, clientTexte, clientPlan, clientFichier, clientSupprimerFichier, clientMessage, clientTerminer, clientValider, clientVoir, clientTelecharger,
+  clientDossier, clientTexte, clientPlusTard, clientPlan, clientFichier, clientSupprimerFichier, clientMessage, clientTerminer, clientValider, clientVoir, clientTelecharger,
   equipeListe, equipeDossier, equipeVoir, equipePiece, equipeClasser, equipeFichier, equipeMessage, equipeLancer, equipeLivrable,
   equipeSupprimerLivrable, equipeEnvoyerApercu, equipeZip, analyser, partAcompte, piecesInitiales, listePieces
 };

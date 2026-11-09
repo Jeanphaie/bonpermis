@@ -88,7 +88,7 @@
   function piece(p) {
     const modif = d.statut !== 'livre', fs = d.fichiers.filter(f => f.piece === p.id);
     const etat = p.etat, peutAjouter = modif && etat !== 'valide';
-    const [lib, cls] = p.couverte ? ['Pas besoin', 'st-simulation'] : p.facultatif && etat === 'manquant' ? ['Si vous l\'avez', 'st-simulation'] : ETATS[etat];
+    const [lib, cls] = p.couverte ? ['Pas besoin', 'st-simulation'] : p.plusTard ? ['On en reparle', 'st-simulation'] : p.facultatif && etat === 'manquant' ? ['Si vous l\'avez', 'st-simulation'] : ETATS[etat];
     let corps = '';
     if (p.type === 'texte') corps = modif && etat !== 'valide'
       ? `<textarea class="dz-texte" data-texte="${p.id}" rows="2" maxlength="5000" aria-label="${esc(p.nom)}" placeholder="${esc(exempleTexte(p))}">${esc(p.texte)}</textarea><p class="save" data-save="${p.id}" aria-live="polite"></p>`
@@ -139,6 +139,95 @@
       n++;
       return `<section class="dz-carte dz-groupe"><h3>${n}. ${esc(titre)}</h3>${lot.map(piece).join('')}</section>`;
     }).join('');
+  }
+
+  // ---------- vue guidée (dossier à compléter) : frise fixe des étapes, une chose à la fois ----------
+  const COURT = {projet: 'Votre projet', lieu: 'Photos', abf: 'Matériaux', situation: 'Situation', regul: 'Travaux faits', docs: 'Documents', plan: 'Plan', valider: 'Valider', envoyer: 'Envoyer'};
+  const guide = () => d.statut === 'brouillon' || d.statut === 'elements';
+  let ouv = null, ouvP = 0;
+  function lesEtapes() {
+    const plan = d.pieces.find(p => p.type === 'plan'), L = d.pieces.filter(p => p.type !== 'plan'), S = [];
+    GROUPES.forEach(([g, t]) => {
+      const lot = L.filter(p => groupe(p) === g).sort((a, b) => a.facultatif - b.facultatif);
+      if (lot.length) S.push({id: g, titre: t, pieces: lot});
+      if (g === 'projet' && plan) S.push({id: 'plan', titre: 'Placez votre projet sur le plan', pieces: [plan]});
+    });
+    if (plan && !S.some(x => x.id === 'plan')) S.unshift({id: 'plan', titre: 'Placez votre projet sur le plan', pieces: [plan]});
+    S.push(d.statut === 'brouillon' ? {id: 'valider', titre: 'Validez votre dossier', pieces: []} : {id: 'envoyer', titre: 'Envoyez-nous le dossier', pieces: []});
+    S.forEach(x => {
+      x.court = COURT[x.id] || x.titre;
+      const ob = x.pieces.filter(p => !p.facultatif), pend = ob.filter(p => p.etat === 'manquant');
+      x.facult = x.pieces.length > 0 && !ob.length;
+      x.refaire = x.pieces.some(p => p.etat === 'a_refaire');
+      x.fait = x.pieces.length > 0 && (ob.length ? !pend.length : x.pieces.some(p => p.etat !== 'manquant'));
+      x.reparle = !x.fait && ob.length > 0 && pend.every(p => p.plusTard);
+    });
+    return S;
+  }
+  const enAttente = p => p.etat === 'a_refaire' || (p.etat === 'manquant' && !p.plusTard && !p.facultatif);
+  function ouvrirDefaut(S) {
+    let i = S.findIndex(x => x.refaire); if (i < 0) i = S.findIndex(x => x.pieces.some(enAttente)); if (i < 0) i = S.length - 1;
+    ouv = i; ouvP = Math.max(0, S[i].pieces.findIndex(enAttente));
+  }
+  const MARQ = {fait: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>', cadenas: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" aria-hidden="true"><path d="M6 11h12v9H6z"/><path d="M8.5 11V8a3.5 3.5 0 0 1 7 0v3"/></svg>'};
+  function frise(S) {
+    return `<nav class="dz-frise" aria-label="Étapes du dossier"><ol style="--n:${S.length}">${S.map((x, i) => {
+      const c = x.id === 'valider' ? 'payer' : x.refaire ? 'refaire' : x.fait ? 'fait' : x.reparle ? 'reparle' : x.facult ? 'facult' : '';
+      const m = c === 'payer' ? MARQ.cadenas : c === 'fait' ? MARQ.fait : c === 'refaire' ? '!' : c === 'reparle' ? '…' : i + 1;
+      const etat = {payer: 'paiement', fait: 'terminée', refaire: 'à reprendre', reparle: 'on en reparle', facult: 'facultative'}[c] || 'à faire';
+      return `<li class="${c}${i === ouv ? ' ouv' : ''}"><button type="button" data-etape="${i}"${i === ouv ? ' aria-current="step"' : ''}><i>${m}</i><span>${esc(x.court)}</span><em class="sr">, ${etat}</em></button></li>`;
+    }).join('')}</ol></nav>`;
+  }
+  function actions(p, dernier) {
+    const plein = p.etat !== 'manquant', suite = dernier ? 'Étape suivante →' : 'Suivant →';
+    if (plein) return `<div class="dz-act"><button class="btn blue-btn" type="button" data-suite>${suite}</button></div>`;
+    if (p.plusTard) return `<p class="dz-reparle">Pas de souci, parlons-en plus tard : nous pourrons vous aider à trouver ou créer ce document.</p>
+      <div class="dz-act"><button class="btn blue-btn" type="button" data-suite>${suite}</button><button class="lien" type="button" data-reparle="non">Finalement, je l'ai</button></div>`;
+    return `<div class="dz-act">${p.type === 'texte' ? `<button class="btn blue-btn" type="button" data-suite>${suite}</button>` : ''}${p.facultatif ? '' : `<button class="btn ghost" type="button" data-reparle="oui">Je ne l'ai pas</button>`}<button class="lien" type="button" data-suite>Passer pour l'instant →</button></div>`;
+  }
+  function carteEtape(S) {
+    const x = S[ouv], n = S.length, tete = `<p class="dz-et-n">Étape ${ouv + 1} sur ${n}${x.facult ? ' · facultative' : ''}</p>`;
+    if (x.id === 'valider') return `<section class="dz-carte dz-et" id="etape">${tete}${blocValider()}</section>`;
+    if (x.id === 'envoyer') {
+      const manque = d.pieces.filter(p => !p.facultatif && p.etat === 'manquant').length;
+      return `<section class="dz-carte dz-et" id="etape">${tete}<h2 class="dz-h2">${manque ? 'Envoyez ce que vous avez' : 'Vous avez tout envoyé ?'}</h2>
+        <p>${manque ? 'Pas besoin que tout y soit : on regarde, et on vous écrit s\'il nous manque quelque chose.' : 'Prévenez-nous : on vérifie et le délai de préparation démarre.'}</p>
+        <p class="form-err" role="alert" hidden id="errfin"></p><div class="dz-act"><button class="btn blue-btn" type="button" data-fin>${manque ? 'C\'est envoyé, regardez' : 'J\'ai tout envoyé'}</button></div></section>`;
+    }
+    if (x.id === 'plan') return `<section class="dz-carte dz-et" id="etape">${tete}${carteplan(x.pieces[0])}<div class="dz-act"><button class="lien" type="button" data-suite>${x.fait ? 'Étape suivante →' : 'Passer cette étape →'}</button></div></section>`;
+    if (x.pieces.every(p => p.type === 'texte')) return `<section class="dz-carte dz-et" id="etape">${tete}<h2 class="dz-h2">${esc(x.titre)}</h2>
+      <p class="note">Des réponses courtes suffisent. Si vous ne savez pas, écrivez « je ne sais pas » : on vous aidera.</p>${x.pieces.map(piece).join('')}
+      <div class="dz-act"><button class="btn blue-btn" type="button" data-suite data-fin-etape>Enregistrer et continuer →</button></div></section>`;
+    if (ouvP >= x.pieces.length) ouvP = 0;
+    const p = x.pieces[ouvP], dernier = ouvP === x.pieces.length - 1;
+    const liste = x.pieces.length > 1 ? `<div class="dz-liste"><p>Dans cette étape</p>${x.pieces.map((q, k) => {
+      const [lib, c] = q.etat === 'a_refaire' ? ['À refaire', 'refaire'] : q.etat !== 'manquant' ? ['Reçue', 'fait'] : q.plusTard ? ['On en reparle', 'reparle'] : q.facultatif ? ['Si vous l\'avez', 'facult'] : ['À envoyer', ''];
+      return `<button type="button" data-aller="${k}" class="${c}${k === ouvP ? ' ouv' : ''}"${k === ouvP ? ' aria-current="true"' : ''}><i aria-hidden="true"></i><span>${esc(q.nom)}</span><small>${k === ouvP ? 'Ouverte' : lib}</small></button>`;
+    }).join('')}</div>` : '';
+    return `<section class="dz-carte dz-et" id="etape">${tete.replace('</p>', ` · ${esc(x.court)}${x.pieces.length > 1 ? ` · ${ouvP + 1} sur ${x.pieces.length}` : ''}</p>`)}
+      <div class="dz-un">${piece(p)}${actions(p, dernier)}</div>${liste}</section>`;
+  }
+  function vueGuidee() {
+    const S = lesEtapes();
+    if (ouv == null || ouv >= S.length) ouvrirDefaut(S);
+    return `${frise(S)}${carteEtape(S)}
+      <p class="dz-ensuite"><b>Ensuite, de notre côté</b> : vérification sous 24 h ouvrées · aperçu des plans · dossier prêt après le solde. Tout est enregistré au fur et à mesure : vous pouvez arrêter et revenir plus tard.</p>`;
+  }
+  function brancherGuide() {
+    const S = lesEtapes(), aller = () => { afficher(); const f = el.querySelector('.dz-frise'); if (f && f.getBoundingClientRect().top < 0) f.scrollIntoView({block: 'start'}); };
+    el.querySelectorAll('[data-etape]').forEach(b => b.addEventListener('click', () => { ouv = +b.dataset.etape; ouvP = Math.max(0, S[ouv].pieces.findIndex(enAttente)); aller(); }));
+    el.querySelectorAll('[data-aller]').forEach(b => b.addEventListener('click', () => { ouvP = +b.dataset.aller; aller(); }));
+    el.querySelectorAll('[data-suite]').forEach(b => b.addEventListener('click', () => {
+      const x = S[ouv];
+      if (!b.hasAttribute('data-fin-etape') && x.pieces.length > 1 && ouvP < x.pieces.length - 1) ouvP++;
+      else if (ouv < S.length - 1) { ouv++; ouvP = Math.max(0, S[ouv].pieces.findIndex(enAttente)); }
+      aller();
+    }));
+    el.querySelectorAll('[data-reparle]').forEach(b => b.addEventListener('click', async () => {
+      const p = S[ouv].pieces[ouvP]; b.disabled = true;
+      const r = await api('POST', '/espace/dossier/plus-tard?ref=' + R, {piece: p.id, oui: b.dataset.reparle === 'oui'}).catch(() => ({}));
+      if (r.ok) { d = r.j; afficher(); } else { b.disabled = false; alert((r.j && r.j.erreur) || 'Pas enregistré : vérifiez votre connexion.'); }
+    }));
   }
 
   function apercu() {
@@ -253,23 +342,23 @@
       <div class="dz-tete"><div><p class="eyebrow" style="margin:0">Dossier ${esc(d.ref)}${kind ? ' · ' + kind : ''}</p><h1>${esc(d.nom)}</h1></div>
         <span class="dz-statut ${statut[1]}"><i aria-hidden="true"></i>${esc(statut[0])}</span></div>
       ${bandeau()}
-      ${etapes()}
-      ${blocValider()}
+      ${guide() ? '' : etapes()}
       <div class="dz-cols">
         <aside class="dz-gauche">${terrainBloc()}${commandeBloc()}${messages()}</aside>
         <div class="dz-droite">
           ${apercu()}
-          <section class="dz-carte dz-entete-pieces"><div class="dz-ep-l"><h2 class="dz-h2">Vos pièces</h2><span><b>${d.recues.n} sur ${d.recues.sur}</b> envoyées</span></div>
+          ${guide() ? vueGuidee() : `<section class="dz-carte dz-entete-pieces"><div class="dz-ep-l"><h2 class="dz-h2">Vos pièces</h2><span><b>${d.recues.n} sur ${d.recues.sur}</b> envoyées</span></div>
             <div class="dz-barre" aria-hidden="true"><i style="width:${pct}%"></i></div>
             ${prochaine ? `<a class="dz-prochaine" href="#p-${prochaine.id}"><span><small>Prochaine étape</small><b>${esc(prochaine.nom)}</b></span><span class="dz-go">Y aller ↓</span></a>` : ''}
             <p class="note">${d.statut === 'brouillon' ? 'Vous pouvez les envoyer dès maintenant, avant de valider. ' : ''}Tout est enregistré au fur et à mesure : vous pouvez arrêter et revenir plus tard, ou continuer sur votre téléphone.</p></section>
-          ${pieces()}
-          ${d.statut === 'elements' ? `<section class="dz-carte dz-fin"><div><h3 style="margin:0">${manque ? 'Envoyez ce que vous avez' : 'Vous avez tout envoyé ?'}</h3><p class="note">${manque ? 'Pas besoin que tout y soit : on regarde, et on vous écrit s\'il nous manque quelque chose.' : 'Prévenez-nous : on vérifie et le délai de préparation démarre.'}</p><p class="form-err" role="alert" hidden id="errfin"></p></div><button class="btn blue-btn" type="button" data-fin>${manque ? 'C\'est envoyé, regardez' : 'J\'ai tout envoyé'}</button></section>` : ''}
+          ${pieces()}`}
+          ${false ? `<section class="dz-carte dz-fin"><div><h3 style="margin:0">${manque ? 'Envoyez ce que vous avez' : 'Vous avez tout envoyé ?'}</h3><p class="note">${manque ? 'Pas besoin que tout y soit : on regarde, et on vous écrit s\'il nous manque quelque chose.' : 'Prévenez-nous : on vérifie et le délai de préparation démarre.'}</p><p class="form-err" role="alert" hidden id="errfin"></p></div><button class="btn blue-btn" type="button" data-fin>${manque ? 'C\'est envoyé, regardez' : 'J\'ai tout envoyé'}</button></section>` : ''}
         </div>
       </div>
       ${barrePayer()}
       <div class="lis" hidden id="lis" role="dialog" aria-modal="true" aria-label="Photo"></div>`;
     document.body.classList.toggle('dz-a-payer', d.statut === 'brouillon');
+    if (guide()) brancherGuide();
     brancher();
     brancherPaiement();
     terrainCharger();

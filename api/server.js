@@ -107,6 +107,7 @@ const ROUTES = {
   'POST /api/projets/commander': D.commanderProjet,
   'GET /api/espace/dossier': D.clientDossier,
   'POST /api/espace/dossier/texte': D.clientTexte,
+  'POST /api/espace/dossier/plus-tard': D.clientPlusTard,
   'POST /api/espace/dossier/plan': D.clientPlan,
   'POST /api/espace/dossier/fichier': D.clientFichier,
   'DELETE /api/espace/dossier/fichier': D.clientSupprimerFichier,
