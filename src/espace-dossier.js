@@ -109,7 +109,7 @@
   // Exemple écrit dans le champ vide, pour que chacun voie quoi répondre.
   function exempleTexte(p) {
     const n = (p.id + ' ' + p.nom).toLowerCase();
-    if (/porte/.test(n)) return 'Exemple : 2,15 m de haut, 0,90 m de large';
+    if (/porte/.test(n)) return 'Exemple : porte d\'entrée, 2,15 m de haut et 0,90 m de large';
     if (/adoss|autoport/.test(n)) return 'Exemple : adossée à la maison';
     if (/mat[ée]riau|teinte/.test(n)) return 'Exemple : aluminium gris anthracite (RAL 7016), lames orientables';
     if (/date/.test(n)) return 'Exemple : été 2019';

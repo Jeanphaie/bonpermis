@@ -114,9 +114,9 @@
    },
    {
     "id": "porte",
-    "nom": "Hauteur et largeur de votre porte d'entrée",
+    "nom": "Une mesure de repère sur cette façade",
     "type": "texte",
-    "aide": "Au mètre ruban. Elle nous sert de repère pour calculer le reste de la façade."
+    "aide": "Au mètre ruban, la hauteur et la largeur d'une porte, d'une fenêtre ou d'une porte de garage visible sur la photo. Rien de mesurable sur ce mur ? Donnez sa longueur au sol."
    },
    {
     "id": "adossee-ou-autoportante",
@@ -248,9 +248,9 @@
    },
    {
     "id": "porte",
-    "nom": "Hauteur et largeur de votre porte d'entrée",
+    "nom": "Une mesure de repère sur cette façade",
     "type": "texte",
-    "aide": "Au mètre ruban. Elle nous sert de repère pour calculer le reste de la façade."
+    "aide": "Au mètre ruban, la hauteur et la largeur d'une porte, d'une fenêtre ou d'une porte de garage visible sur la photo. Rien de mesurable sur ce mur ? Donnez sa longueur au sol."
    },
    {
     "id": "photos-de-toutes-les-facades",
@@ -288,9 +288,9 @@
    },
    {
     "id": "porte",
-    "nom": "Hauteur et largeur de votre porte d'entrée",
+    "nom": "Une mesure de repère sur cette façade",
     "type": "texte",
-    "aide": "Au mètre ruban. Elle nous sert de repère pour calculer le reste de la façade."
+    "aide": "Au mètre ruban, la hauteur et la largeur d'une porte, d'une fenêtre ou d'une porte de garage visible sur la photo. Rien de mesurable sur ce mur ? Donnez sa longueur au sol."
    },
    {
     "id": "limite",
@@ -354,9 +354,9 @@
    },
    {
     "id": "porte",
-    "nom": "Hauteur et largeur de votre porte d'entrée",
+    "nom": "Une mesure de repère sur cette façade",
     "type": "texte",
-    "aide": "Au mètre ruban. Elle nous sert de repère pour calculer le reste de la façade."
+    "aide": "Au mètre ruban, la hauteur et la largeur d'une porte, d'une fenêtre ou d'une porte de garage visible sur la photo. Rien de mesurable sur ce mur ? Donnez sa longueur au sol."
    }
   ],
   "garage": [
@@ -392,9 +392,9 @@
    },
    {
     "id": "porte",
-    "nom": "Hauteur et largeur de votre porte d'entrée",
+    "nom": "Une mesure de repère sur cette façade",
     "type": "texte",
-    "aide": "Au mètre ruban. Elle nous sert de repère pour calculer le reste de la façade."
+    "aide": "Au mètre ruban, la hauteur et la largeur d'une porte, d'une fenêtre ou d'une porte de garage visible sur la photo. Rien de mesurable sur ce mur ? Donnez sa longueur au sol."
    }
   ],
   "menuiseries": [
@@ -425,9 +425,9 @@
    },
    {
     "id": "porte",
-    "nom": "Hauteur et largeur de votre porte d'entrée",
+    "nom": "Une mesure de repère sur cette façade",
     "type": "texte",
-    "aide": "Au mètre ruban. Elle nous sert de repère pour calculer le reste de la façade."
+    "aide": "Au mètre ruban, la hauteur et la largeur d'une porte, d'une fenêtre ou d'une porte de garage visible sur la photo. Rien de mesurable sur ce mur ? Donnez sa longueur au sol."
    }
   ],
   "velux": [
@@ -465,9 +465,9 @@
    },
    {
     "id": "porte",
-    "nom": "Hauteur et largeur de votre porte d'entrée",
+    "nom": "Une mesure de repère sur cette façade",
     "type": "texte",
-    "aide": "Au mètre ruban. Elle nous sert de repère pour calculer le reste de la façade."
+    "aide": "Au mètre ruban, la hauteur et la largeur d'une porte, d'une fenêtre ou d'une porte de garage visible sur la photo. Rien de mesurable sur ce mur ? Donnez sa longueur au sol."
    }
   ],
   "toiture": [
@@ -513,9 +513,9 @@
    },
    {
     "id": "porte",
-    "nom": "Hauteur et largeur de votre porte d'entrée",
+    "nom": "Une mesure de repère sur cette façade",
     "type": "texte",
-    "aide": "Au mètre ruban. Elle nous sert de repère pour calculer le reste de la façade."
+    "aide": "Au mètre ruban, la hauteur et la largeur d'une porte, d'une fenêtre ou d'une porte de garage visible sur la photo. Rien de mesurable sur ce mur ? Donnez sa longueur au sol."
    }
   ],
   "solaire": [
