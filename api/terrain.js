@@ -172,7 +172,7 @@ async function analyserTerrain(lon, lat) {
   return out;
 }
 
-function cheminCache(cle) { return B.chemin('terrain', cle.replace(/[^\d.,-]/g, '_') + '.json'); }
+function cheminCache(cle) { return B.chemin('terrain', 'v2-' + cle.replace(/[^\d.,-]/g, '_') + '.json'); }
 async function terrain(req, res, url) {
   const lon = +url.searchParams.get('lon'), lat = +url.searchParams.get('lat');
   if (!Number.isFinite(lon) || !Number.isFinite(lat) || lon < -180 || lon > 180 || lat < -90 || lat > 90) return repondre(res, 400, {erreur: 'Coordonnées invalides.'});
