@@ -6,6 +6,7 @@
    - comptes         POST /api/compte/{inscription,code,verifier,connexion,lien,mot-de-passe,premier-mot-de-passe,deconnexion}, GET /api/compte/lien
    - espace client   GET /api/espace, POST/DELETE /api/projets, POST /api/projets/commander, /api/espace/dossier/...
    - équipe          POST /api/admin/{code,connexion,deconnexion}, /api/admin/dossiers, /api/admin/dossier/...
+   - terrain         GET /api/terrain/adresses?q=, GET /api/terrain?lon=&lat= (parcelle, bâtiments, PLU, secteur protégé)
    - GET /api/sante  état du service (sans aucun secret)
    Aucune dépendance npm. Les secrets viennent des variables d'environnement, jamais du dépôt. */
 
@@ -13,6 +14,7 @@ const http = require('http');
 const B = require('./base');
 const C = require('./comptes');
 const D = require('./dossiers');
+const T = require('./terrain');
 const {crypto, CONF, P, repondre, lireCorps, lireJson, texte, journal, envoyerMail, signatureValide} = B;
 
 // ---------- demande de rappel ----------
@@ -75,6 +77,9 @@ const ROUTES = {
   'GET /api/commande': D.etatCommande,
   'POST /api/stripe-webhook': webhook,
   'POST /api/rappel': rappel,
+  // terrain (données IGN) : simulateur et plan du projet
+  'GET /api/terrain/adresses': T.adresses,
+  'GET /api/terrain': T.terrain,
   // comptes
   'POST /api/compte/inscription': C.inscription,
   'POST /api/compte/connexion': C.connexion,

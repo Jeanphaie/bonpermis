@@ -122,18 +122,60 @@
     const v = S.v, call = S.call;
     body.innerHTML = `<div class="qtitle" tabindex="-1">${call?'Comment vous joindre ?':'Encore deux choses, et c\'est parti'}</div><p class="qhelp">${call?'On vous rappelle dans la journée, ou le lendemain matin au plus tard.':'Pas besoin de créer un compte avant : il est créé avec votre commande. Vous payez 30 % aujourd\'hui, le solde après l\'aperçu de vos plans.'}</p>
       <form id="co" novalidate>
-        <label class="field"><span>L'adresse des travaux</span><input name="adr" autocomplete="street-address" placeholder="12 rue des Lilas, 44800 Saint-Herblain" required></label>
+        <label class="field"><span>L'adresse des travaux</span><input name="adr" autocomplete="off" placeholder="12 rue des Lilas, 44800 Saint-Herblain" required></label>
+        <div class="sugs" data-sug aria-live="polite"></div>
+        <p class="terrain-info" data-terrain hidden></p>
         <label class="field"><span>${call?'Votre téléphone':'Votre e-mail, pour recevoir le dossier'}</span><input name="mail" type="${call?'tel':'email'}" autocomplete="${call?'tel':'email'}" required></label>
         <p class="form-err" role="alert" hidden></p>
         <button class="btn blue-btn" type="submit">${call?'Me faire rappeler':'Payer l\'acompte de '+euro(acompte(v))+' et lancer mon dossier'}</button>
         ${call?'':'<div class="reassure"><svg width="14" height="14" viewBox="0 0 14 14"><rect x="2.5" y="6" width="9" height="6.5" rx="1.5" fill="none" stroke="currentColor"/><path d="M4.5 6V4.5a2.5 2.5 0 015 0V6" fill="none" stroke="currentColor"/></svg>Paiement sécurisé par Stripe · Carte, Apple Pay, Google Pay, PayPal</div>'}
       </form><button class="back" type="button" data-back>← Retour</button>`;
+    // Adresse : suggestions de la Base Adresse Nationale, puis lecture du terrain (parcelle, PLU, secteur protégé).
+    const fo = body.querySelector('#co'), adr = fo.adr, sug = body.querySelector('[data-sug]'), info = body.querySelector('[data-terrain]');
+    let minuteur = null, lieu = null, demande = 0;
+    const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+    const majBouton = () => { if (!call) fo.querySelector('button[type=submit]').textContent = 'Payer l\'acompte de ' + euro(acompte(S.v)) + ' et lancer mon dossier'; };
+    adr.addEventListener('input', () => {
+      lieu = null; info.hidden = true; clearTimeout(minuteur);
+      const q = adr.value.trim(); if (q.length < 4) { sug.innerHTML = ''; return; }
+      minuteur = setTimeout(async () => {
+        const n = ++demande;
+        try {
+          const j = await (await fetch(API + '/terrain/adresses?q=' + encodeURIComponent(q))).json();
+          if (n !== demande) return;
+          sug.innerHTML = (j.adresses || []).map((x, i) => `<button type="button" class="sug" data-i="${i}">${esc(x.label)}</button>`).join('');
+          sug.querySelectorAll('[data-i]').forEach(b => b.addEventListener('click', () => { const x = j.adresses[+b.dataset.i]; adr.value = x.label; sug.innerHTML = ''; lieu = {lon: x.lon, lat: x.lat}; terrain(x); }));
+        } catch (x) { sug.innerHTML = ''; }
+      }, 250);
+    });
+    async function terrain(x) {
+      info.hidden = false; info.className = 'terrain-info'; info.textContent = 'On regarde votre terrain…';
+      let t; try { t = await (await fetch(API + `/terrain?lon=${x.lon}&lat=${x.lat}`)).json(); } catch (e) { info.hidden = true; return; }
+      const l = [];
+      if (t.parcelle) l.push(`Parcelle ${esc(t.parcelle.section)} ${esc(String(t.parcelle.numero).replace(/^0+/, ''))}${t.parcelle.contenance ? ', ' + t.parcelle.contenance.toLocaleString('fr-FR') + ' m²' : ''}`);
+      if (t.zone) l.push(`Zone ${esc(t.zone.libelle)} du plan local d'urbanisme${t.zone.libelleLong && t.zone.libelleLong !== t.zone.libelle ? ' (' + esc(t.zone.libelleLong.toLowerCase()) + ')' : ''}`);
+      else if (t.commune && t.commune.rnu) l.push('Commune sans plan local d\'urbanisme : ce sont les règles nationales qui s\'appliquent');
+      let html = l.length ? `<b>Votre terrain</b><span>${l.join('<br>')}</span>` : '';
+      const peutAbf = !P[S.p].svc;
+      if (t.secteurProtege && peutAbf) {
+        const pr = t.protections[0];
+        html += `<span class="tp-alerte"><b>Secteur protégé :</b> ${esc(pr.libelle.toLowerCase())}${pr.nom ? ' « ' + esc(pr.nom) + ' »' : ''}. L'architecte des Bâtiments de France donnera son avis sur votre projet.</span>`;
+        if (S.a.abf !== 'oui') {
+          S.a.abf = 'oui'; S.v = X.verdict(P, S.p, S.a, S.regul); majBouton();
+          html += `<span class="tp-prix">Le supplément secteur protégé de ${euro(S.v.abf || 149)} s'applique. Nouveau total : ${euro(total(S.v))}.</span>`;
+        }
+      } else if (t.secteurProtege === false && peutAbf && S.a.abf === 'nsp') {
+        html += '<span>Aucune protection trouvée dans les données publiques. On le confirme en préparant votre dossier.</span>';
+      }
+      if (!html) { info.hidden = true; return; }
+      info.innerHTML = html;
+    }
     body.querySelector('#co').addEventListener('submit', async e => {
       e.preventDefault(); const f = e.target;
       if (!f.adr.value.trim() || !f.mail.value.trim()) { (f.adr.value.trim()?f.mail:f.adr).focus(); return; }
       const btn = f.querySelector('button[type=submit]'), err = f.querySelector('.form-err'), label = btn.textContent;
       btn.disabled = true; btn.textContent = call ? 'Envoi…' : 'Ouverture du paiement sécurisé…'; err.hidden = true;
-      const data = {p:S.p, a:S.a, regul:S.regul, opt:S.opt, adresse:f.adr.value.trim()};
+      const data = {p:S.p, a:S.a, regul:S.regul, opt:S.opt, adresse:f.adr.value.trim(), lieu};
       if (call) { data.tel = f.mail.value.trim(); data.motif = v.kind; } else data.email = f.mail.value.trim();
       try {
         const r = await fetch(API + (call ? '/rappel' : '/commande'), {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data)});

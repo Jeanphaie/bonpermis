@@ -107,7 +107,7 @@ function vueCmd(cmd, pourEquipe) {
   const r = recues(cmd);
   const o = {
     ref: cmd.ref, nom: cmd.nom, adresse: cmd.adresse, statut: cmd.statut, statutTexte: STATUTS[cmd.statut], date: cmd.date,
-    echeance: cmd.echeance || null, delai: delaiJours(cmd), options: cmd.options, kind: cmd.kind,
+    echeance: cmd.echeance || null, delai: delaiJours(cmd), options: cmd.options, kind: cmd.kind, lieu: cmd.lieu || null, projet: cmd.projet,
     total: cmd.total, acompte: cmd.acompte, solde: cmd.solde, paiements: {acompte: cmd.paiements.acompte ? {montant: cmd.paiements.acompte.montant, date: cmd.paiements.acompte.date} : null, solde: cmd.paiements.solde ? {montant: cmd.paiements.solde.montant, date: cmd.paiements.solde.date} : null},
     pieces: cmd.pieces.map(p => ({id: p.id, nom: p.nom, aide: p.aide, type: p.type, facultatif: !!p.facultatif, texte: p.texte || '', etat: etatPiece(p, cmd), motif: p.motif || ''})),
     fichiers: cmd.fichiers.map(fichierPublic), messages: cmd.messages, recues: r,
@@ -147,17 +147,23 @@ function analyser(d) {
   const lignes = PRIX.lignes(P, p, v, opt), total = PRIX.total(lignes);
   return {p, regul, a, v, opt, lignes, total, nom: (regul ? 'Travaux déjà faits · ' : '') + P[p].n};
 }
+// Point choisi dans les suggestions d'adresse (lon, lat) : sert au plan du projet et à la fiche terrain de l'équipe.
+function lieuValide(l) {
+  const lon = l && +l.lon, lat = l && +l.lat;
+  return Number.isFinite(lon) && Number.isFinite(lat) && lon > -180 && lon < 180 && lat > -90 && lat < 90 ? lon.toFixed(6) + ',' + lat.toFixed(6) : '';
+}
+const lireLieu = s => { const m = /^(-?\d+\.\d+),(-?\d+\.\d+)$/.exec(s || ''); return m ? {lon: +m[1], lat: +m[2]} : null; };
 const centimes = n => Math.round(n * 100);
 const partAcompte = total => Math.round(centimes(total) * CONF.acompte) / 100;
 
-async function ouvrirPaiementAcompte(x, email, adresse, uid, pid) {
+async function ouvrirPaiementAcompte(x, email, adresse, uid, pid, lieu) {
   const acompte = partAcompte(x.total);
   const page = PAGES[x.p] ? `${CONF.site}/${PAGES[x.p].slug}/` : `${CONF.site}/`;
   const meta = {
     type: 'acompte', projet: x.p, kind: x.v.kind, nom: x.nom.slice(0, 200), regul: String(x.regul), adresse: adresse.slice(0, 480),
     reponses: JSON.stringify(x.a).slice(0, 480), options: Object.keys(x.opt).filter(k => x.opt[k]).join(',') || 'aucune',
     total: String(x.total), acompte: String(acompte), lignes: JSON.stringify(x.lignes.map(l => [l.label.slice(0, 60), l.prix])).slice(0, 490),
-    uid: uid || '', pid: pid || ''
+    uid: uid || '', pid: pid || '', lieu: lieu || ''
   };
   const params = {
     mode: 'payment', locale: 'fr', customer_email: email,
@@ -185,7 +191,7 @@ async function commande(req, res) {
   const email = u ? u.email : texte(d.email, 254), adresse = texte(d.adresse, 300);
   if (!MAIL_RE.test(email)) return repondre(res, 400, {erreur: 'Adresse e-mail invalide.'});
   if (adresse.length < 5) return repondre(res, 400, {erreur: 'Indiquez l\'adresse des travaux.'});
-  try { const s = await ouvrirPaiementAcompte(x, email, adresse, u && u.id, null); repondre(res, 200, {url: s.url}); }
+  try { const s = await ouvrirPaiementAcompte(x, email, adresse, u && u.id, null, lieuValide(d.lieu)); repondre(res, 200, {url: s.url}); }
   catch (e) { journal('erreur Stripe :', e.message); repondre(res, 502, {erreur: 'Le paiement n\'a pas pu s\'ouvrir.'}); }
 }
 
@@ -245,7 +251,7 @@ async function paiementRecu(s) {
   let lignes = null; try { lignes = JSON.parse(m.lignes || 'null'); } catch {}
   const cmd = {
     v: 2, ref, session: s.id, date: new Date().toISOString(), email, nom_client: nomClient, uid: u ? u.id : null,
-    projet: m.projet, kind: m.kind || 'dp', nom: m.nom, regul: m.regul, adresse: m.adresse, reponses: m.reponses, options: m.options, lignes,
+    projet: m.projet, kind: m.kind || 'dp', nom: m.nom, regul: m.regul, adresse: m.adresse, lieu: lireLieu(m.lieu), reponses: m.reponses, options: m.options, lignes,
     total, acompte, solde: Math.round((total - acompte) * 100) / 100,
     paiements: {acompte: {montant: s.amount_total / 100, date: new Date().toISOString(), session: s.id, pi: s.payment_intent || null}},
     statut: 'elements', pieces: piecesInitiales(m.kind || 'dp', m.projet, {regul: m.regul, reponses: m.reponses}), fichiers: [], messages: [], livrables: [],

@@ -127,6 +127,29 @@
       <div class="strip">${strip}</div><div class="vis-f">${pied}</div></div>`;
   }
 
+  // Fiche terrain (données IGN) à partir du point choisi par le client dans les suggestions d'adresse.
+  let terr = {ref: null, v: null};
+  function ficheTerrain() {
+    if (!d.lieu) return '<p class="note" style="margin:6px 0 0">Adresse saisie sans suggestion : pas de fiche terrain automatique.</p>';
+    const t = terr.ref === d.ref ? terr.v : null; if (!t) return '<p class="note" style="margin:6px 0 0">Lecture du terrain…</p>';
+    if (t.erreur) return `<p class="note">${esc(t.erreur)}</p>`;
+    const li = [];
+    if (t.parcelle) li.push(['Parcelle', `${esc(t.parcelle.section)} ${esc(t.parcelle.numero)} · ${t.parcelle.contenance || t.parcelle.surfaceCalculee} m² · ${esc(t.parcelle.commune)}`]);
+    if (t.zone) li.push(['PLU', `${esc(t.zone.libelle)} · ${esc(t.zone.libelleLong)}${t.zone.reglement ? ' · ' + esc(t.zone.reglement) : ''}`]);
+    else if (t.commune) li.push(['PLU', t.commune.rnu ? 'Commune au RNU (règles nationales)' : 'Zone non trouvée']);
+    li.push(['Protection', t.protections.length ? t.protections.map(p => `${esc(p.libelle)} : ${esc(p.nom)}${p.detail ? ' (' + esc(p.detail) + ')' : ''}`).join('<br>') : (t.secteurProtege === false ? 'Aucune dans les données publiques (à confirmer)' : 'Non vérifiée')]);
+    const bs = t.batiments.filter(b => b.surParcelle);
+    li.push(['Bâtiments', bs.length ? bs.map(b => `${b.emprise} m² au sol${b.hauteur != null ? ', ' + String(b.hauteur).replace('.', ',') + ' m à la gouttière' : ''}${b.etages ? ', ' + b.etages + ' niv.' : ''}${b.usage ? ' · ' + esc(b.usage) : ''}`).join('<br>') : 'Aucun sur la parcelle']);
+    if (t.erreurs && t.erreurs.length) li.push(['Non lu', esc(t.erreurs.join(', '))]);
+    return `<dl class="dl" style="margin-top:8px">${li.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('')}</dl><p class="note" style="margin:6px 0 0">Données IGN (cadastre, BD TOPO, Géoportail de l'urbanisme). Précision métrique, à vérifier.</p>`;
+  }
+  function chargerTerrain() {
+    if (!d.lieu || terr.ref === d.ref) return;
+    const ref = d.ref; terr = {ref, v: null};
+    fetch(`/api/terrain?lon=${d.lieu.lon}&lat=${d.lieu.lat}`).then(r => r.json()).catch(() => ({erreur: 'Service terrain indisponible.'}))
+      .then(v => { if (terr.ref !== ref) return; terr.v = v; const z = el.querySelector('[data-tq]'); if (z) z.innerHTML = ficheTerrain(); });
+  }
+
   function dessinerDossier() {
     const textes = d.pieces.filter(p => p.type === 'texte');
     const lancer = ['elements', 'verification'].includes(d.statut), envoyer = d.livrables.length && !['livre'].includes(d.statut);
@@ -146,7 +169,7 @@
             <dt>Échéance</dt><dd>${d.echeance ? jour(d.echeance) : `${d.delai === 1 ? '24 h' : d.delai === 2 ? '48 h' : d.delai + ' jours'} ouvrés après validation`}</dd></dl>
             ${d.liensStripe.map(pi => `<a class="note" style="display:block" href="https://dashboard.stripe.com/payments/${esc(pi)}" target="_blank" rel="noopener">Paiement Stripe ${esc(pi.slice(-6))}</a>`).join('')}</section>
           <section class="carte"><h3>Terrain</h3><p style="margin:0 0 8px;font-size:14px">${esc(d.adresse)}</p>
-            <p class="rang" style="font-size:13px;gap:12px"><a href="https://www.geoportail.gouv.fr/carte?q=${encodeURIComponent(d.adresse)}" target="_blank" rel="noopener">Géoportail</a><a href="https://cadastre.data.gouv.fr/" target="_blank" rel="noopener">Cadastre</a><a href="https://www.geoportail-urbanisme.gouv.fr/map/" target="_blank" rel="noopener">PLU</a></p></section>
+            <p class="rang" style="font-size:13px;gap:12px"><a href="https://www.geoportail.gouv.fr/carte?q=${encodeURIComponent(d.adresse)}" target="_blank" rel="noopener">Géoportail</a><a href="https://cadastre.data.gouv.fr/" target="_blank" rel="noopener">Cadastre</a><a href="https://www.geoportail-urbanisme.gouv.fr/map/" target="_blank" rel="noopener">PLU</a></p><div data-tq>${ficheTerrain()}</div></section>
           <section class="carte"><h3>Réponses au simulateur</h3>${(d.reponsesLisibles || []).map(([k, v]) => `<p style="margin:0 0 8px;font-size:13px"><span class="note" style="display:block;margin:0">${esc(k)}</span><b style="font-weight:500">${esc(v)}</b></p>`).join('') || '<p class="note">-</p>'}${d.regul === 'true' ? '<p class="note">Travaux déjà réalisés (régularisation)</p>' : ''}</section>
           ${textes.map(p => `<section class="carte"><h3>${esc(p.nom)} <span class="pill st-${p.etat}" style="text-transform:none;letter-spacing:0">${EP[p.etat]}</span></h3><p style="margin:0;font-size:14px;white-space:pre-wrap">${esc(p.texte) || '<span class="note">(vide)</span>'}</p>
             ${p.texte ? `<div class="rang" style="margin-top:8px"><button class="lien" type="button" data-tv="${p.id}">Valider</button><button class="lien" type="button" data-tr="${p.id}" style="color:#8A1C1C">À refaire</button></div>` : ''}</section>`).join('')}
@@ -174,7 +197,7 @@
             <div class="rang fin" style="margin-top:8px"><button class="btn petit" type="submit">Envoyer</button></div></form></section>
           <section class="carte"><h3>Historique</h3><ol class="histo">${d.historique.map(h => `<li><b>${court(h.date)}</b> · ${esc(h.texte)}</li>`).join('')}</ol></section>
         </aside></div>`, 'dossier');
-    brancherCadre(); brancher();
+    brancherCadre(); brancher(); chargerTerrain();
   }
 
   function brancher() {
