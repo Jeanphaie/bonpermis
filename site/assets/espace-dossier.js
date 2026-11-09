@@ -54,6 +54,7 @@
   };
   // Exemples par pièce : [dessin, légende] pour « Bien » puis « À éviter ».
   function exemples(p) {
+    if (p.exemple) return p.exemple;
     const n = (p.id + ' ' + p.nom).toLowerCase();
     if (p.type !== 'photo') return null;
     if (/menuiser|mat[ée]ria/.test(n)) return [['menuiserie', 'à 1 ou 2 m, couleurs nettes'], ['flou', 'floue ou trop loin']];
@@ -79,7 +80,7 @@
     if (/^(copro|lotis|locat)-/.test(id)) return 'situation';
     if (/^regul-/.test(id)) return 'regul';
     if (['rue', 'endroit', 'loin'].includes(id)) return 'lieu';
-    if (['plans', 'autre', 'documents'].includes(id)) return 'docs';
+    if (['autre', 'documents'].includes(id)) return 'docs';
     return 'projet';
   }
   const GROUPES = [['projet', 'Votre projet'], ['lieu', 'Photos du lieu'], ['abf', 'Pour l\'architecte des Bâtiments de France'], ['situation', 'Copropriété, lotissement, location'], ['regul', 'Les travaux déjà faits'], ['docs', 'Documents utiles']];
@@ -87,7 +88,7 @@
   function piece(p) {
     const modif = d.statut !== 'livre', fs = d.fichiers.filter(f => f.piece === p.id);
     const etat = p.etat, peutAjouter = modif && etat !== 'valide';
-    const [lib, cls] = p.facultatif && etat === 'manquant' ? ['Si vous l\'avez', 'st-simulation'] : ETATS[etat];
+    const [lib, cls] = p.couverte ? ['Pas besoin', 'st-simulation'] : p.facultatif && etat === 'manquant' ? ['Si vous l\'avez', 'st-simulation'] : ETATS[etat];
     let corps = '';
     if (p.type === 'texte') corps = modif && etat !== 'valide'
       ? `<textarea class="dz-texte" data-texte="${p.id}" rows="2" maxlength="5000" aria-label="${esc(p.nom)}" placeholder="${esc(exempleTexte(p))}">${esc(p.texte)}</textarea><p class="save" data-save="${p.id}" aria-live="polite"></p>`
@@ -108,8 +109,9 @@
 
   // Exemple écrit dans le champ vide, pour que chacun voie quoi répondre.
   function exempleTexte(p) {
+    if (p.exemple) return p.exemple;
     const n = (p.id + ' ' + p.nom).toLowerCase();
-    if (/porte/.test(n)) return 'Exemple : 2,15 m de haut, 0,90 m de large';
+    if (/porte/.test(n)) return 'Exemple : porte d\'entrée, 2,15 m de haut et 0,90 m de large';
     if (/adoss|autoport/.test(n)) return 'Exemple : adossée à la maison';
     if (/mat[ée]riau|teinte/.test(n)) return 'Exemple : aluminium gris anthracite (RAL 7016), lames orientables';
     if (/date/.test(n)) return 'Exemple : été 2019';

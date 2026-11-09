@@ -29,12 +29,14 @@ function piecesInitiales(kind, p, ctx) {
   if (liste) {
     let a = {}; try { a = JSON.parse(c.reponses || '{}'); } catch {}
     const copie = l => (l || []).map(x => Object.assign({}, x));
+    const commun = !PIECES.sansCommun.includes(p), cm = PIECES.commun.debut ? PIECES.commun : {debut: [], fin: PIECES.commun};
     const out = [{id: 'projet', nom: kind === 'svc' ? 'Votre demande' : 'Le projet en quelques mots', type: 'texte', aide: nd[0]}];
+    if (commun) out.push(...copie(cm.debut));
     if (PIECES.modes && PIECES.modes[p]) out.push({id: 'plan', nom: 'Emplacement sur le plan', type: 'plan', mode: PIECES.modes[p], facultatif: true,
       aide: 'Placez votre projet sur le plan de votre terrain. Si vous n\'y arrivez pas, décrivez-le simplement dans « Le projet en quelques mots ».'});
     out.push(...copie(liste));
     if (c.regul === true || c.regul === 'true') out.push(...copie(PIECES.regul));
-    if (!PIECES.sansCommun.includes(p)) out.push(...copie(PIECES.commun));
+    if (commun) out.push(...copie(cm.fin));
     if (a.abf === 'oui') out.push(...copie(PIECES.situations.secteur_protege));
     if (a.copro === 'oui') out.push(...copie(PIECES.situations.copropriete));
     const vus = new Set();
@@ -61,12 +63,15 @@ function listePieces(cmd) {
   const l = cmd.pieces.filter(p => p.id !== 'autre');
   return l.filter(p => !p.facultatif).map(p => '- ' + p.nom).join('\n') + (l.some(p => p.facultatif) ? '\nSi vous les avez :\n' + l.filter(p => p.facultatif).map(p => '- ' + p.nom).join('\n') : '');
 }
+// Une pièce « sauf » n'est plus exigée dès que le client a envoyé un fichier pour la pièce citée (ses plans, la fiche du modèle).
+const couverte = (piece, cmd) => !!piece.sauf && cmd.fichiers.some(f => f.piece === piece.sauf);
+const facultative = (piece, cmd) => !!piece.facultatif || couverte(piece, cmd);
 function etatPiece(piece, cmd) {
   if (piece.statut === 'valide' || piece.statut === 'a_refaire') return piece.statut;
   const plein = piece.type === 'texte' ? !!(piece.texte || '').trim() : piece.type === 'plan' ? !!piece.plan : cmd.fichiers.some(f => f.piece === piece.id);
   return plein ? 'a_verifier' : 'manquant';
 }
-const recues = cmd => { const ob = cmd.pieces.filter(p => !p.facultatif); return {n: ob.filter(p => etatPiece(p, cmd) !== 'manquant').length, sur: ob.length}; };
+const recues = cmd => { const ob = cmd.pieces.filter(p => !facultative(p, cmd)); return {n: ob.filter(p => etatPiece(p, cmd) !== 'manquant').length, sur: ob.length}; };
 
 // Les commandes de la première version (payées en une fois, fichiers sans pièce) sont reprises telles quelles.
 function norm(cmd) {
@@ -113,7 +118,7 @@ function vueCmd(cmd, pourEquipe) {
     ref: cmd.ref, nom: cmd.nom, adresse: cmd.adresse, statut: cmd.statut, statutTexte: STATUTS[cmd.statut], date: cmd.date,
     echeance: cmd.echeance || null, delai: delaiJours(cmd), options: cmd.options, kind: cmd.kind, lieu: cmd.lieu || null, projet: cmd.projet,
     total: cmd.total, acompte: cmd.acompte, solde: cmd.solde, paiements: {acompte: cmd.paiements.acompte ? {montant: cmd.paiements.acompte.montant, date: cmd.paiements.acompte.date} : null, solde: cmd.paiements.solde ? {montant: cmd.paiements.solde.montant, date: cmd.paiements.solde.date} : null},
-    pieces: cmd.pieces.map(p => ({id: p.id, nom: p.nom, aide: p.aide, type: p.type, facultatif: !!p.facultatif, texte: p.texte || '', etat: etatPiece(p, cmd), motif: p.motif || '', ...(p.type === 'plan' ? {mode: p.mode, plan: p.plan || null} : {})})),
+    pieces: cmd.pieces.map(p => ({id: p.id, nom: p.nom, aide: p.aide, exemple: p.exemple || '', type: p.type, facultatif: facultative(p, cmd), couverte: couverte(p, cmd) && etatPiece(p, cmd) === 'manquant', texte: p.texte || '', etat: etatPiece(p, cmd), motif: p.motif || '', ...(p.type === 'plan' ? {mode: p.mode, plan: p.plan || null} : {})})),
     fichiers: cmd.fichiers.map(fichierPublic), messages: cmd.messages, recues: r,
     livrables: cmd.livrables.map(l => ({id: l.id, code: l.code, nom: l.nom, pages: l.pages, taille: l.taille, date: l.date})),
     telechargeable: !!cmd.paiements.solde, demandes: NEED[cmd.projet] || NEED.extension,

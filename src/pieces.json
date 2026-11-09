@@ -1,155 +1,184 @@
 {
- "_doc": "Pièces demandées au client, par projet. Types : texte (réponse écrite), photo, fichier (photo ou PDF). Lu par api/dossiers.js (piecesInitiales). Source : doc « documents à fournir par le client » du 09/11/2026. « modes » : geste demandé sur le plan du terrain (src/plan.js), par projet ; absent = pas de plan.",
- "commun": [
-  {
-   "id": "rue",
-   "nom": "Photo depuis la rue",
-   "type": "photo",
-   "aide": "De loin, votre maison et ses voisines dans le cadre."
-  },
-  {
-   "id": "endroit",
-   "nom": "Photo de l'endroit des travaux",
-   "type": "photo",
-   "aide": "À 5 ou 10 m, l'endroit exact où se feront les travaux."
-  },
-  {
-   "id": "plans",
-   "nom": "Plans existants",
-   "type": "fichier",
-   "aide": "Ancien permis, plans de vente ou du constructeur, si vous les avez.",
-   "facultatif": true
-  }
- ],
+ "_doc": "Pièces demandées au client, par projet. Généré par src/gen_pieces.py (modifier le .py puis relancer). Types : texte, photo, fichier. facultatif : non bloquant. sauf : devient facultatif dès qu'un fichier existe pour la pièce citée. exemple : texte grisé du champ vide. L'API ajoute « Le projet en quelques mots », le plan interactif (modes) et « Autres documents ».",
+ "commun": {
+  "debut": [
+   {
+    "id": "plans",
+    "nom": "Vos plans, si vous en avez",
+    "type": "fichier",
+    "aide": "C'est ce qui nous aide le plus : plans du constructeur, de l'ancien permis, du notaire ou du diagnostic, même anciens. Avec eux, plusieurs mesures ci-dessous deviennent inutiles.",
+    "facultatif": true
+   }
+  ],
+  "fin": [
+   {
+    "id": "rue",
+    "nom": "Votre maison vue de la rue",
+    "type": "photo",
+    "aide": "Depuis le trottoir d'en face : la maison entière et un bout des voisines."
+   },
+   {
+    "id": "endroit",
+    "nom": "L'endroit des travaux",
+    "type": "photo",
+    "aide": "À quelques mètres : l'endroit exact où se feront les travaux."
+   }
+  ]
+ },
  "sansCommun": [
   "cu",
   "daact",
-  "modif"
+  "modif",
+  "maison"
  ],
  "projets": {
   "abri": [
    {
     "id": "modele",
-    "nom": "Fiche ou lien du modèle",
+    "nom": "La fiche du modèle choisi",
     "type": "fichier",
-    "aide": "Dimensions, hauteur, matériau et couleur.",
+    "aide": "Capture d'écran, lien ou devis : on y lit les dimensions, la hauteur et la couleur.",
     "facultatif": true
    },
    {
     "id": "dimensions-et-hauteur",
     "nom": "Dimensions et hauteur",
     "type": "texte",
-    "aide": "Si vous n'avez pas de fiche modèle."
+    "aide": "Longueur, largeur, hauteur au point le plus haut, matériau. Inutile si vous envoyez la fiche du modèle.",
+    "exemple": "Exemple : 3 m x 2 m, 2,20 m de haut, bois naturel",
+    "sauf": "modele"
    },
    {
     "id": "limite",
-    "nom": "Distance à la limite la plus proche",
+    "nom": "Distance au terrain voisin le plus proche",
     "type": "texte",
-    "aide": "Au mètre ruban, depuis la clôture ou la borne. Facultatif si vous ne savez pas, on la calcule sur le cadastre.",
+    "aide": "Au mètre ruban, de la construction prévue jusqu'à la clôture ou la borne. Si vous ne savez pas, on la lit sur le cadastre.",
+    "exemple": "Exemple : 1,50 m de la clôture du voisin de droite",
     "facultatif": true
    }
   ],
   "annexe": [
    {
-    "id": "croquis-ou-plans",
-    "nom": "Croquis ou plans",
+    "id": "croquis",
+    "nom": "Un croquis ou les plans",
     "type": "fichier",
-    "aide": "Même à main levée, avec les dimensions."
+    "aide": "Même dessiné à la main sur une feuille, avec les mesures écrites dessus. Prenez-le en photo."
    },
    {
     "id": "usage",
-    "nom": "Usage",
+    "nom": "À quoi servira-t-elle",
     "type": "texte",
-    "aide": "Garage, studio habitable, pool-house. Raccordements prévus (eau, électricité)."
+    "aide": "Et les raccordements prévus : eau, électricité.",
+    "exemple": "Exemple : garage pour une voiture, avec l'électricité"
    },
    {
     "id": "materiaux-et-couleurs",
     "nom": "Matériaux et couleurs",
     "type": "texte",
-    "aide": "Murs, toit, menuiseries."
+    "aide": "Les murs, le toit, les fenêtres.",
+    "exemple": "Exemple : murs enduits beige comme la maison, toit en tuiles rouges, fenêtres alu gris"
    },
    {
     "id": "limite",
-    "nom": "Distance à la limite la plus proche",
+    "nom": "Distance au terrain voisin le plus proche",
     "type": "texte",
-    "aide": "Au mètre ruban, depuis la clôture ou la borne. Facultatif si vous ne savez pas, on la calcule sur le cadastre.",
+    "aide": "Au mètre ruban, de la construction prévue jusqu'à la clôture ou la borne. Si vous ne savez pas, on la lit sur le cadastre.",
+    "exemple": "Exemple : 1,50 m de la clôture du voisin de droite",
     "facultatif": true
    }
   ],
   "carport": [
    {
     "id": "modele",
-    "nom": "Fiche ou lien du modèle",
+    "nom": "La fiche du modèle choisi",
     "type": "fichier",
-    "aide": "Dimensions, hauteur, couleur.",
+    "aide": "Capture d'écran, lien ou devis : on y lit les dimensions, la hauteur et la couleur.",
     "facultatif": true
    },
    {
     "id": "dimensions-et-hauteur",
     "nom": "Dimensions et hauteur",
     "type": "texte",
-    "aide": "Si vous n'avez pas de fiche modèle."
+    "aide": "Longueur, largeur, hauteur, matériau. Fixé à la maison ou posé seul ? Inutile si vous envoyez la fiche du modèle.",
+    "exemple": "Exemple : 5 m x 3 m, 2,40 m de haut, alu gris, fixé au mur du garage",
+    "sauf": "modele"
    },
    {
     "id": "limite",
-    "nom": "Distance à la limite la plus proche",
+    "nom": "Distance au terrain voisin le plus proche",
     "type": "texte",
-    "aide": "Au mètre ruban, depuis la clôture ou la borne. Facultatif si vous ne savez pas, on la calcule sur le cadastre.",
+    "aide": "Au mètre ruban, de la construction prévue jusqu'à la clôture ou la borne. Si vous ne savez pas, on la lit sur le cadastre.",
+    "exemple": "Exemple : 1,50 m de la clôture du voisin de droite",
     "facultatif": true
    }
   ],
   "pergola": [
    {
     "id": "modele",
-    "nom": "Fiche ou lien du modèle",
+    "nom": "La fiche du modèle choisi",
     "type": "fichier",
-    "aide": "Dimensions, toiture (lames, toile, vitrée), couleur.",
+    "aide": "Capture d'écran, lien ou devis : on y lit les dimensions, le type de toit et la couleur.",
     "facultatif": true
    },
    {
-    "id": "facade",
-    "nom": "Photo de face de la façade concernée",
-    "type": "photo",
-    "aide": "Bien en face, façade entière, sans grand angle."
-   },
-   {
-    "id": "porte",
-    "nom": "Une mesure de repère sur cette façade",
+    "id": "dimensions-et-hauteur",
+    "nom": "Dimensions et hauteur",
     "type": "texte",
-    "aide": "Au mètre ruban, la hauteur et la largeur d'une porte, d'une fenêtre ou d'une porte de garage visible sur la photo. Rien de mesurable sur ce mur ? Donnez sa longueur au sol."
+    "aide": "Longueur, largeur, hauteur, type de toit (lames, toile, vitré), couleur. Inutile si vous envoyez la fiche du modèle.",
+    "exemple": "Exemple : 4 m x 3 m, 2,50 m de haut, alu gris foncé, toit à lames",
+    "sauf": "modele"
    },
    {
     "id": "adossee-ou-autoportante",
-    "nom": "Adossée ou autoportante",
+    "nom": "Fixée à la maison ou posée seule ?",
     "type": "texte",
-    "aide": "Fixée à la maison ou indépendante."
+    "aide": "",
+    "exemple": "Exemple : fixée au mur de la terrasse"
+   },
+   {
+    "id": "facade",
+    "nom": "La façade concernée, vue de face",
+    "type": "photo",
+    "aide": "Placez-vous bien en face, à 10 ou 15 m, la façade entière dans la photo, sans grand angle."
+   },
+   {
+    "id": "porte",
+    "nom": "Une mesure de repère sur la façade concernée",
+    "type": "texte",
+    "aide": "Au mètre ruban : la hauteur et la largeur d'une porte, d'une fenêtre ou d'une porte de garage que l'on voit sur la photo. Rien à mesurer sur ce mur ? Donnez sa longueur au sol. Inutile si vous envoyez vos plans.",
+    "exemple": "Exemple : porte d'entrée, 2,15 m de haut et 0,90 m de large",
+    "sauf": "plans"
    }
   ],
   "piscine": [
    {
-    "id": "dimensions-et-profondeur-du",
+    "id": "dimensions",
     "nom": "Dimensions et profondeur du bassin",
     "type": "texte",
-    "aide": "Et la forme : rectangle, ovale, libre."
+    "aide": "Et sa forme.",
+    "exemple": "Exemple : 8 m x 4 m, 1,50 m de profondeur, rectangle"
    },
    {
-    "id": "enterree-ou-hors-sol-abri-ev",
-    "nom": "Enterrée ou hors-sol, abri éventuel",
+    "id": "enterree",
+    "nom": "Enterrée ou hors-sol ? Un abri ?",
     "type": "texte",
-    "aide": "Si abri : sa hauteur."
+    "aide": "Si un abri est prévu : sa hauteur.",
+    "exemple": "Exemple : enterrée, sans abri"
    },
    {
-    "id": "local-technique-et-plage",
-    "nom": "Local technique et plage",
+    "id": "plage",
+    "nom": "Plage et local technique",
     "type": "texte",
-    "aide": "Emplacement et dimensions, s'ils existent.",
+    "aide": "S'ils sont prévus : où et quelles dimensions.",
+    "exemple": "Exemple : plage en bois de 1 m autour, local technique de 2 m x 1,5 m à côté",
     "facultatif": true
    },
    {
     "id": "limite",
-    "nom": "Distance à la limite la plus proche",
+    "nom": "Distance au terrain voisin le plus proche",
     "type": "texte",
-    "aide": "Au mètre ruban, depuis la clôture ou la borne. Facultatif si vous ne savez pas, on la calcule sur le cadastre.",
+    "aide": "Au mètre ruban, de la construction prévue jusqu'à la clôture ou la borne. Si vous ne savez pas, on la lit sur le cadastre.",
+    "exemple": "Exemple : 1,50 m de la clôture du voisin de droite",
     "facultatif": true
    }
   ],
@@ -158,67 +187,73 @@
     "id": "ce-que-vous-faites",
     "nom": "Ce que vous faites",
     "type": "texte",
-    "aide": "Terrasse, mur ou climatisation."
+    "aide": "Une terrasse, un mur ou une climatisation.",
+    "exemple": "Exemple : une terrasse en bois surélevée derrière la maison"
    },
    {
     "id": "dimensions",
-    "nom": "Dimensions",
+    "nom": "Les mesures",
     "type": "texte",
-    "aide": "Terrasse : surface et hauteur au-dessus du sol. Mur : longueur et hauteur."
+    "aide": "Terrasse : surface et hauteur au-dessus du sol. Mur : longueur et hauteur. Clim : la taille du groupe extérieur et où il sera fixé.",
+    "exemple": "Exemple : terrasse 5 m x 4 m, 40 cm au-dessus du jardin"
    },
    {
-    "id": "fiche-de-l-unite-exterieure",
-    "nom": "Fiche de l'unité extérieure",
+    "id": "fiche-clim",
+    "nom": "Pour une clim : la fiche du groupe extérieur",
     "type": "fichier",
-    "aide": "Pour une clim : dimensions et emplacement sur la façade.",
+    "aide": "La notice, ou une photo de l'étiquette.",
     "facultatif": true
    },
    {
     "id": "facade",
-    "nom": "Photo de face de la façade concernée",
+    "nom": "La façade ou l'endroit concerné, vu de face",
     "type": "photo",
-    "aide": "Bien en face, façade entière, sans grand angle."
+    "aide": "Placez-vous bien en face, à 10 ou 15 m, la façade entière dans la photo, sans grand angle."
    }
   ],
   "cloture": [
    {
     "id": "longueur-hauteur-et-type",
-    "nom": "Longueur, hauteur et type",
+    "nom": "Longueur, hauteur et type de clôture",
     "type": "texte",
-    "aide": "Grillage, panneaux, muret et grille."
+    "aide": "",
+    "exemple": "Exemple : 25 m le long de la rue, 1,60 m de haut, muret de 40 cm avec grillage rigide dessus"
    },
    {
     "id": "couleur",
     "nom": "Couleur",
     "type": "texte",
-    "aide": "Référence RAL si vous l'avez."
+    "aide": "La référence RAL si vous l'avez.",
+    "exemple": "Exemple : gris anthracite (RAL 7016)"
    },
    {
-    "id": "photos-depuis-la-rue",
-    "nom": "Photos depuis la rue",
+    "id": "rue",
+    "nom": "La clôture actuelle vue de la rue",
     "type": "photo",
-    "aide": "Tout le linéaire concerné."
+    "aide": "Tout le long concerné, en plusieurs photos si besoin."
    }
   ],
   "portail": [
    {
     "id": "modele",
-    "nom": "Fiche ou lien du modèle",
+    "nom": "La fiche du modèle choisi",
     "type": "fichier",
-    "aide": "Largeur, hauteur, matériau, couleur.",
+    "aide": "Capture d'écran, lien ou devis : on y lit la largeur, la hauteur et la couleur.",
     "facultatif": true
    },
    {
-    "id": "rue",
-    "nom": "Photo depuis la rue",
-    "type": "photo",
-    "aide": "Avec l'emplacement du portail."
+    "id": "largeur-et-hauteur",
+    "nom": "Largeur, hauteur et matériau",
+    "type": "texte",
+    "aide": "Battant ou coulissant ? Inutile si vous envoyez la fiche du modèle.",
+    "exemple": "Exemple : 3,50 m de large, 1,60 m de haut, alu gris, coulissant",
+    "sauf": "modele"
    },
    {
-    "id": "largeur-et-hauteur",
-    "nom": "Largeur et hauteur",
-    "type": "texte",
-    "aide": "Si vous n'avez pas de fiche modèle."
+    "id": "rue",
+    "nom": "L'entrée actuelle vue de la rue",
+    "type": "photo",
+    "aide": "Là où se trouvera le portail."
    }
   ],
   "extension": [
@@ -226,43 +261,43 @@
     "id": "surface",
     "nom": "Surface de votre maison",
     "type": "texte",
-    "aide": "Sur l'acte de vente, un diagnostic, l'annonce ou impots.gouv.fr (Gérer mes biens immobiliers)."
+    "aide": "Elle est écrite sur l'acte de vente, le diagnostic, l'annonce, ou sur impots.gouv.fr (rubrique Gérer mes biens immobiliers). À peu près suffit. Inutile si vous envoyez vos plans.",
+    "exemple": "Exemple : 95 m² environ",
+    "sauf": "plans"
    },
    {
     "id": "croquis",
-    "nom": "Croquis",
+    "nom": "Un croquis de l'extension",
     "type": "fichier",
-    "aide": "Même à main levée : emprise, hauteur, forme du toit."
+    "aide": "Même à la main : la forme vue de dessus avec les mesures, la hauteur, et le toit (plat ou en pente). Prenez-le en photo."
    },
    {
     "id": "materiaux-et-couleurs",
     "nom": "Matériaux et couleurs",
     "type": "texte",
-    "aide": "Murs, toit, menuiseries."
+    "aide": "Les murs, le toit, les fenêtres.",
+    "exemple": "Exemple : murs enduits beige comme la maison, toit en tuiles rouges, fenêtres alu gris"
    },
    {
-    "id": "facade",
-    "nom": "Photo de face de la façade concernée",
+    "id": "facades",
+    "nom": "Chaque côté de la maison, vu de face",
     "type": "photo",
-    "aide": "Bien en face, façade entière, sans grand angle."
+    "aide": "Une photo par côté, la maison entière. Commencez par le côté où se fera l'extension."
    },
    {
     "id": "porte",
-    "nom": "Une mesure de repère sur cette façade",
+    "nom": "Une mesure de repère sur le côté des travaux",
     "type": "texte",
-    "aide": "Au mètre ruban, la hauteur et la largeur d'une porte, d'une fenêtre ou d'une porte de garage visible sur la photo. Rien de mesurable sur ce mur ? Donnez sa longueur au sol."
-   },
-   {
-    "id": "photos-de-toutes-les-facades",
-    "nom": "Photos de toutes les façades",
-    "type": "photo",
-    "aide": "Une photo de face par côté de la maison."
+    "aide": "Au mètre ruban : la hauteur et la largeur d'une porte, d'une fenêtre ou d'une porte de garage que l'on voit sur la photo. Rien à mesurer sur ce mur ? Donnez sa longueur au sol. Inutile si vous envoyez vos plans.",
+    "exemple": "Exemple : porte d'entrée, 2,15 m de haut et 0,90 m de large",
+    "sauf": "plans"
    },
    {
     "id": "limite",
-    "nom": "Distance à la limite la plus proche",
+    "nom": "Distance au terrain voisin le plus proche",
     "type": "texte",
-    "aide": "Au mètre ruban, depuis la clôture ou la borne. Facultatif si vous ne savez pas, on la calcule sur le cadastre.",
+    "aide": "Au mètre ruban, de la construction prévue jusqu'à la clôture ou la borne. Si vous ne savez pas, on la lit sur le cadastre.",
+    "exemple": "Exemple : 1,50 m de la clôture du voisin de droite",
     "facultatif": true
    }
   ],
@@ -271,32 +306,45 @@
     "id": "surface",
     "nom": "Surface de votre maison",
     "type": "texte",
-    "aide": "Sur l'acte de vente, un diagnostic, l'annonce ou impots.gouv.fr (Gérer mes biens immobiliers)."
+    "aide": "Elle est écrite sur l'acte de vente, le diagnostic, l'annonce, ou sur impots.gouv.fr (rubrique Gérer mes biens immobiliers). À peu près suffit. Inutile si vous envoyez vos plans.",
+    "exemple": "Exemple : 95 m² environ",
+    "sauf": "plans"
    },
    {
-    "id": "plans-ou-devis-du-verandalis",
+    "id": "devis",
     "nom": "Plans ou devis du vérandaliste",
     "type": "fichier",
-    "aide": "Dimensions, profilés, toiture, couleur.",
+    "aide": "Si vous en avez un : on y trouve les dimensions et les couleurs.",
     "facultatif": true
    },
    {
+    "id": "dimensions-et-hauteur",
+    "nom": "Dimensions et hauteur",
+    "type": "texte",
+    "aide": "Longueur, largeur, hauteur contre la maison, couleur, type de toit. Inutile si vous envoyez le devis.",
+    "exemple": "Exemple : 4 m x 3 m, 2,80 m de haut contre la maison, alu blanc, toit en polycarbonate",
+    "sauf": "devis"
+   },
+   {
     "id": "facade",
-    "nom": "Photo de face de la façade concernée",
+    "nom": "La façade concernée, vue de face",
     "type": "photo",
-    "aide": "Bien en face, façade entière, sans grand angle."
+    "aide": "Placez-vous bien en face, à 10 ou 15 m, la façade entière dans la photo, sans grand angle."
    },
    {
     "id": "porte",
-    "nom": "Une mesure de repère sur cette façade",
+    "nom": "Une mesure de repère sur la façade concernée",
     "type": "texte",
-    "aide": "Au mètre ruban, la hauteur et la largeur d'une porte, d'une fenêtre ou d'une porte de garage visible sur la photo. Rien de mesurable sur ce mur ? Donnez sa longueur au sol."
+    "aide": "Au mètre ruban : la hauteur et la largeur d'une porte, d'une fenêtre ou d'une porte de garage que l'on voit sur la photo. Rien à mesurer sur ce mur ? Donnez sa longueur au sol. Inutile si vous envoyez vos plans.",
+    "exemple": "Exemple : porte d'entrée, 2,15 m de haut et 0,90 m de large",
+    "sauf": "plans"
    },
    {
     "id": "limite",
-    "nom": "Distance à la limite la plus proche",
+    "nom": "Distance au terrain voisin le plus proche",
     "type": "texte",
-    "aide": "Au mètre ruban, depuis la clôture ou la borne. Facultatif si vous ne savez pas, on la calcule sur le cadastre.",
+    "aide": "Au mètre ruban, de la construction prévue jusqu'à la clôture ou la borne. Si vous ne savez pas, on la lit sur le cadastre.",
+    "exemple": "Exemple : 1,50 m de la clôture du voisin de droite",
     "facultatif": true
    }
   ],
@@ -305,25 +353,29 @@
     "id": "surface",
     "nom": "Surface de votre maison",
     "type": "texte",
-    "aide": "Sur l'acte de vente, un diagnostic, l'annonce ou impots.gouv.fr (Gérer mes biens immobiliers)."
+    "aide": "Elle est écrite sur l'acte de vente, le diagnostic, l'annonce, ou sur impots.gouv.fr (rubrique Gérer mes biens immobiliers). À peu près suffit. Inutile si vous envoyez vos plans.",
+    "exemple": "Exemple : 95 m² environ",
+    "sauf": "plans"
    },
    {
-    "id": "surface-des-combles-a-plus-d",
-    "nom": "Surface des combles à plus de 1,80 m",
+    "id": "surface-combles",
+    "nom": "Surface des combles où l'on tient debout",
     "type": "texte",
-    "aide": "Et la hauteur sous le faîtage."
+    "aide": "La partie à plus de 1,80 m sous le toit, et la hauteur au plus haut.",
+    "exemple": "Exemple : 35 m² environ, 2,60 m au plus haut"
    },
    {
-    "id": "fenetres-de-toit-ou-lucarnes",
+    "id": "fenetres",
     "nom": "Fenêtres de toit ou lucarnes prévues",
     "type": "texte",
-    "aide": "Nombre, dimensions, côté du toit."
+    "aide": "Combien, quelle taille, de quel côté.",
+    "exemple": "Exemple : 2 fenêtres de toit côté jardin, 78 x 98 cm"
    },
    {
-    "id": "photos-de-la-toiture-et-de-l",
-    "nom": "Photos de la toiture et de l'intérieur des combles",
+    "id": "photos-toit",
+    "nom": "Le toit et l'intérieur des combles",
     "type": "photo",
-    "aide": ""
+    "aide": "Chaque côté du toit depuis l'extérieur, et l'intérieur des combles."
    }
   ],
   "surelevation": [
@@ -331,32 +383,29 @@
     "id": "surface",
     "nom": "Surface de votre maison",
     "type": "texte",
-    "aide": "Sur l'acte de vente, un diagnostic, l'annonce ou impots.gouv.fr (Gérer mes biens immobiliers)."
+    "aide": "Elle est écrite sur l'acte de vente, le diagnostic, l'annonce, ou sur impots.gouv.fr (rubrique Gérer mes biens immobiliers). À peu près suffit. Inutile si vous envoyez vos plans.",
+    "exemple": "Exemple : 95 m² environ",
+    "sauf": "plans"
    },
    {
-    "id": "plans",
-    "nom": "Plans existants",
+    "id": "croquis",
+    "nom": "Un croquis de l'étage voulu",
     "type": "fichier",
-    "aide": "Fortement recommandés pour une surélévation.",
-    "facultatif": true
+    "aide": "Même à la main : la hauteur ajoutée, la forme du toit, les fenêtres."
    },
    {
-    "id": "croquis-de-l-etage-voulu",
-    "nom": "Croquis de l'étage voulu",
-    "type": "fichier",
-    "aide": "Hauteur ajoutée, matériaux."
-   },
-   {
-    "id": "photos-de-toutes-les-facades",
-    "nom": "Photos de toutes les façades",
+    "id": "facades",
+    "nom": "Chaque côté de la maison, vu de face",
     "type": "photo",
-    "aide": "Une photo de face par côté."
+    "aide": "Une photo par côté, la maison entière. Commencez par la façade sur rue."
    },
    {
     "id": "porte",
-    "nom": "Une mesure de repère sur cette façade",
+    "nom": "Une mesure de repère sur la façade de devant",
     "type": "texte",
-    "aide": "Au mètre ruban, la hauteur et la largeur d'une porte, d'une fenêtre ou d'une porte de garage visible sur la photo. Rien de mesurable sur ce mur ? Donnez sa longueur au sol."
+    "aide": "Au mètre ruban : la hauteur et la largeur d'une porte, d'une fenêtre ou d'une porte de garage que l'on voit sur la photo. Rien à mesurer sur ce mur ? Donnez sa longueur au sol. Inutile si vous envoyez vos plans.",
+    "exemple": "Exemple : porte d'entrée, 2,15 m de haut et 0,90 m de large",
+    "sauf": "plans"
    }
   ],
   "garage": [
@@ -364,129 +413,147 @@
     "id": "surface",
     "nom": "Surface de votre maison",
     "type": "texte",
-    "aide": "Sur l'acte de vente, un diagnostic, l'annonce ou impots.gouv.fr (Gérer mes biens immobiliers)."
+    "aide": "Elle est écrite sur l'acte de vente, le diagnostic, l'annonce, ou sur impots.gouv.fr (rubrique Gérer mes biens immobiliers). À peu près suffit. Inutile si vous envoyez vos plans.",
+    "exemple": "Exemple : 95 m² environ",
+    "sauf": "plans"
    },
    {
     "id": "dimensions-du-garage",
     "nom": "Dimensions du garage",
     "type": "texte",
-    "aide": "Longueur, largeur, hauteur."
+    "aide": "Longueur, largeur, hauteur sous plafond. Inutile si vous envoyez vos plans.",
+    "exemple": "Exemple : 6 m x 3 m, 2,40 m sous plafond",
+    "sauf": "plans"
    },
    {
     "id": "ce-qui-remplace-la-porte",
-    "nom": "Ce qui remplace la porte",
+    "nom": "Ce qui remplace la porte de garage",
     "type": "texte",
-    "aide": "Baie, fenêtre, mur."
+    "aide": "",
+    "exemple": "Exemple : une grande fenêtre et un mur enduit comme le reste"
    },
    {
-    "id": "places-de-stationnement-rest",
-    "nom": "Places de stationnement restantes",
+    "id": "stationnement",
+    "nom": "Où se gareront les voitures ensuite",
     "type": "texte",
-    "aide": "Combien de voitures peuvent encore se garer sur le terrain."
+    "aide": "La mairie vérifie qu'il reste de la place sur le terrain.",
+    "exemple": "Exemple : 2 voitures devant la maison"
    },
    {
     "id": "facade",
-    "nom": "Photo de face de la façade concernée",
+    "nom": "La façade concernée, vue de face",
     "type": "photo",
-    "aide": "Bien en face, façade entière, sans grand angle."
+    "aide": "Placez-vous bien en face, à 10 ou 15 m, la façade entière dans la photo, sans grand angle."
    },
    {
     "id": "porte",
-    "nom": "Une mesure de repère sur cette façade",
+    "nom": "Une mesure de repère sur la façade concernée",
     "type": "texte",
-    "aide": "Au mètre ruban, la hauteur et la largeur d'une porte, d'une fenêtre ou d'une porte de garage visible sur la photo. Rien de mesurable sur ce mur ? Donnez sa longueur au sol."
+    "aide": "Au mètre ruban : la hauteur et la largeur d'une porte, d'une fenêtre ou d'une porte de garage que l'on voit sur la photo. Rien à mesurer sur ce mur ? Donnez sa longueur au sol. Inutile si vous envoyez vos plans.",
+    "exemple": "Exemple : porte d'entrée, 2,15 m de haut et 0,90 m de large",
+    "sauf": "plans"
    }
   ],
   "menuiseries": [
    {
-    "id": "liste-des-elements-changes",
-    "nom": "Liste des éléments changés",
+    "id": "liste",
+    "nom": "Ce que vous changez",
     "type": "texte",
-    "aide": "Où ils sont, dimensions, matériau, couleur (RAL), type d'ouverture."
+    "aide": "Quelles fenêtres, portes ou volets, en quelle matière et quelle couleur.",
+    "exemple": "Exemple : les 3 fenêtres côté rue et la porte d'entrée, PVC blanc remplacé par alu gris foncé"
    },
    {
-    "id": "devis-ou-fiche-du-menuisier",
-    "nom": "Devis ou fiche du menuisier",
+    "id": "devis",
+    "nom": "Le devis du menuisier",
     "type": "fichier",
-    "aide": "",
+    "aide": "Si vous l'avez : tout y est.",
     "facultatif": true
    },
    {
     "id": "facade",
-    "nom": "Photo de face de la façade concernée",
+    "nom": "Chaque façade où quelque chose change, vue de face",
     "type": "photo",
-    "aide": "Bien en face, façade entière, sans grand angle."
+    "aide": "Placez-vous bien en face, à 10 ou 15 m, la façade entière dans la photo, sans grand angle."
    },
    {
-    "id": "photo-rapprochee-de-l-exista",
-    "nom": "Photo rapprochée de l'existant",
+    "id": "photo-rapprochee",
+    "nom": "Une photo de près de ce qui sera changé",
     "type": "photo",
-    "aide": ""
+    "aide": "Une fenêtre ou un volet actuel, de près."
    },
    {
     "id": "porte",
-    "nom": "Une mesure de repère sur cette façade",
+    "nom": "Une mesure de repère sur la façade concernée",
     "type": "texte",
-    "aide": "Au mètre ruban, la hauteur et la largeur d'une porte, d'une fenêtre ou d'une porte de garage visible sur la photo. Rien de mesurable sur ce mur ? Donnez sa longueur au sol."
+    "aide": "Au mètre ruban : la hauteur et la largeur d'une porte, d'une fenêtre ou d'une porte de garage que l'on voit sur la photo. Rien à mesurer sur ce mur ? Donnez sa longueur au sol. Inutile si vous envoyez vos plans.",
+    "exemple": "Exemple : porte d'entrée, 2,15 m de haut et 0,90 m de large",
+    "sauf": "plans"
    }
   ],
   "velux": [
    {
     "id": "nombre-et-reference",
-    "nom": "Nombre et référence",
+    "nom": "Combien, et quel modèle",
     "type": "texte",
-    "aide": "La référence du fabricant donne les dimensions."
+    "aide": "La référence du fabricant donne la taille. Sinon la taille approximative.",
+    "exemple": "Exemple : 2 Velux GGL MK04 (78 x 98 cm)"
    },
    {
     "id": "photo-du-pan-de-toit",
-    "nom": "Photo du pan de toit",
+    "nom": "Le côté du toit concerné",
     "type": "photo",
-    "aide": ""
+    "aide": "Depuis le jardin ou la rue, tout le pan de toit."
    },
    {
-    "id": "position-sur-le-toit",
-    "nom": "Position sur le toit",
+    "id": "position",
+    "nom": "Où sur le toit",
     "type": "texte",
-    "aide": "Hauteur et emplacement approximatifs."
+    "aide": "",
+    "exemple": "Exemple : côté jardin, au-dessus de la chambre, à mi-hauteur du toit"
    }
   ],
   "lucarne": [
    {
-    "id": "type-largeur-et-hauteur",
-    "nom": "Type, largeur et hauteur",
+    "id": "type",
+    "nom": "Ce que vous imaginez",
     "type": "texte",
-    "aide": "Ce que vous imaginez, même approximatif."
+    "aide": "Même approximatif.",
+    "exemple": "Exemple : une lucarne à 2 pans de 1,20 m de large, comme chez le voisin"
    },
    {
-    "id": "photos-de-la-toiture-et-de-l",
-    "nom": "Photos de la toiture et de la façade",
+    "id": "photos-toit",
+    "nom": "Le toit et la façade concernés, vus de face",
     "type": "photo",
     "aide": ""
    },
    {
     "id": "porte",
-    "nom": "Une mesure de repère sur cette façade",
+    "nom": "Une mesure de repère sur la façade concernée",
     "type": "texte",
-    "aide": "Au mètre ruban, la hauteur et la largeur d'une porte, d'une fenêtre ou d'une porte de garage visible sur la photo. Rien de mesurable sur ce mur ? Donnez sa longueur au sol."
+    "aide": "Au mètre ruban : la hauteur et la largeur d'une porte, d'une fenêtre ou d'une porte de garage que l'on voit sur la photo. Rien à mesurer sur ce mur ? Donnez sa longueur au sol. Inutile si vous envoyez vos plans.",
+    "exemple": "Exemple : porte d'entrée, 2,15 m de haut et 0,90 m de large",
+    "sauf": "plans"
    }
   ],
   "toiture": [
    {
-    "id": "materiau-actuel-et-futur",
-    "nom": "Matériau actuel et futur",
+    "id": "materiau",
+    "nom": "Couverture actuelle et future",
     "type": "texte",
-    "aide": "Référence et teinte."
+    "aide": "Type de tuiles ou d'ardoises, couleur.",
+    "exemple": "Exemple : tuiles rouges anciennes, remplacées par des tuiles rouges neuves du même type"
    },
    {
-    "id": "changement-de-pente-ou-de-ha",
-    "nom": "Changement de pente ou de hauteur",
+    "id": "pente",
+    "nom": "Le toit change-t-il de hauteur ou de pente ?",
     "type": "texte",
-    "aide": "Isolation par l'extérieur : épaisseur.",
+    "aide": "Par exemple une isolation par l'extérieur : son épaisseur.",
+    "exemple": "Exemple : non. Ou : isolation de 20 cm posée sur le toit",
     "facultatif": true
    },
    {
-    "id": "photos-de-tous-les-pans-visi",
-    "nom": "Photos de tous les pans visibles",
+    "id": "photos-toit",
+    "nom": "Tous les côtés du toit visibles",
     "type": "photo",
     "aide": ""
    }
@@ -494,127 +561,138 @@
   "facade": [
    {
     "id": "teinte",
-    "nom": "Teinte",
+    "nom": "La nouvelle couleur",
     "type": "texte",
-    "aide": "Référence du nuancier."
+    "aide": "La référence du nuancier si vous l'avez, sinon décrivez-la.",
+    "exemple": "Exemple : enduit beige clair, volets et porte gris foncé"
    },
    {
-    "id": "isolation-par-l-exterieur",
-    "nom": "Isolation par l'extérieur",
+    "id": "isolation",
+    "nom": "Isolation par l'extérieur ?",
     "type": "texte",
-    "aide": "Si oui : épaisseur.",
+    "aide": "Si oui : son épaisseur.",
+    "exemple": "Exemple : oui, 14 cm",
     "facultatif": true
    },
    {
-    "id": "photos-de-chaque-facade-conc",
-    "nom": "Photos de chaque façade concernée",
+    "id": "facade",
+    "nom": "Chaque façade à refaire, vue de face",
     "type": "photo",
-    "aide": "De face, entière."
+    "aide": "Placez-vous bien en face, la façade entière dans la photo."
    },
    {
     "id": "porte",
-    "nom": "Une mesure de repère sur cette façade",
+    "nom": "Une mesure de repère sur la façade concernée",
     "type": "texte",
-    "aide": "Au mètre ruban, la hauteur et la largeur d'une porte, d'une fenêtre ou d'une porte de garage visible sur la photo. Rien de mesurable sur ce mur ? Donnez sa longueur au sol."
+    "aide": "Au mètre ruban : la hauteur et la largeur d'une porte, d'une fenêtre ou d'une porte de garage que l'on voit sur la photo. Rien à mesurer sur ce mur ? Donnez sa longueur au sol. Inutile si vous envoyez vos plans.",
+    "exemple": "Exemple : porte d'entrée, 2,15 m de haut et 0,90 m de large",
+    "sauf": "plans"
    }
   ],
   "solaire": [
    {
-    "id": "nombre-et-dimensions-des-pan",
+    "id": "panneaux",
     "nom": "Nombre et dimensions des panneaux",
     "type": "texte",
-    "aide": "Référence du fabricant si vous l'avez."
+    "aide": "La référence du fabricant si vous l'avez.",
+    "exemple": "Exemple : 8 panneaux de 1,70 m x 1,10 m, noirs"
    },
    {
     "id": "pose",
-    "nom": "Pose",
+    "nom": "Comment sont-ils posés",
     "type": "texte",
-    "aide": "Intégrée au toit, posée dessus, ou au sol."
+    "aide": "Sur les tuiles, encastrés dans le toit, ou au sol.",
+    "exemple": "Exemple : posés sur les tuiles"
    },
    {
     "id": "photo-du-pan-de-toit",
-    "nom": "Photo du pan de toit",
+    "nom": "Le côté du toit concerné",
     "type": "photo",
-    "aide": ""
+    "aide": "Depuis le jardin ou la rue, tout le pan de toit."
    },
    {
     "id": "rue",
-    "nom": "Photo depuis la rue",
+    "nom": "Votre maison vue de la rue",
     "type": "photo",
-    "aide": ""
+    "aide": "Pour voir si les panneaux seront visibles depuis la rue."
    }
   ],
   "maison": [
    {
     "id": "plans-de-la-maison",
-    "nom": "Plans de la maison",
+    "nom": "Les plans de la maison",
     "type": "fichier",
-    "aide": "Du constructeur ou les vôtres : plans, façades, coupe. PDF ou DWG."
+    "aide": "Du constructeur ou les vôtres : chaque niveau, les façades, une coupe. PDF ou DWG."
    },
    {
-    "id": "plan-de-bornage-ou-plan-de-v",
-    "nom": "Plan de bornage ou plan de vente du lot",
+    "id": "plan-du-terrain",
+    "nom": "Le plan du terrain",
     "type": "fichier",
-    "aide": ""
+    "aide": "Plan de bornage du géomètre ou plan de vente du lot : il donne les limites exactes."
    },
    {
-    "id": "notice-descriptive-du-constr",
-    "nom": "Notice descriptive du constructeur",
+    "id": "notice",
+    "nom": "La notice du constructeur",
     "type": "fichier",
-    "aide": "Pour l'attestation énergétique : isolation, chauffage, menuiseries.",
+    "aide": "Isolation, chauffage, fenêtres : il nous la faut pour l'attestation énergétique.",
     "facultatif": true
    },
    {
     "id": "reglement-de-lotissement",
-    "nom": "Règlement de lotissement",
+    "nom": "Le règlement du lotissement",
     "type": "fichier",
     "aide": "Si le terrain est dans un lotissement.",
     "facultatif": true
    },
    {
     "id": "assainissement",
-    "nom": "Assainissement",
+    "nom": "Les eaux usées",
     "type": "texte",
-    "aide": "Tout-à-l'égout ou fosse. Si fosse : attestation du SPANC."
+    "aide": "Tout-à-l'égout ou fosse ? Si fosse : l'attestation du SPANC (service de la mairie).",
+    "exemple": "Exemple : tout-à-l'égout"
    },
    {
-    "id": "photos-du-terrain-et-des-acc",
-    "nom": "Photos du terrain et des accès",
+    "id": "photos-terrain",
+    "nom": "Le terrain et son accès",
     "type": "photo",
-    "aide": "Compteurs, regards, arbres à abattre."
+    "aide": "Depuis la rue et depuis l'intérieur du terrain : l'entrée, les compteurs, les arbres."
    }
   ],
   "usage": [
    {
-    "id": "usage-actuel-du-local",
-    "nom": "Usage actuel du local",
+    "id": "preuve-usage",
+    "nom": "Un papier qui montre l'usage actuel",
     "type": "fichier",
-    "aide": "Acte ou taxe foncière qui le prouve."
+    "aide": "Acte de vente ou taxe foncière : on y lit si c'est un commerce, un bureau, un logement."
    },
    {
-    "id": "surfaces-ou-plans-existants",
-    "nom": "Surfaces ou plans existants",
+    "id": "surfaces",
+    "nom": "Les surfaces",
     "type": "texte",
-    "aide": "Sinon les mesures pièce par pièce."
+    "aide": "Pièce par pièce. Inutile si vous envoyez vos plans.",
+    "exemple": "Exemple : boutique 40 m², réserve 15 m², WC 2 m²",
+    "sauf": "plans"
    },
    {
-    "id": "photos-interieur-et-exterieu",
-    "nom": "Photos intérieur et extérieur",
+    "id": "photos",
+    "nom": "Photos dedans et dehors",
     "type": "photo",
     "aide": ""
    },
    {
-    "id": "modifications-de-facade-prev",
-    "nom": "Modifications de façade prévues",
+    "id": "modifs-facade",
+    "nom": "Ce qui change sur la façade",
     "type": "texte",
     "aide": "",
+    "exemple": "Exemple : la vitrine devient une fenêtre et une porte",
     "facultatif": true
    },
    {
     "id": "assainissement",
-    "nom": "Assainissement",
+    "nom": "Les eaux usées",
     "type": "texte",
-    "aide": "Tout-à-l'égout ou fosse."
+    "aide": "Tout-à-l'égout ou fosse ?",
+    "exemple": "Exemple : tout-à-l'égout"
    }
   ],
   "demolition": [
@@ -622,32 +700,35 @@
     "id": "ce-qui-est-demoli",
     "nom": "Ce qui est démoli",
     "type": "texte",
-    "aide": "Totalement ou en partie, avec la surface."
+    "aide": "En entier ou en partie, avec la surface.",
+    "exemple": "Exemple : le garage de 20 m² au fond du jardin, en entier"
    },
    {
-    "id": "photos-de-la-construction-a",
-    "nom": "Photos de la construction à démolir",
+    "id": "photos",
+    "nom": "La construction à démolir, et autour",
     "type": "photo",
-    "aide": "Et de ses abords."
+    "aide": ""
    }
   ],
   "cu": [
    {
     "id": "type-de-certificat",
-    "nom": "Type de certificat",
+    "nom": "Quel certificat ?",
     "type": "texte",
-    "aide": "Simple information, ou faisabilité d'un projet précis."
+    "aide": "Simple information sur le terrain, ou faisabilité d'un projet précis.",
+    "exemple": "Exemple : savoir si je peux construire une maison de 120 m²"
    },
    {
     "id": "description-du-projet",
-    "nom": "Description du projet",
+    "nom": "Le projet, pour la faisabilité",
     "type": "texte",
-    "aide": "Pour la faisabilité : destination, surface, nombre de logements.",
+    "aide": "Usage, surface, nombre de logements.",
+    "exemple": "Exemple : une maison de 120 m² avec garage",
     "facultatif": true
    },
    {
-    "id": "croquis-d-implantation",
-    "nom": "Croquis d'implantation",
+    "id": "croquis",
+    "nom": "Un croquis d'implantation",
     "type": "fichier",
     "aide": "Pour la faisabilité, si vous en avez un.",
     "facultatif": true
@@ -655,63 +736,66 @@
   ],
   "modif": [
    {
-    "id": "arrete-du-permis-accorde",
-    "nom": "Arrêté du permis accordé",
+    "id": "arrete",
+    "nom": "La décision de la mairie (l'arrêté) du permis accordé",
     "type": "fichier",
     "aide": ""
    },
    {
-    "id": "dossier-depose-a-l-epoque",
-    "nom": "Dossier déposé à l'époque",
+    "id": "dossier",
+    "nom": "Le dossier déposé à l'époque",
     "type": "fichier",
-    "aide": "Cerfa et plans."
+    "aide": "Le formulaire et les plans."
    },
    {
     "id": "ce-qui-change",
     "nom": "Ce qui change",
     "type": "texte",
-    "aide": "Description précise, plans de l'entreprise si disponibles."
+    "aide": "Les plans de l'entreprise si vous les avez.",
+    "exemple": "Exemple : la fenêtre de la cuisine devient une porte-fenêtre"
    }
   ],
   "daact": [
    {
-    "id": "arrete-de-l-autorisation",
-    "nom": "Arrêté de l'autorisation",
+    "id": "arrete",
+    "nom": "La décision de la mairie (l'arrêté)",
     "type": "fichier",
-    "aide": "Avec son numéro."
+    "aide": "Son numéro y figure."
    },
    {
-    "id": "date-de-fin-des-travaux",
+    "id": "date-de-fin",
     "nom": "Date de fin des travaux",
     "type": "texte",
-    "aide": ""
+    "aide": "",
+    "exemple": "Exemple : fin mars 2026"
    },
    {
-    "id": "attestation-energetique-de-f",
-    "nom": "Attestation énergétique de fin de travaux",
+    "id": "attestation-energetique",
+    "nom": "L'attestation énergétique de fin de travaux",
     "type": "fichier",
-    "aide": "Pour une maison neuve.",
+    "aide": "Seulement pour une maison neuve ou une grosse extension.",
     "facultatif": true
    }
   ]
  },
  "regul": [
   {
-   "id": "regul-date-approximative-des-trava",
-   "nom": "Date approximative des travaux",
+   "id": "regul-date",
+   "nom": "Quand les travaux ont-ils été faits ?",
    "type": "texte",
-   "aide": ""
+   "aide": "À peu près suffit.",
+   "exemple": "Exemple : été 2019"
   },
   {
    "id": "regul-factures",
-   "nom": "Factures",
+   "nom": "Les factures",
    "type": "fichier",
-   "aide": "Si vous les avez.",
+   "aide": "Si vous les avez : elles datent les travaux.",
    "facultatif": true
   },
   {
-   "id": "regul-photos-de-l-etat-actuel",
-   "nom": "Photos de l'état actuel",
+   "id": "regul-photos",
+   "nom": "L'état actuel",
    "type": "photo",
    "aide": "Sous tous les angles."
   }
@@ -719,35 +803,44 @@
  "situations": {
   "secteur_protege": [
    {
-    "id": "secte-references-exactes-des-mater",
-    "nom": "Références exactes des matériaux et teintes",
+    "id": "secte-references",
+    "nom": "Les références exactes des matériaux et couleurs",
     "type": "texte",
-    "aide": "RAL, nuancier, fiche fabricant."
+    "aide": "L'Architecte des Bâtiments de France les exige : RAL, nom du nuancier, fiche du fabricant.",
+    "exemple": "Exemple : tuiles terre cuite rouge vieilli, volets bois peints RAL 6005"
    },
    {
-    "id": "secte-photos-rapprochees-des-menui",
-    "nom": "Photos rapprochées des menuiseries et matériaux existants",
+    "id": "secte-photos",
+    "nom": "Photos de près des fenêtres, volets et murs actuels",
     "type": "photo",
     "aide": ""
    }
   ],
   "copropriete": [
    {
-    "id": "copro-reglement-de-copropriete",
-    "nom": "Règlement de copropriété",
-    "type": "fichier",
-    "aide": ""
+    "id": "copro-ag",
+    "nom": "Où en est l'accord de la copropriété ?",
+    "type": "texte",
+    "aide": "Les travaux visibles de l'extérieur doivent être votés en assemblée générale.",
+    "exemple": "Exemple : voté à l'AG du 12 mars 2026. Ou : prochaine AG en juin"
    },
    {
-    "id": "copro-pv-d-assemblee-generale-auto",
-    "nom": "PV d'assemblée générale autorisant les travaux",
+    "id": "copro-pv",
+    "nom": "Le procès-verbal de l'assemblée qui autorise les travaux",
     "type": "fichier",
-    "aide": "Ou la date de la prochaine AG.",
+    "aide": "",
     "facultatif": true
    },
    {
-    "id": "copro-plan-du-lot",
-    "nom": "Plan du lot",
+    "id": "copro-reglement",
+    "nom": "Le règlement de copropriété",
+    "type": "fichier",
+    "aide": "",
+    "facultatif": true
+   },
+   {
+    "id": "copro-plan",
+    "nom": "Le plan de votre lot",
     "type": "fichier",
     "aide": "",
     "facultatif": true
@@ -755,7 +848,7 @@
   ],
   "lotissement": [
    {
-    "id": "lotis-reglement-et-cahier-des-char",
+    "id": "lotis-reglement",
     "nom": "Règlement et cahier des charges du lotissement",
     "type": "fichier",
     "aide": ""
@@ -763,7 +856,7 @@
   ],
   "locataire": [
    {
-    "id": "locat-accord-ecrit-du-proprietaire",
+    "id": "locat-accord",
     "nom": "Accord écrit du propriétaire",
     "type": "fichier",
     "aide": ""
