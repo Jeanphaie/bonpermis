@@ -12,7 +12,6 @@
     const r = await fetch('/api' + u, {method: m, headers: corps ? {'Content-Type': 'application/json'} : {}, body: corps ? JSON.stringify(corps) : undefined, credentials: 'same-origin'});
     return {ok: r.ok, s: r.status, j: await r.json().catch(() => ({}))};
   };
-  const ETATS = {manquant: 'À envoyer', a_verifier: 'Reçu', valide: 'Validé', a_refaire: 'À refaire'};
   let d, livrSel = null, envois = 0;
 
   async function charger() {
@@ -23,22 +22,45 @@
     d = r.j; afficher();
   }
 
+  // ---------- avancement en 5 étapes ----------
   function etapes() {
-    const ordre = ['elements', 'verification', 'preparation', 'apercu', 'livre'];
-    const i = d.statut === 'corrections' ? 3 : ordre.indexOf(d.statut);
+    const pos = {elements: 1, verification: 2, preparation: 3, apercu: 3, corrections: 3, livre: 5}[d.statut] ?? 1;
+    const delai = d.delai === 1 ? '24 h ouvrées' : d.delai === 2 ? '48 h ouvrées' : `${d.delai} jours ouvrés`;
     const L = [
-      ['Acompte reçu', d.paiements.acompte ? `${euro(d.paiements.acompte.montant)} le ${new Date(d.paiements.acompte.date).toLocaleDateString('fr-FR')}` : ''],
-      ['Vos éléments', `${d.recues.n} sur ${d.recues.sur} reçus`],
-      ['Vérification par l\'équipe', ''],
-      ['Plans en préparation', d.echeance ? 'Aperçu prévu au plus tard le ' + jour(d.echeance) : (d.delai === 1 ? 'en 24 h ouvrées' : d.delai === 2 ? 'en 48 h ouvrées' : `en ${d.delai} jours ouvrés`)],
-      ['Aperçu des plans et corrections', d.statut === 'corrections' ? 'Corrections en cours' : ''],
-      ['Solde, puis téléchargement', d.paiements.solde ? 'Réglé' : `${euro(d.solde)}`]
+      ['Acompte payé', d.paiements.acompte ? new Date(d.paiements.acompte.date).toLocaleDateString('fr-FR', {day: 'numeric', month: 'short'}) : ''],
+      ['Vos pièces', pos === 1 ? `En cours · ${d.recues.n} sur ${d.recues.sur}` : `${d.recues.n} sur ${d.recues.sur} reçues`],
+      ['Vérification', pos === 2 ? 'En cours, sous 24 h ouvrées' : 'sous 24 h ouvrées'],
+      ['Aperçu des plans', d.statut === 'preparation' && d.echeance ? 'Au plus tard le ' + jour(d.echeance) : d.statut === 'apercu' ? 'À relire' : d.statut === 'corrections' ? 'Corrections en cours' : delai],
+      ['Dossier prêt', d.paiements.solde ? 'Téléchargeable' : 'après le solde']
     ];
-    return '<ol class="etapes">' + L.map((x, k) => {
-      const c = k === 0 || k <= i ? 'fait' : (k === i + 1 ? 'encours' : '');
-      return `<li class="${d.statut === 'livre' ? 'fait' : c}"><span>${esc(x[0])}${x[1] ? `<small>${esc(x[1])}</small>` : ''}</span></li>`;
-    }).join('') + '</ol>';
+    return `<ol class="dz-etapes" aria-label="Avancement du dossier">${L.map((x, k) => {
+      const c = k < pos ? 'fait' : k === pos ? 'encours' : '';
+      return `<li class="${c}"${c === 'encours' ? ' aria-current="step"' : ''}><i aria-hidden="true"></i><span><b>${esc(x[0])}</b>${x[1] ? `<small>${esc(x[1])}</small>` : ''}</span></li>`;
+    }).join('')}</ol>`;
   }
+
+  // ---------- exemples de photos (dessins simples : bien / à éviter) ----------
+  const EX = {
+    face: '<rect y="80" width="150" height="24" fill="#B9C7A8"/><path d="M30 44 L75 18 L120 44 Z" fill="#8C5A4A"/><rect x="34" y="44" width="82" height="42" fill="#F3EDE2"/><rect x="68" y="58" width="14" height="28" fill="#6B7C93"/><rect x="42" y="54" width="16" height="14" fill="#9DB4D0"/><rect x="92" y="54" width="16" height="14" fill="#9DB4D0"/>',
+    biais: '<rect y="80" width="150" height="24" fill="#B9C7A8"/><path d="M20 50 L70 22 L140 36 L140 46 Z" fill="#8C5A4A"/><path d="M24 50 L140 44 L140 94 L24 86 Z" fill="#F3EDE2"/><path d="M96 58 L106 58 L106 90 L96 89 Z" fill="#6B7C93"/><path d="M34 58 L50 57 L50 70 L34 71 Z" fill="#9DB4D0"/>',
+    rue: '<rect y="76" width="150" height="28" fill="#9AA39A"/><rect x="8" y="34" width="38" height="44" fill="#E7E0D3"/><rect x="54" y="22" width="44" height="56" fill="#F1ECE2"/><path d="M50 24 L76 8 L102 24 Z" fill="#8C5A4A"/><rect x="104" y="38" width="38" height="40" fill="#DDD5C7"/><rect x="70" y="56" width="10" height="22" fill="#6B7C93"/>',
+    pres: '<rect width="150" height="104" fill="#F1ECE2"/><rect x="40" y="30" width="34" height="74" fill="#6B7C93"/><rect x="90" y="20" width="40" height="34" fill="#9DB4D0"/>',
+    nuit: '<rect width="150" height="104" fill="#2A2E38"/><rect x="24" y="30" width="96" height="56" fill="#3A3F4B"/>',
+    jour: '<rect width="150" height="104" fill="#CFE0F2"/><rect y="72" width="150" height="32" fill="#A9C08E"/><rect x="20" y="30" width="80" height="48" fill="#F3EDE2"/><rect x="104" y="58" width="30" height="20" fill="none" stroke="#0127B1" stroke-width="2" stroke-dasharray="4 3"/>',
+    menuiserie: '<rect width="150" height="104" fill="#E9E1D2"/><rect x="40" y="10" width="70" height="84" fill="#fff"/><rect x="48" y="18" width="24" height="68" fill="#AFC3DA"/><rect x="78" y="18" width="24" height="68" fill="#AFC3DA"/><rect x="10" y="10" width="26" height="84" fill="#5C7A64"/><rect x="114" y="10" width="26" height="84" fill="#5C7A64"/>',
+    flou: '<rect width="150" height="104" fill="#D9D3C7"/><rect x="30" y="20" width="90" height="64" rx="12" fill="#C9C1B3"/>'
+  };
+  // Exemples par pièce : [dessin, légende] pour « Bien » puis « À éviter ».
+  function exemples(p) {
+    const n = (p.id + ' ' + p.nom).toLowerCase();
+    if (p.type !== 'photo') return null;
+    if (/menuiser|mat[ée]ria/.test(n)) return [['menuiserie', 'à 1 ou 2 m, couleurs nettes'], ['flou', 'floue ou trop loin']];
+    if (/rue|loin/.test(n)) return [['rue', 'de loin, les voisines dans le cadre'], ['pres', 'trop près']];
+    if (/endroit|terrain/.test(n)) return [['jour', 'de jour, l\'endroit entier'], ['nuit', 'trop sombre']];
+    if (/fa[cç]ade|face|change|toit|mur/.test(n)) return [['face', 'bien en face, en entier'], ['biais', 'de biais ou coupée']];
+    return [['jour', 'en plein jour, en entier'], ['nuit', 'sombre ou floue']];
+  }
+  const figure = (k, bien, leg) => `<figure class="dz-ex ${bien ? 'bien' : 'mal'}"><div><svg viewBox="0 0 150 104" preserveAspectRatio="xMidYMid slice" aria-hidden="true">${EX[k]}</svg><span aria-hidden="true">${bien ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.4"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>' : '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.4"><path d="M6 6l12 12M18 6L6 18"/></svg>'}</span></div><figcaption><b>${bien ? 'Bien' : 'À éviter'}</b> : ${esc(leg)}</figcaption></figure>`;
 
   function vig(f) {
     const src = `/api/espace/voir?ref=${R}&id=${f.id}&taille=mini`;
@@ -47,23 +69,59 @@
     return `<span style="position:relative"><button class="vig" type="button" data-voir="${f.id}" aria-label="Voir ${esc(f.nom)}">${f.vue ? `<img src="${src}" alt="" loading="lazy">` : f.type.toUpperCase()}</button>${del}</span>`;
   }
 
-  function pieces() {
-    const modif = d.statut !== 'livre';
-    return d.pieces.map(p => {
-      const fs = d.fichiers.filter(f => f.piece === p.id);
-      const etat = p.etat, peutAjouter = modif && etat !== 'valide';
-      let corps = '';
-      if (p.type === 'plan') corps = `${p.plan ? `<div class="plan-mini" data-plan-ap="${p.id}"></div>${p.texte ? `<p style="white-space:pre-wrap;margin:8px 0 0;font-size:14px">${esc(p.texte)}</p>` : ''}` : ''}
-        ${modif && etat !== 'valide' ? `<div class="rang" style="margin-top:8px;gap:14px"><button class="btn petit${p.plan ? ' ghost' : ' blue-btn'}" type="button" data-plan="${p.id}">${p.plan ? 'Modifier sur le plan' : 'Placer mon projet sur le plan'}</button><button class="lien" type="button" data-autrement>Je préfère décrire autrement</button></div>` : ''}`;
-      else if (p.type === 'texte') corps = modif && etat !== 'valide'
-        ? `<label class="field" style="margin-top:8px"><span class="sr-only">${esc(p.nom)}</span><textarea data-texte="${p.id}" rows="3" maxlength="5000" aria-label="${esc(p.nom)}">${esc(p.texte)}</textarea></label><p class="save" data-save="${p.id}" aria-live="polite"></p>`
-        : `<p style="white-space:pre-wrap;margin:8px 0 0">${esc(p.texte) || '<span class="note">(vide)</span>'}</p>`;
-      else corps = `${fs.length ? `<div class="vignettes">${fs.map(vig).join('')}</div>` : ''}
-        ${peutAjouter ? `<label class="ajout">${fs.length ? 'Ajouter' : (p.type === 'photo' ? 'Prendre ou choisir une photo' : 'Ajouter un document')}<input type="file" multiple data-piece="${p.id}" accept="${p.type === 'photo' ? 'image/*' : 'image/*,application/pdf'}"></label>` : ''}
+  // ---------- pièces, par groupe ----------
+  const ETATS = {manquant: ['À envoyer', 'st-manquant'], a_verifier: ['Reçue, on vérifie', 'st-a_verifier'], valide: ['Validée', 'st-valide'], a_refaire: ['À refaire', 'st-a_refaire']};
+  function groupe(p) {
+    const id = p.id;
+    if (/^secte-/.test(id)) return 'abf';
+    if (/^(copro|lotis|locat)-/.test(id)) return 'situation';
+    if (/^regul-/.test(id)) return 'regul';
+    if (['rue', 'endroit', 'loin'].includes(id)) return 'lieu';
+    if (['plans', 'autre', 'documents'].includes(id)) return 'docs';
+    return 'projet';
+  }
+  const GROUPES = [['projet', 'Votre projet'], ['lieu', 'Photos du lieu'], ['abf', 'Pour l\'architecte des Bâtiments de France'], ['situation', 'Copropriété, lotissement, location'], ['regul', 'Les travaux déjà faits'], ['docs', 'Documents utiles']];
+
+  function piece(p) {
+    const modif = d.statut !== 'livre', fs = d.fichiers.filter(f => f.piece === p.id);
+    const etat = p.etat, peutAjouter = modif && etat !== 'valide';
+    const [lib, cls] = p.facultatif && etat === 'manquant' ? ['Si vous l\'avez', 'st-simulation'] : ETATS[etat];
+    let corps = '';
+    if (p.type === 'texte') corps = modif && etat !== 'valide'
+      ? `<textarea class="dz-texte" data-texte="${p.id}" rows="3" maxlength="5000" aria-label="${esc(p.nom)}">${esc(p.texte)}</textarea><p class="save" data-save="${p.id}" aria-live="polite"></p>`
+      : `<p class="dz-lu">${esc(p.texte) || '<span class="note">(vide)</span>'}</p>`;
+    else {
+      const ex = peutAjouter && !fs.length ? exemples(p) : null;
+      const ajout = peutAjouter ? `<label class="dz-depot${ex ? '' : ' petit'}"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0127B1" stroke-width="1.8" aria-hidden="true">${p.type === 'photo' ? '<path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/>' : '<path d="M12 16V4M7 9l5-5 5 5M5 20h14"/>'}</svg>
+          <span><b>${fs.length ? (p.type === 'photo' ? 'Ajouter une autre photo' : 'Ajouter un autre fichier') : p.type === 'photo' ? 'Prendre ou déposer une photo' : 'Ajouter un fichier'}</b><small>${p.type === 'photo' ? 'JPG, PNG, HEIC · plusieurs à la fois possible' : 'PDF ou photo · 25 Mo maximum'}</small></span>
+          <input type="file" multiple data-piece="${p.id}" accept="${p.type === 'photo' ? 'image/*' : 'image/*,application/pdf'}"></label>` : '';
+      corps = `${fs.length ? `<div class="vignettes">${fs.map(vig).join('')}</div>` : ''}
+        ${ex || ajout ? `<div class="dz-ajout">${ex ? figure(ex[0][0], true, ex[0][1]) + figure(ex[1][0], false, ex[1][1]) : ''}${ajout}</div>` : ''}
         <div data-prog="${p.id}" aria-live="polite"></div>`;
-      return `<div class="piece" id="p-${p.id}"><div class="piece-t"><span><b>${esc(p.nom)}${p.facultatif ? ' <small style="display:inline;font-weight:400">(facultatif)</small>' : ''}</b>${p.aide ? `<small>${esc(p.aide)}</small>` : ''}</span>
-        ${p.facultatif && etat === 'manquant' ? '' : `<span class="pill st-${etat}">${ETATS[etat]}</span>`}</div>
-        ${etat === 'a_refaire' && p.motif ? `<p class="motif">${esc(p.motif)}</p>` : ''}${corps}</div>`;
+    }
+    return `<div class="dz-piece" id="p-${p.id}">
+      <div class="dz-piece-t"><div><h4>${esc(p.nom)}</h4>${p.aide ? `<p>${esc(p.aide)}</p>` : ''}</div><span class="pill ${cls}">${lib}</span></div>
+      ${etat === 'a_refaire' && p.motif ? `<p class="motif">${esc(p.motif)}</p>` : ''}${corps}</div>`;
+  }
+
+  function carteplan(p) {
+    const modif = d.statut !== 'livre' && p.etat !== 'valide';
+    return `<section class="dz-plan" id="p-${p.id}">
+      ${p.plan ? `<div class="plan-mini" data-plan-ap="${p.id}"></div>` : '<svg width="120" height="84" viewBox="0 0 120 84" aria-hidden="true"><rect width="120" height="84" rx="10" fill="#27304D"/><path d="M16 14 L96 10 L104 70 L20 74 Z" fill="none" stroke="#8EA2FF" stroke-width="2" stroke-dasharray="4 3"/><rect x="40" y="26" width="40" height="22" fill="#4A5578"/><rect x="48" y="48" width="26" height="14" fill="none" stroke="#FFD34D" stroke-width="2.5"/></svg>'}
+      <div class="dz-plan-t"><h3>${p.plan ? 'Votre projet est placé sur le plan' : 'Placez votre projet sur le plan'}</h3>
+        <p>${p.plan ? (p.texte ? esc(p.texte) : 'Vous pouvez encore le déplacer ou le modifier.') : 'Dessinez-le à sa place, à la bonne taille : on en tire le plan de masse. 2 minutes, au doigt ou à la souris.'}</p>
+        ${p.etat === 'a_refaire' && p.motif ? `<p class="motif">${esc(p.motif)}</p>` : ''}</div>
+      ${modif ? `<div class="dz-plan-b"><button class="btn${p.plan ? ' ghost' : ''}" type="button" data-plan="${p.id}">${p.plan ? 'Modifier' : 'Ouvrir le plan'}</button><button class="lien" type="button" data-autrement>Je préfère décrire autrement</button></div>` : `<span class="pill ${ETATS[p.etat][1]}">${ETATS[p.etat][0]}</span>`}
+    </section>`;
+  }
+
+  function pieces() {
+    const plan = d.pieces.find(p => p.type === 'plan'), L = d.pieces.filter(p => p.type !== 'plan');
+    let n = 0;
+    return (plan ? carteplan(plan) : '') + GROUPES.map(([g, titre]) => {
+      const lot = L.filter(p => groupe(p) === g); if (!lot.length) return '';
+      n++;
+      return `<section class="dz-carte dz-groupe"><h3>${n}. ${esc(titre)}</h3>${lot.map(piece).join('')}</section>`;
     }).join('');
   }
 
@@ -73,8 +131,7 @@
     const l = d.livrables.find(x => x.id === livrSel), livre = d.statut === 'livre';
     const pages = l.pages && !livre ? Array.from({length: l.pages}, (_, k) => `<img class="page-ap" src="/api/espace/voir?ref=${R}&l=${l.id}&n=${k + 1}" alt="${esc(l.code)}, page ${k + 1}" loading="lazy">`).join('')
       : livre ? '' : '<div class="sans-ap">Aperçu en image indisponible pour cette pièce. Il sera téléchargeable après validation.</div>';
-    return `<h2 id="plans">${livre ? 'Votre dossier' : 'Vos plans à relire'}</h2>
-      <div class="carte">
+    return `<section class="dz-carte" id="plans"><h2 class="dz-h2">${livre ? 'Votre dossier est prêt' : 'Vos plans à relire'}</h2>
         ${livre ? `<p style="margin:0 0 12px">Votre dossier complet, sans filigrane.</p>
           <div class="pile">${d.livrables.map(x => `<a class="rang ecart" href="/api/espace/telecharger?ref=${R}&id=${x.id}" style="text-decoration:none;color:inherit;border-top:1px solid var(--line);padding-top:10px"><span><b>${esc(x.code)}</b> ${esc(x.nom)}</span><span class="lien">Télécharger</span></a>`).join('')}</div>
           <a class="btn blue-btn" href="/api/espace/telecharger?ref=${R}" style="width:100%;margin-top:16px">Tout télécharger (zip)</a>`
@@ -83,38 +140,77 @@
           ${d.statut === 'corrections' ? '<p class="ok-msg" style="margin-top:14px">Corrections demandées : nous revenons vers vous avec une nouvelle version.</p>' : `
           <div class="rang" style="margin-top:16px"><button class="btn ghost" type="button" data-corr>Demander une correction</button><button class="btn blue-btn" type="button" data-valider>C'est bon pour moi : payer le solde de ${euro(d.solde)}</button></div>
           <p class="note">Les corrections sont comprises jusqu'au dépôt. Après le solde, vous téléchargez le dossier complet sans filigrane.</p>`}`}
-      </div>`;
+      </section>`;
   }
 
   function messages() {
-    return `<h2>Messages</h2><div class="carte">
-      <div class="fil">${d.messages.length ? d.messages.map(m => `<div class="msg ${m.de}${m.type === 'correction' ? ' correction' : ''}"><small>${m.de === 'client' ? 'Vous' : 'Le Bon Permis'} · ${court(m.date)}${m.type === 'correction' ? ' · correction' : ''}</small>${esc(m.texte)}</div>`).join('') : '<p class="note" style="margin:0">Une question ? Écrivez-nous ici, on répond sous 24 h ouvrées.</p>'}</div>
-      <form id="fmsg"><label class="field" style="margin:0"><span class="sr-only">Votre message</span><textarea name="t" rows="2" maxlength="3000" aria-label="Votre message" placeholder="Votre message"></textarea></label>
+    return `<section class="dz-carte dz-side"><h3>Une question ?</h3>
+      <div class="fil">${d.messages.length ? d.messages.map(m => `<div class="msg ${m.de}${m.type === 'correction' ? ' correction' : ''}"><small>${m.de === 'client' ? 'Vous' : 'L\'équipe'} · ${court(m.date)}${m.type === 'correction' ? ' · correction' : ''}</small>${esc(m.texte)}</div>`).join('') : '<p class="note" style="margin:0">Écrivez-nous ici, on répond sous 24 h ouvrées.</p>'}</div>
+      <form id="fmsg"><label for="fmsg-t" class="note" style="display:block;margin:0 0 6px">Votre message</label><textarea id="fmsg-t" name="t" rows="2" maxlength="3000" placeholder="Écrivez-nous ici" class="dz-texte"></textarea>
       <label class="rang" style="font-size:14px;margin-top:8px" ${d.statut === 'apercu' ? '' : 'hidden'}><input type="checkbox" name="corr" style="width:18px;height:18px;accent-color:var(--accent)"> C'est une demande de correction des plans</label>
-      <p class="form-err" role="alert" hidden></p><div class="rang fin" style="margin-top:8px"><button class="btn petit" type="submit">Envoyer</button></div></form></div>`;
+      <p class="form-err" role="alert" hidden></p><button class="btn ghost petit" type="submit" style="margin-top:8px">Envoyer</button></form></section>`;
+  }
+
+  // Colonne de gauche : terrain (carte IGN, parcelle, PLU, protections) et commande.
+  function terrainBloc() {
+    return `<section class="dz-carte dz-side dz-terrain">${d.lieu ? '<div class="dz-carte-map" data-carte></div>' : ''}
+      <div class="dz-side-c"><p class="dz-adr">${esc(d.adresse)}</p><dl class="dz-dl" data-terrain-dl><dt>Terrain</dt><dd class="note">${d.lieu ? 'Lecture des données publiques…' : 'Adresse saisie à la main : nous vérifions le terrain.'}</dd></dl><div data-terrain-note></div></div></section>`;
+  }
+  function commandeBloc() {
+    const lignes = d.lignes && d.lignes.length ? d.lignes : [[d.nom, d.total]];
+    const L = lignes.map(l => Array.isArray(l) ? l : [l.label, l.prix]);
+    const kind = {dp: 'Déclaration préalable de travaux', pc: 'Permis de construire', pd: 'Permis de démolir', svc: 'Démarche d\'urbanisme'}[d.kind] || '';
+    return `<section class="dz-carte dz-side"><h3>Votre choix</h3>
+      <p class="dz-choix"><b>${esc(d.nom)}</b>${kind ? `<span>${kind}</span>` : ''}</p>
+      <div class="prix">${L.map(([lab, px]) => `<span class="gris">${esc(lab)}</span><span class="gris">${euro(px)}</span>`).join('')}
+        <span class="tot">Total</span><span class="tot">${euro(d.total)}</span>
+        ${d.paiements.acompte ? `<span class="vert">Acompte payé le ${new Date(d.paiements.acompte.date).toLocaleDateString('fr-FR', {day: 'numeric', month: 'short'})}</span><span class="vert">${euro(d.paiements.acompte.montant)}</span>` : ''}
+        ${d.paiements.solde ? (d.paiements.solde.montant ? `<span class="vert">Solde payé le ${new Date(d.paiements.solde.date).toLocaleDateString('fr-FR', {day: 'numeric', month: 'short'})}</span><span class="vert">${euro(d.paiements.solde.montant)}</span>` : '') : `<span class="gris">Solde, après l'aperçu</span><span class="gris">${euro(d.solde)}</span>`}
+      </div><p class="note">Options : ${esc(d.options || 'aucune').replace(/,/g, ', ').replace('aucune', 'aucune')}. Les reçus de paiement vous sont envoyés par e-mail.</p></section>`;
   }
 
   function afficher() {
-    const reste = Math.round((d.total - (d.paiements.acompte ? d.paiements.acompte.montant : 0) - (d.paiements.solde ? d.paiements.solde.montant : 0)) * 100) / 100;
-    el.innerHTML = `<p class="eyebrow">Dossier ${esc(d.ref)}</p>
-      <h1>${esc(d.nom)}</h1><p class="sous">${esc(d.adresse)}</p>
+    const w = el.closest('.wrap'); if (w) w.classList.add('dz-large');
+    const manque = d.pieces.filter(p => !p.facultatif && p.etat === 'manquant').length;
+    const statut = d.statut === 'elements' && manque ? [`À vous : ${manque} pièce${manque > 1 ? 's' : ''} à envoyer`, 'attente'] : d.statut === 'apercu' ? ['À vous : relire vos plans', 'attente'] : [d.statutTexte, d.statut === 'livre' ? 'ok' : 'info'];
+    const kind = {dp: 'Déclaration préalable', pc: 'Permis de construire', pd: 'Permis de démolir'}[d.kind] || '';
+    const pct = Math.round(d.recues.n / Math.max(1, d.recues.sur) * 100);
+    el.innerHTML = `<a href="/espace/" class="dz-retour">← Mes dossiers</a>
+      <div class="dz-tete"><div><p class="eyebrow" style="margin:0">Dossier ${esc(d.ref)}${kind ? ' · ' + kind : ''}</p><h1>${esc(d.nom)}</h1></div>
+        <span class="dz-statut ${statut[1]}"><i aria-hidden="true"></i>${esc(statut[0])}</span></div>
       ${q.get('paye') ? '<p class="ok-msg" style="margin-top:14px">Merci, le solde est réglé. Votre dossier est prêt à télécharger (la confirmation peut prendre quelques secondes).</p>' : ''}
-      <div class="carte" style="margin-top:20px"><div class="rang ecart"><b style="font-family:var(--f-display);font-size:19px">Où en est mon dossier</b><span class="pill st-${d.statut}">${esc(d.statutTexte)}</span></div>${etapes()}</div>
-      ${apercu()}
-      <h2>Ce qu'il nous faut</h2>
-      <p class="note" style="margin-top:-6px">Depuis votre téléphone, c'est plus simple : les photos partent directement. Ce que vous envoyez est enregistré tout de suite.</p>
-      <div class="carte">${pieces()}</div>
-      ${d.statut === 'elements' ? `<div class="carte" style="margin-top:14px"><b>Vous avez tout envoyé ?</b><p class="note">Prévenez-nous : nous vérifions et lançons vos plans. Vous pourrez encore ajouter des photos ensuite.</p><p class="form-err" role="alert" hidden id="errfin"></p><button class="btn blue-btn" type="button" data-fin style="margin-top:8px">J'ai tout envoyé</button></div>` : ''}
-      ${messages()}
-      <h2>Ma commande</h2>
-      <div class="carte"><div class="prix">
-        <span class="tot" style="border:0;padding:0">Prix du dossier</span><span class="tot" style="border:0;padding:0">${euro(d.total)}</span>
-        ${d.paiements.acompte ? `<span class="vert">Acompte payé le ${new Date(d.paiements.acompte.date).toLocaleDateString('fr-FR')}</span><span class="vert">${euro(d.paiements.acompte.montant)}</span>` : ''}
-        ${d.paiements.solde ? (d.paiements.solde.montant ? `<span class="vert">Solde payé le ${new Date(d.paiements.solde.date).toLocaleDateString('fr-FR')}</span><span class="vert">${euro(d.paiements.solde.montant)}</span>` : '') : `<span class="gris">Solde, à régler après l'aperçu des plans</span><span class="gris">${euro(reste)}</span>`}
-      </div><p class="note">Options : ${esc(d.options || 'aucune').replace(/,/g, ', ').replace('aucune', 'aucune option')}. Les reçus de paiement vous sont envoyés par e-mail.</p></div>
-      <p style="margin-top:24px"><a href="/espace/">← Tous mes projets</a></p>
+      ${etapes()}
+      <div class="dz-cols">
+        <aside class="dz-gauche">${terrainBloc()}${commandeBloc()}${messages()}</aside>
+        <div class="dz-droite">
+          ${apercu()}
+          <section class="dz-carte"><div class="rang ecart" style="align-items:baseline"><h2 class="dz-h2" style="margin:0">Vos pièces</h2><span class="note" style="margin:0;font-size:15px"><b style="color:var(--ink)">${d.recues.n} sur ${d.recues.sur}</b> envoyées${d.statut === 'elements' ? ' · environ 10 minutes' : ''}</span></div>
+            <div class="dz-barre" aria-hidden="true"><i style="width:${pct}%"></i></div>
+            <p class="note">Chaque pièce est enregistrée dès l'envoi. Vous pouvez revenir quand vous voulez, ou continuer sur votre téléphone : même compte, même lien.</p></section>
+          ${pieces()}
+          ${d.statut === 'elements' ? `<section class="dz-carte dz-fin"><div><h3 style="margin:0">Vous avez tout envoyé ?</h3><p class="note">Prévenez-nous : on vérifie et le délai de préparation démarre.</p><p class="form-err" role="alert" hidden id="errfin"></p></div><button class="btn blue-btn" type="button" data-fin>${manque ? `J'ai tout envoyé (il en manque ${manque})` : 'J\'ai tout envoyé'}</button></section>` : ''}
+        </div>
+      </div>
       <div class="lis" hidden id="lis" role="dialog" aria-modal="true" aria-label="Photo"></div>`;
     brancher();
+    terrainCharger();
+  }
+
+  // Données du terrain (même service que le simulateur), lues une fois par visite.
+  let terrainCache = null;
+  async function terrainCharger() {
+    const zone = el.querySelector('[data-carte]'), dl = el.querySelector('[data-terrain-dl]'), note = el.querySelector('[data-terrain-note]');
+    if (!d.lieu || !dl) return;
+    if (zone && window.BPCarte) window.BPCarte(zone, d.lieu, terrainCache, {hauteur: 200});
+    if (!terrainCache) { try { terrainCache = await (await fetch(`/api/terrain?lon=${d.lieu.lon}&lat=${d.lieu.lat}`)).json(); } catch (e) { terrainCache = {}; } }
+    const t = terrainCache || {}, L = [];
+    if (t.parcelle) L.push(['Parcelle', `${esc(t.parcelle.section)} ${esc(String(t.parcelle.numero).replace(/^0+/, ''))}${t.parcelle.contenance ? ', ' + t.parcelle.contenance.toLocaleString('fr-FR') + ' m²' : ''}`]);
+    if (t.zone) L.push(['Zone PLU', esc(t.zone.libelle) + (t.zone.libelleLong && t.zone.libelleLong !== t.zone.libelle ? ', ' + esc(t.zone.libelleLong.toLowerCase()) : '')]);
+    else if (t.commune && t.commune.rnu) L.push(['Règles', 'règlement national d\'urbanisme']);
+    if (t.protections && t.protections.length) L.push(['Protection', esc(t.protections[0].libelle) + (t.protections[0].nom ? ' « ' + esc(t.protections[0].nom) + ' »' : '')]);
+    dl.innerHTML = L.length ? L.map(([a, b]) => `<dt>${a}</dt><dd>${b}</dd>`).join('') : '<dt>Terrain</dt><dd class="note">Données publiques indisponibles pour le moment.</dd>';
+    if (t.secteurProtege && note) note.innerHTML = '<p class="dz-abf">L\'architecte des Bâtiments de France donnera son avis : c\'est pour lui qu\'on vous demande les matériaux et teintes exacts.</p>';
+    if (zone && window.BPCarte && t.parcelle) window.BPCarte(zone, d.lieu, t, {hauteur: 200});
   }
 
   // Plan du projet (src/plan.js) : ouverture de l'éditeur, aperçu, repli vers la description écrite.

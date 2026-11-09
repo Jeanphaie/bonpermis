@@ -115,7 +115,8 @@ function vueCmd(cmd, pourEquipe) {
     pieces: cmd.pieces.map(p => ({id: p.id, nom: p.nom, aide: p.aide, type: p.type, facultatif: !!p.facultatif, texte: p.texte || '', etat: etatPiece(p, cmd), motif: p.motif || '', ...(p.type === 'plan' ? {mode: p.mode, plan: p.plan || null} : {})})),
     fichiers: cmd.fichiers.map(fichierPublic), messages: cmd.messages, recues: r,
     livrables: cmd.livrables.map(l => ({id: l.id, code: l.code, nom: l.nom, pages: l.pages, taille: l.taille, date: l.date})),
-    telechargeable: !!cmd.paiements.solde, demandes: NEED[cmd.projet] || NEED.extension
+    telechargeable: !!cmd.paiements.solde, demandes: NEED[cmd.projet] || NEED.extension,
+    lignes: cmd.lignes || null, promo: cmd.promo || null
   };
   if (pourEquipe) Object.assign(o, {email: cmd.email, client: cmd.nom_client || '', reponses: cmd.reponses, reponsesLisibles: lisibles(cmd), projet: cmd.projet, regul: cmd.regul, historique: cmd.historique, lignes: cmd.lignes || null, session: cmd.session, liensStripe: [cmd.paiements.acompte && cmd.paiements.acompte.pi, cmd.paiements.solde && cmd.paiements.solde.pi].filter(Boolean)});
   return o;
@@ -331,7 +332,8 @@ async function etatCommande(req, res, url) {
       total: +m.total || (s.amount_total || 0) / 100, solde: m.acompte ? Math.round((+m.total - +m.acompte) * 100) / 100 : 0,
       projet: m.nom || (P[m.projet] ? P[m.projet].n : ''), adresse: m.adresse || '',
       email: mail.replace(/^(.).*(@.*)$/, '$1•••$2'), demandes: NEED[m.projet] || NEED.extension,
-      enregistree: !!cmd, compte: u ? {motDePasse: !!u.hash} : null, connecte: !!(u && (C.sessionClient(req) || {}).id === u.id),
+      enregistree: !!cmd, compte: u ? {motDePasse: !!u.hash} : null, kind: m.kind || 'dp', delai: cmd ? delaiJours(cmd) : (m.kind === 'pc' ? 5 : 2),
+      nbPieces: cmd ? cmd.pieces.filter(p => !p.facultatif).length : null, nbPhotos: cmd ? cmd.pieces.filter(p => !p.facultatif && p.type === 'photo').length : null, connecte: !!(u && (C.sessionClient(req) || {}).id === u.id),
       espace: `/espace/dossier/?ref=${ref}`
     });
   } catch (e) { repondre(res, 404, {erreur: 'Commande introuvable.'}); }
