@@ -399,3 +399,8 @@ section.sell-band{padding:0}
 .sell-band ul{margin:14px 0 0;padding-left:18px;line-height:1.8}
 .sell-band .hero-cta{margin-top:0;justify-content:flex-end}
 @media (max-width:900px){.sell-band .wrap{grid-template-columns:1fr;gap:20px}.sell-band .hero-cta{justify-content:flex-start}}
+.cookies{position:fixed;left:16px;right:16px;bottom:16px;z-index:60;max-width:760px;margin:0 auto;background:var(--paper);border:1px solid var(--line-2);border-radius:var(--r-sm);box-shadow:0 10px 30px rgba(15,23,51,.15);padding:18px 20px;display:flex;gap:18px;align-items:center;font-size:14px}
+.cookies p{margin:0}
+.cookies div{display:flex;gap:10px;flex-shrink:0}
+.cookies .btn{padding:12px 18px}
+@media (max-width:640px){.cookies{flex-direction:column;align-items:stretch}.cookies div .btn{flex:1}}
