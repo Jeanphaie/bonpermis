@@ -480,3 +480,23 @@ nav.links a,.espace-lien{white-space:nowrap}
 @media (max-width:1320px){nav.links{gap:18px}.top-act .espace-lien span{display:none}}
 @media (max-width:1180px){nav.links a[href$="#faq"],nav.links a[href$="#comment"]{display:none}}
 @media (max-width:860px){.barre-mobile .bm-tel{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);font-weight:700}.hero-tel{display:flex}}
+/* Téléphone : version plus sobre (09/11 soir) */
+.tel-lien{padding:0;border:0;background:none;color:var(--ink);gap:9px}
+.tel-lien i{width:30px;height:30px;background:var(--accent-soft);color:var(--accent)}
+.tel-lien i svg{width:15px;height:15px}
+.tel-lien span{font-size:15px;font-weight:700;color:var(--ink)}
+.tel-lien small{display:none}
+.tel-lien:hover{background:none;color:var(--accent)}.tel-lien:hover span{color:var(--accent)}.tel-lien:hover i{background:var(--accent);color:#fff}
+@media (max-width:860px){.tel-lien i{width:40px;height:40px;background:none;border:1px solid var(--line);border-radius:10px}}
+.hero-tel{padding:0;border:0;background:none;border-radius:0;gap:12px;margin-top:20px}
+.hero-tel i{width:40px;height:40px;background:var(--accent-soft);color:var(--accent);box-shadow:none}
+.hero-tel i svg{width:19px;height:19px}
+.hero-tel b{font-size:20px;color:var(--ink);font-weight:700;letter-spacing:.02em}
+.hero-tel small:last-child{display:none}
+.hero-tel:hover{background:none}.hero-tel:hover b{color:var(--accent)}
+.facts .fact-tel{background:var(--surface);border-color:var(--line);color:var(--muted)}
+.facts .fact-tel i{width:30px;height:30px;background:var(--accent-soft)}
+.facts .fact-tel i svg{width:15px;height:15px}
+.facts .fact-tel b{color:var(--ink);font-size:16px}
+.facts .fact-tel:hover{filter:none;border-color:var(--accent)}
+@media (max-width:860px){.barre-mobile .bm-tel{background:#fff;border-color:var(--line-2,var(--line));color:var(--ink);font-weight:600}}
