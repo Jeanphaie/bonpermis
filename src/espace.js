@@ -188,12 +188,19 @@
           <p class="a-err" role="alert" hidden></p>
           <button class="a-btn" type="submit">${creer ? 'Valider et créer mon compte' : 'Me connecter'}</button>
         </form>
-        <p class="a-aide-code">Rien reçu ? Regardez dans les indésirables. <button type="button" class="a-lien" data-renvoi></button></p>
+        <p class="a-aide-code">Rien reçu après 2 minutes ? Regardez dans les indésirables. <button type="button" class="a-lien" data-renvoi></button></p>
+        ${creer ? '<p class="a-info a-info-bas">Vous avez peut-être déjà un compte avec cette adresse : dans ce cas, vous recevez à la place un e-mail « Vous avez déjà un compte ». <button type="button" class="a-lien" data-deja>Me connecter avec un code</button></p>' : ''}
       </div>
       ${ASIDE}
     </div>`;
     const f = el.querySelector('#fc'), i = f.code, err = f.querySelector('.a-err'), btn = f.querySelector('.a-btn'), rv = el.querySelector('[data-renvoi]');
     el.querySelector('[data-retour]').addEventListener('click', () => auth(creer ? 'creer' : 'connexion'));
+    const dj = el.querySelector('[data-deja]');
+    if (dj) dj.addEventListener('click', async () => {
+      const r = await api('POST', '/compte/code', {email: etat.email}).catch(() => ({j: {}}));
+      if (!r.ok) { err.textContent = r.j.erreur || 'Envoi impossible.'; err.hidden = false; return; }
+      etat.usage = 'entrer'; etat.renvoi = Date.now(); vueCode();
+    });
     const tic = () => {
       const s = Math.max(0, 60 - Math.round((Date.now() - etat.renvoi) / 1000));
       rv.disabled = s > 0; rv.textContent = s > 0 ? `Renvoyer un code dans ${s} s` : 'Renvoyer un code';

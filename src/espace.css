@@ -238,3 +238,5 @@ body[data-page=admin] header.top nav{display:none}
   .a-ico{width:34px;height:34px}
 }
 @media (prefers-reduced-motion:reduce){.a-btn.charge::after{animation:none}}
+.a-info-bas{margin:20px 0 0;font-size:13px}
+.a-info-bas .a-lien{font-size:13px}
