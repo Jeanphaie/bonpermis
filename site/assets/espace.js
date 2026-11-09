@@ -275,12 +275,12 @@
           <span class="gris">Solde, après l'aperçu des plans</span><span class="gris">${euro(Math.round((s.total - s.acompte) * 100) / 100)}</span></div>
         ${s.adresse ? '' : '<label class="field"><span>Adresse des travaux</span><input name="adr" autocomplete="street-address" placeholder="12 rue des Lilas, 44800 Saint-Herblain"></label>'}
         <p class="form-err" role="alert" hidden></p>
-        <div class="rang" style="margin-top:12px"><button class="btn blue-btn" type="button" data-cmd>Commander, payer l'acompte de ${euro(s.acompte)}</button><button class="lien" type="button" data-del>Supprimer</button></div>
+        <div class="rang" style="margin-top:12px"><button class="btn blue-btn" type="button" data-cmd>Créer mon dossier (sans payer)</button><button class="lien" type="button" data-del>Supprimer</button></div>
       </div>`).join('');
     sm.querySelectorAll('[data-cmd]').forEach(b => b.addEventListener('click', async () => {
       const c = b.closest('[data-id]'), err = c.querySelector('.form-err'), adr = c.querySelector('[name=adr]');
       if (adr && adr.value.trim().length < 5) { err.textContent = 'Indiquez l\'adresse des travaux.'; err.hidden = false; adr.focus(); return; }
-      b.disabled = true; b.textContent = 'Ouverture du paiement sécurisé…';
+      b.disabled = true; b.textContent = 'Création du dossier…';
       const r = await api('POST', '/projets/commander?id=' + c.dataset.id, {adresse: adr ? adr.value.trim() : ''}).catch(() => ({j: {}}));
       if (r.ok && r.j.url) { location.href = r.j.url; return; }
       err.textContent = r.j.erreur || 'Le paiement n\'a pas pu s\'ouvrir.'; err.hidden = false; b.disabled = false; b.textContent = 'Réessayer';

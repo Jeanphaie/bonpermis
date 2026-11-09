@@ -12,6 +12,7 @@ const {fs, path, CONF, P, NEED, PIECES, PAGES, PRIX, lire, ecrire, creer, repond
 const REF_RE = /^BP-[2-9A-HJ-NP-Z]{6}$/;
 const LIM = {fichier: 25 * 1048576, nb: 60, total: 500 * 1048576, livrable: 60 * 1048576};
 const STATUTS = {
+  brouillon: 'À valider : acompte à régler',
   elements: 'Vos éléments', verification: 'Vérification par l\'équipe', preparation: 'Plans en préparation',
   apercu: 'Aperçu à relire', corrections: 'Corrections en cours', livre: 'Dossier livré'
 };
@@ -175,19 +176,19 @@ function avecPromo(x, code) {
   return {...x, total: r.total, promo: r.code, lignes: [...x.lignes, {label: r.libelle, prix: -r.remise}]};
 }
 
-async function ouvrirPaiementAcompte(x, email, adresse, uid, pid, lieu) {
+async function ouvrirPaiementAcompte(x, email, adresse, uid, pid, lieu, ref) {
   const acompte = partAcompte(x.total);
   const page = PAGES[x.p] ? `${CONF.site}/${PAGES[x.p].slug}/` : `${CONF.site}/`;
   const meta = {
     type: 'acompte', projet: x.p, kind: x.v.kind, nom: x.nom.slice(0, 200), regul: String(x.regul), adresse: adresse.slice(0, 480),
     reponses: JSON.stringify(x.a).slice(0, 480), options: Object.keys(x.opt).filter(k => x.opt[k]).join(',') || 'aucune',
     total: String(x.total), acompte: String(acompte), lignes: JSON.stringify(x.lignes.map(l => [l.label.slice(0, 60), l.prix])).slice(0, 490),
-    uid: uid || '', pid: pid || '', lieu: lieu || '', promo: x.promo || ''
+    uid: uid || '', pid: pid || '', lieu: lieu || '', promo: x.promo || '', ref: ref || ''
   };
   const params = {
     mode: 'payment', locale: 'fr', customer_email: email,
     success_url: `${CONF.site}/commande/merci/?ref={CHECKOUT_SESSION_ID}`,
-    cancel_url: pid ? `${CONF.site}/espace/` : `${page}#${x.p}`,
+    cancel_url: ref ? `${CONF.site}/espace/dossier/?ref=${ref}` : pid ? `${CONF.site}/espace/` : `${page}#${x.p}`,
     line_items: [{quantity: 1, price_data: {currency: 'eur', unit_amount: centimes(acompte), product_data: {
       name: `Acompte 30 % : ${x.nom}`.slice(0, 250),
       description: `Prix total ${euro(x.total)} TTC (${x.lignes.map(l => l.label).join(', ')}). Solde de ${euro(x.total - acompte)} à régler après l'aperçu des plans.`.slice(0, 500)}}}],
@@ -220,7 +221,11 @@ async function verifierPromo(req, res) {
   if (B.trop('promo:' + B.ip(req), 20)) return repondre(res, 429, {erreur: 'Trop d\'essais. Réessayez dans 10 minutes.'});
   const d = await lireJson(req); if (!d) return repondre(res, 400, {erreur: 'Demande illisible.'});
   let x;
-  if (d.projet) { // simulation enregistrée (espace client)
+  if (d.ref) { // dossier créé avant paiement
+    const u = C.sessionClient(req), cmd = lireCmd(d.ref);
+    if (!u || !cmd || cmd.uid !== u.id) return repondre(res, 404, {erreur: 'Dossier introuvable.'});
+    x = {total: cmd.total, lignes: cmd.lignes};
+  } else if (d.projet) { // simulation enregistrée (espace client)
     const u = C.sessionClient(req), s = lireProjet(d.projet);
     if (!u || !s || s.uid !== u.id) return repondre(res, 404, {erreur: 'Projet introuvable.'});
     x = {total: s.total, lignes: s.lignes};
@@ -262,10 +267,11 @@ async function commanderProjet(req, res, url) {
   const adresse = texte(d.adresse, 300) || s.adresse;
   if (adresse.length < 5) return repondre(res, 400, {erreur: 'Indiquez l\'adresse des travaux.'});
   // Prix figé : celui de la simulation enregistrée, même si la grille a changé depuis.
-  let x = {p: s.p, regul: s.regul, a: s.a, v: {kind: s.kind}, opt: s.opt, lignes: s.lignes, total: s.total, nom: s.nom};
-  x = avecPromo(x, d.promo); if (x.erreur) return repondre(res, 400, {erreur: x.erreur, champ: 'promo'});
-  try { const ss = await ouvrirPaiementAcompte(x, u.email, adresse, u.id, s.id); repondre(res, 200, {url: ss.url}); }
-  catch (e) { journal('erreur Stripe :', e.message); repondre(res, 502, {erreur: 'Le paiement n\'a pas pu s\'ouvrir.'}); }
+  // Le dossier est créé tout de suite, au prix figé de la simulation ; l'acompte se règle depuis le dossier.
+  const cmd = nouveauDossier({p: s.p, regul: s.regul, a: s.a, v: {kind: s.kind}, opt: s.opt, lignes: s.lignes, total: s.total, nom: s.nom}, u, adresse, lieuValide(d.lieu));
+  s.statut = 'commande'; s.ref = cmd.ref; ecrire(s, 'projets', s.id + '.json');
+  repondre(res, 200, {url: `/espace/dossier/?ref=${cmd.ref}&nouveau=1`});
+  mailsDossierCree(cmd).catch(e => journal('mails dossier', e.message));
 }
 
 // GET /api/espace : le compte, ses simulations et ses commandes
@@ -282,6 +288,7 @@ async function paiementRecu(s) {
   const email = ((s.customer_details && s.customer_details.email) || s.customer_email || '').toLowerCase();
   const nomClient = (s.customer_details && s.customer_details.name) || '';
   if (m.type === 'solde') return soldeRecu(s, m);
+  if (m.ref && REF_RE.test(m.ref)) return acompteDossier(s, m, email, nomClient);
   const ref = reference(s.id);
   let u = (m.uid && C.lireUser(m.uid)) || C.userParMail(email) || (email && C.creerUser(email));
   const acompte = m.acompte ? +m.acompte : s.amount_total / 100, total = +m.total || acompte;
@@ -308,6 +315,96 @@ async function paiementRecu(s) {
     `Bonjour${nomClient ? ' ' + nomClient : ''},\n\nMerci, votre acompte de ${euro(cmd.paiements.acompte.montant)} est bien reçu.\nRéférence : ${ref}\nProjet : ${m.nom}\nAdresse des travaux : ${m.adresse}\nPrix total : ${euro(total)}. Le solde de ${euro(cmd.solde)} se règle quand vous aurez relu et validé vos plans.\n\nPour lancer votre dossier, envoyez-nous vos photos et vos mesures dans votre espace, depuis votre téléphone :\n${C.lienLong(u, '/espace/dossier/?ref=' + ref)}\n\nCe qu'il nous faut :\n${listePieces(cmd)}\n\nLe délai de préparation commence quand toutes les pièces sont reçues. Une question ? Répondez à cet e-mail.${signature}`, CONF.mailA);
 }
 
+// ---------- dossier créé avant paiement (statut « brouillon ») ----------
+const ALPHA = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
+function nouveauDossier(x, u, adresse, lieu) {
+  const date = new Date().toISOString(), lignes = x.lignes.map(l => Array.isArray(l) ? l : [l.label, l.prix]);
+  const reponses = typeof x.a === 'string' ? x.a : JSON.stringify(x.a || {});
+  const cmd = {
+    v: 2, ref: '', date, email: u.email, nom_client: '', uid: u.id, projet: x.p, kind: (x.v && x.v.kind) || 'dp', nom: x.nom, regul: String(!!(x.regul === true || x.regul === 'true')),
+    adresse, lieu: lireLieu(lieu), reponses, options: Object.keys(x.opt || {}).filter(k => x.opt[k]).join(',') || 'aucune', lignes,
+    total: x.total, acompte: partAcompte(x.total), solde: Math.round((x.total - partAcompte(x.total)) * 100) / 100,
+    paiements: {}, statut: 'brouillon', pieces: piecesInitiales((x.v && x.v.kind) || 'dp', x.p, {regul: x.regul, reponses}),
+    fichiers: [], messages: [], livrables: [], historique: [{date, texte: 'Dossier créé par le client (acompte à régler)'}]
+  };
+  for (let k = 0; k < 20; k++) {
+    let r = 'BP-'; for (let i = 0; i < 6; i++) r += ALPHA[require('crypto').randomInt(ALPHA.length)];
+    cmd.ref = r;
+    if (!lire('commandes', r + '.json') && creer(cmd, 'commandes', r + '.json')) break;
+  }
+  if (!u.commandes.includes(cmd.ref)) { u.commandes.unshift(cmd.ref); C.ecrireUser(u); }
+  journal('dossier créé (non payé)', cmd.ref, x.p);
+  return cmd;
+}
+async function mailsDossierCree(cmd) {
+  await envoyerMail(cmd.email, `Votre dossier ${cmd.ref} est créé`, `Bonjour,\n\nVotre dossier « ${cmd.nom} » (${cmd.adresse}) est créé dans votre espace.\nVous pouvez déjà envoyer vos photos et vos mesures. Quand vous êtes prêt, validez-le en réglant l'acompte de ${euro(cmd.acompte)} : c'est à ce moment que nous commençons.\n\nVotre dossier : ${CONF.site}/espace/dossier/?ref=${cmd.ref}\n\nCe qu'il nous faut :\n${listePieces(cmd)}${signature}`, CONF.mailA);
+  await envoyerMail(CONF.mailA, `Dossier créé ${cmd.ref} (non payé) : ${cmd.nom}`, `Nouveau dossier, acompte pas encore réglé.\n\nProjet : ${cmd.nom}\nAdresse : ${cmd.adresse}\nClient : ${cmd.email}\nPrix : ${euro(cmd.total)}\n\n${CONF.site}/admin/#${cmd.ref}\n`, cmd.email);
+}
+
+// POST /api/dossier/creer : depuis le simulateur. Sans session : 1er appel = code envoyé à l'e-mail, 2e appel avec le code.
+async function creerDossier(req, res) {
+  if (B.tropDeDemandes(req)) return repondre(res, 429, {erreur: 'Trop de demandes. Réessayez dans quelques minutes.'});
+  const d = await lireJson(req); if (!d) return repondre(res, 400, {erreur: 'Demande illisible.'});
+  const x = analyser(d); if (x.erreur) return repondre(res, 400, x);
+  const adresse = texte(d.adresse, 300);
+  if (adresse.length < 5) return repondre(res, 400, {erreur: 'Indiquez l\'adresse des travaux.', champ: 'adr'});
+  let u = C.sessionClient(req);
+  if (!u) {
+    const email = texte(d.email, 254).toLowerCase(), code = texte(d.code, 12).replace(/\D/g, '');
+    if (!MAIL_RE.test(email)) return repondre(res, 400, {erreur: 'Adresse e-mail invalide.', champ: 'mail'});
+    if (!code) {
+      if (B.trop('code:' + email, 5)) return repondre(res, 429, {erreur: 'Trop de codes demandés pour cette adresse. Réessayez dans 10 minutes.'});
+      const c = C.nouveauCode('dossier', email, {});
+      envoyerMail(email, `${c} : votre code Le Bon Permis`, `Bonjour,\n\nVotre code pour créer votre dossier Le Bon Permis :\n\n${c}\n\nIl est valable 15 minutes. Si vous n'avez rien demandé, ignorez cet e-mail.${signature}`)
+        .then(ok => { if (!ok && !CONF.smtp.pass) journal('code dossier (SMTP absent, mode local) :', email, c); });
+      return repondre(res, 200, {etape: 'code'});
+    }
+    if (B.trop('verif-ip:' + B.ip(req), 30)) return repondre(res, 429, {erreur: 'Trop de tentatives. Réessayez dans 10 minutes.'});
+    if (!C.prendreCode('dossier', email, code)) return repondre(res, 401, {erreur: 'Code incorrect ou expiré. Vérifiez le dernier e-mail reçu.', champ: 'code'});
+    u = C.userParMail(email) || C.creerUser(email);
+    if (!u.confirme) { u.confirme = true; C.ecrireUser(u); }
+    C.ouvrirSession(res, u, true);
+  }
+  const cmd = nouveauDossier(x, u, adresse, lieuValide(d.lieu));
+  repondre(res, 200, {ref: cmd.ref, url: `/espace/dossier/?ref=${cmd.ref}&nouveau=1`});
+  mailsDossierCree(cmd).catch(e => journal('mails dossier', e.message));
+}
+
+// POST /api/espace/dossier/payer?ref= : valider le dossier en payant l'acompte (code promo possible).
+async function payerDossier(req, res, url) {
+  const cmd = cmdClient(req, res, url); if (!cmd) return;
+  if (cmd.statut !== 'brouillon' || cmd.paiements.acompte) return repondre(res, 409, {erreur: 'L\'acompte de ce dossier est déjà réglé.'});
+  const d = await lireJson(req) || {};
+  let a = {}; try { a = JSON.parse(cmd.reponses || '{}'); } catch {}
+  const opt = {}; String(cmd.options || '').split(',').filter(k => k && k !== 'aucune').forEach(k => { opt[k] = true; });
+  let x = {p: cmd.projet, regul: cmd.regul === 'true', a, v: {kind: cmd.kind}, opt, lignes: (cmd.lignes || [[cmd.nom, cmd.total]]).map(([label, prix]) => ({label, prix})), total: cmd.total, nom: cmd.nom};
+  x = avecPromo(x, d.promo); if (x.erreur) return repondre(res, 400, {erreur: x.erreur, champ: 'promo'});
+  const lieu = cmd.lieu ? `${(+cmd.lieu.lon).toFixed(6)},${(+cmd.lieu.lat).toFixed(6)}` : '';
+  try { const s = await ouvrirPaiementAcompte(x, cmd.email, cmd.adresse, cmd.uid, null, lieu, cmd.ref); repondre(res, 200, {url: s.url}); }
+  catch (e) { journal('erreur Stripe :', e.message); repondre(res, 502, {erreur: 'Le paiement n\'a pas pu s\'ouvrir. Réessayez dans un instant.'}); }
+}
+
+// Webhook : acompte réglé pour un dossier déjà créé.
+async function acompteDossier(s, m, email, nomClient) {
+  const cmd = lireCmd(m.ref); if (!cmd || cmd.paiements.acompte) return;
+  let lignes = null; try { lignes = JSON.parse(m.lignes || 'null'); } catch {}
+  cmd.session = s.id; cmd.nom_client = nomClient || cmd.nom_client;
+  if (lignes) cmd.lignes = lignes;
+  cmd.total = +m.total || cmd.total; cmd.acompte = +m.acompte || s.amount_total / 100; cmd.solde = Math.round((cmd.total - cmd.acompte) * 100) / 100;
+  cmd.paiements.acompte = {montant: s.amount_total / 100, date: new Date().toISOString(), session: s.id, pi: s.payment_intent || null};
+  const r = recues(cmd);
+  cmd.statut = r.n >= r.sur ? 'verification' : 'elements';
+  histo(cmd, `Acompte reçu : ${euro(s.amount_total / 100)}, dossier validé${cmd.statut === 'verification' ? ' (toutes les pièces sont déjà là)' : ''}`);
+  if (m.promo) cmd.promo = m.promo;
+  sauver(cmd);
+  if (m.promo) PROMOS.compterUtilisation(m.promo);
+  journal('acompte payé', cmd.ref, cmd.projet, cmd.paiements.acompte.montant + ' €');
+  await envoyerMail(CONF.mailA, `Dossier validé ${cmd.ref} : ${cmd.nom} (acompte ${euro(cmd.paiements.acompte.montant)})`,
+    `Acompte payé, dossier validé.\n\nProjet : ${cmd.nom}\nAdresse : ${cmd.adresse}\nClient : ${nomClient} <${cmd.email}>\nPrix total : ${euro(cmd.total)}, acompte ${euro(cmd.acompte)}, solde ${euro(cmd.solde)}\nPièces reçues : ${r.n} sur ${r.sur}\n\n${CONF.site}/admin/#${cmd.ref}\nStripe : https://dashboard.stripe.com/payments/${s.payment_intent || ''}\n`, cmd.email);
+  await envoyerMail(cmd.email, `Dossier ${cmd.ref} validé : merci`,
+    `Bonjour${nomClient ? ' ' + nomClient : ''},\n\nMerci, votre acompte de ${euro(cmd.paiements.acompte.montant)} est bien reçu : votre dossier « ${cmd.nom} » est validé.\nLe solde de ${euro(cmd.solde)} se règle quand vous aurez relu et validé vos plans.\n\n${r.n >= r.sur ? 'Toutes vos pièces sont là : nous les vérifions sous 24 h ouvrées.' : `Il nous manque encore ${r.sur - r.n} pièce${r.sur - r.n > 1 ? 's' : ''}. Le délai de préparation commence quand tout est reçu.`}\n\nVotre dossier : ${CONF.site}/espace/dossier/?ref=${cmd.ref}${signature}`, CONF.mailA);
+}
+
 async function soldeRecu(s, m) {
   const cmd = lireCmd(m.ref); if (!cmd || cmd.paiements.solde) return;
   cmd.paiements.solde = {montant: s.amount_total / 100, date: new Date().toISOString(), session: s.id, pi: s.payment_intent || null};
@@ -325,14 +422,14 @@ async function etatCommande(req, res, url) {
   if (!/^cs_(test|live)_[A-Za-z0-9]{10,200}$/.test(sid)) return repondre(res, 400, {erreur: 'Référence invalide.'});
   try {
     const s = await stripe('GET', '/v1/checkout/sessions/' + encodeURIComponent(sid));
-    const m = s.metadata || {}, ref = reference(s.id), cmd = lireCmd(ref), u = cmd && C.lireUser(cmd.uid);
+    const m = s.metadata || {}, ref = REF_RE.test(m.ref || '') ? m.ref : reference(s.id), cmd = lireCmd(ref), u = cmd && C.lireUser(cmd.uid);
     const mail = (s.customer_details && s.customer_details.email) || s.customer_email || '';
     repondre(res, 200, {
       ref, paye: s.payment_status === 'paid', montant: (s.amount_total || 0) / 100,
       total: +m.total || (s.amount_total || 0) / 100, solde: m.acompte ? Math.round((+m.total - +m.acompte) * 100) / 100 : 0,
       projet: m.nom || (P[m.projet] ? P[m.projet].n : ''), adresse: m.adresse || '',
       email: mail.replace(/^(.).*(@.*)$/, '$1•••$2'), demandes: NEED[m.projet] || NEED.extension,
-      enregistree: !!cmd, compte: u ? {motDePasse: !!u.hash} : null, kind: m.kind || 'dp', delai: cmd ? delaiJours(cmd) : (m.kind === 'pc' ? 5 : 2),
+      enregistree: !!(cmd && cmd.paiements.acompte), compte: u ? {motDePasse: !!u.hash} : null, kind: m.kind || 'dp', delai: cmd ? delaiJours(cmd) : (m.kind === 'pc' ? 5 : 2),
       nbPieces: cmd ? cmd.pieces.filter(p => !p.facultatif).length : null, nbPhotos: cmd ? cmd.pieces.filter(p => !p.facultatif && p.type === 'photo').length : null, connecte: !!(u && (C.sessionClient(req) || {}).id === u.id),
       espace: `/espace/dossier/?ref=${ref}`
     });
@@ -596,7 +693,7 @@ function equipeZip(req, res, url) {
 }
 
 module.exports = {
-  verifierPromo,
+  verifierPromo, creerDossier, payerDossier,
   REF_RE, lireCmd, sauver, vueCmd, commande, etatCommande, paiementRecu, enregistrerProjet, supprimerProjet, commanderProjet, espace,
   clientDossier, clientTexte, clientPlan, clientFichier, clientSupprimerFichier, clientMessage, clientTerminer, clientValider, clientVoir, clientTelecharger,
   equipeListe, equipeDossier, equipeVoir, equipePiece, equipeClasser, equipeFichier, equipeMessage, equipeLancer, equipeLivrable,

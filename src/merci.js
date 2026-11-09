@@ -16,6 +16,8 @@
     await new Promise(r => setTimeout(r, 1500));
   }
   if (!d.paye) return echec('Le paiement est en cours de validation. Vous recevrez un e-mail dès qu\'il est confirmé.');
+  // Client connecté (cas normal : il a payé depuis son dossier) : retour direct au dossier, avec le message de succès en haut.
+  if (d.enregistree && d.connecte) { location.replace(d.espace + '&paye=acompte'); return; }
   const mdp = d.compte && !d.compte.motDePasse;
   const kind = {dp: 'déclaration préalable', pc: 'permis de construire', pd: 'permis de démolir'}[d.kind] || '';
   const delai = d.delai === 1 ? '24 h ouvrées' : d.delai === 5 ? '5 jours ouvrés' : d.delai ? `${d.delai === 2 ? '48 h' : d.delai + ' jours'} ouvrées` : '';
@@ -27,6 +29,7 @@
       <h1>Merci, votre dossier est ouvert.</h1>
       <p class="ok-sous">Votre acompte de ${euro(d.montant)} est bien reçu. Un e-mail de confirmation part à ${esc(d.email)}.</p>
       <p class="ok-ref"><span>Référence</span><b>${esc(d.ref)}</b></p>
+      ${mdp ? '' : `<div class="ok-cta" style="justify-content:center"><a class="btn blue-btn" href="${esc(d.espace)}&paye=acompte">Ouvrir mon dossier <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></div>`}
       <div class="ok-recap">
         <div><span>Projet</span><b>${esc(d.projet)}${kind ? `, ${kind}` : ''}</b></div>
         <div><span>Adresse des travaux</span><b>${esc(d.adresse || '')}</b></div>
@@ -47,7 +50,6 @@
       <li><span>2</span><b>On vérifie tout</b><p>S'il manque quelque chose, on vous le dit précisément.</p><em>Sous 24 h ouvrées</em></li>
       <li><span>3</span><b>Vous relisez vos plans</b><p>Aperçu en ligne, corrections comprises, puis le solde.</p><em>${delai ? esc(delai) + ' après vos pièces' : 'Après vos pièces'}</em></li>
     </ol>
-    ${mdp ? '' : `<div class="ok-cta"><a class="btn blue-btn" href="${esc(d.espace)}">Ouvrir mon dossier et envoyer mes pièces <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a><span class="note">Vous pouvez aussi le faire plus tard : le lien est dans l'e-mail.</span></div>`}
     <p class="note" style="margin-top:20px">Le délai de préparation commence quand toutes les pièces sont reçues. Gardez la référence ${esc(d.ref)} pour toute question : contact@bonpermis.fr.</p>`;
   const fm = document.getElementById('fm');
   if (fm) fm.addEventListener('submit', async e => {

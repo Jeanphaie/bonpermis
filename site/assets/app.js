@@ -250,48 +250,24 @@
 
   function renderCheckout(){
     const v = S.v, call = S.call;
-    body.innerHTML = `<div class="qtitle" tabindex="-1">${call?'Comment vous joindre ?':'Encore deux choses, et c\'est parti'}</div><p class="qhelp">${call?'On vous rappelle dans la journée, ou le lendemain matin au plus tard.':'Pas besoin de créer un compte avant : il est créé avec votre commande. Vous payez 30 % aujourd\'hui, le solde après l\'aperçu de vos plans.'}</p>
+    body.innerHTML = `<div class="qtitle" tabindex="-1">${call?'Comment vous joindre ?':'Créez votre dossier'}</div><p class="qhelp">${call?'On vous rappelle dans la journée, ou le lendemain matin au plus tard.':'Gratuit et sans engagement. Vous voyez tout de suite les pièces à fournir et vous pouvez commencer à les envoyer. L\'acompte de '+euro(acompte(v))+' (30 %) se règle quand vous validez le dossier.'}</p>
       <form id="co" novalidate>
         <div class="field adr-wrap"><label for="co-adr"><span>L'adresse des travaux</span></label>
           <input id="co-adr" name="adr" autocomplete="off" placeholder="Tapez le début : 12 rue des Lilas, Saint-Herblain" required role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="co-sug">
           <ul class="sugs" id="co-sug" role="listbox" data-sug></ul></div>
         <div class="mini-carte" data-carte hidden></div>
         <p class="terrain-info" data-terrain hidden></p>
-        <label class="field"><span>${call?'Votre téléphone':'Votre e-mail, pour recevoir le dossier'}</span><input name="mail" type="${call?'tel':'email'}" autocomplete="${call?'tel':'email'}" required></label>
-        ${call?'':`<div class="promo"><button type="button" class="more-btn" data-promo-ouvrir>J'ai un code promo</button>
-          <div class="promo-l" data-promo hidden><input name="promo" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Code promo" aria-label="Code promo"><button type="button" class="btn ghost petit" data-promo-ok>Appliquer</button></div>
-          <p class="promo-msg" data-promo-msg aria-live="polite"></p></div>`}
+        <label class="field"><span>${call?'Votre téléphone':'Votre e-mail'}</span><input name="mail" type="${call?'tel':'email'}" autocomplete="${call?'tel':'email'}" required></label>
+        ${call?'':`<div class="co-code" data-code hidden><label class="field"><span data-code-lab>Code reçu par e-mail</span><input name="code" inputmode="numeric" autocomplete="one-time-code" maxlength="7" placeholder="000000"></label><button type="button" class="more-btn" data-code-renvoi>Renvoyer le code</button></div>`}
         <p class="form-err" role="alert" hidden></p>
-        <button class="btn blue-btn" type="submit">${call?'Me faire rappeler':'Payer l\'acompte de '+euro(acompte(v))+' et lancer mon dossier'}</button>
-        ${call?'':'<div class="reassure"><svg width="14" height="14" viewBox="0 0 14 14"><rect x="2.5" y="6" width="9" height="6.5" rx="1.5" fill="none" stroke="currentColor"/><path d="M4.5 6V4.5a2.5 2.5 0 015 0V6" fill="none" stroke="currentColor"/></svg>Paiement sécurisé par Stripe · Carte, Apple Pay, Google Pay, PayPal</div>'}
+        <button class="btn blue-btn" type="submit">${call?'Me faire rappeler':'Créer mon dossier'}</button>
+        ${call?'':'<div class="reassure"><svg width="14" height="14" viewBox="0 0 14 14"><rect x="2.5" y="6" width="9" height="6.5" rx="1.5" fill="none" stroke="currentColor"/><path d="M4.5 6V4.5a2.5 2.5 0 015 0V6" fill="none" stroke="currentColor"/></svg>Rien à payer maintenant · acompte réglé plus tard, par Stripe</div>'}
       </form><button class="back" type="button" data-back>← Retour</button>`;
     // Adresse : suggestions de la Base Adresse Nationale, puis lecture du terrain (parcelle, PLU, secteur protégé).
     const fo = body.querySelector('#co'), adr = fo.adr, sug = body.querySelector('[data-sug]'), info = body.querySelector('[data-terrain]');
     let minuteur = null, lieu = null, demande = 0;
     const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-    // Code promo : vérifié par le serveur, qui renvoie le nouveau prix et l'acompte.
-    let promo = null;
-    const majBouton = () => { if (!call) fo.querySelector('button[type=submit]').textContent = 'Payer l\'acompte de ' + euro(promo ? promo.acompte : acompte(S.v)) + ' et lancer mon dossier'; };
-    if (!call) {
-      const zone = fo.querySelector('[data-promo]'), champ = fo.promo, msg = fo.querySelector('[data-promo-msg]');
-      fo.querySelector('[data-promo-ouvrir]').addEventListener('click', e => { e.target.hidden = true; zone.hidden = false; champ.focus(); });
-      const verifier = async () => {
-        const code = champ.value.trim(); msg.className = 'promo-msg';
-        if (!code) { promo = null; msg.textContent = ''; majBouton(); return; }
-        msg.textContent = 'Vérification…';
-        try {
-          const r = await fetch(API + '/promo', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({code, p: S.p, a: S.a, regul: S.regul, opt: S.opt})});
-          const j = await r.json().catch(() => ({}));
-          if (!r.ok) { promo = null; msg.classList.add('err'); msg.textContent = j.erreur || 'Code non valable.'; }
-          else { promo = j; msg.classList.add('ok'); msg.textContent = `Code ${j.code} : -${euro(j.remise)}. Nouveau prix ${euro(j.total)}, acompte ${euro(j.acompte)}, solde ${euro(j.solde)}.`; }
-        } catch (x) { promo = null; msg.classList.add('err'); msg.textContent = 'Vérification impossible pour le moment.'; }
-        majBouton();
-      };
-      fo.querySelector('[data-promo-ok]').addEventListener('click', verifier);
-      champ.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); verifier(); } });
-      champ.addEventListener('input', () => { if (promo) { promo = null; msg.textContent = ''; majBouton(); } });
-      fo._promoVerifier = verifier;
-    }
+    const majBouton = () => {};
     // Adresse : liste déroulante (Base Adresse Nationale) et mini-carte, communes avec l'étape « adresse ».
     const W = adresseWidget(body, adr, sug, body.querySelector('[data-carte]'), {
       choisir: x => { lieu = {lon: x.lon, lat: x.lat}; terrain(x); },
@@ -313,7 +289,7 @@
         const pr = t.protections[0];
         html += `<span class="tp-alerte"><b>Secteur protégé :</b> ${esc(pr.libelle.toLowerCase())}${pr.nom ? ' « ' + esc(pr.nom) + ' »' : ''}. L'architecte des Bâtiments de France donnera son avis sur votre projet.</span>`;
         if (S.a.abf !== 'oui') {
-          S.a.abf = 'oui'; S.v = X.verdict(P, S.p, S.a, S.regul); majBouton(); if (promo && fo._promoVerifier) fo._promoVerifier();
+          S.a.abf = 'oui'; S.v = X.verdict(P, S.p, S.a, S.regul); majBouton();
           html += `<span class="tp-prix">Le supplément secteur protégé de ${euro(S.v.abf || 149)} s'applique. Nouveau total : ${euro(total(S.v))}.</span>`;
         }
       } else if (t.secteurProtege === false && peutAbf && S.a.abf === 'nsp') {
@@ -322,23 +298,37 @@
       if (!html) { info.hidden = true; return; }
       info.innerHTML = html;
     }
+    // Création du dossier : sans compte connecté, un code est d'abord envoyé à l'e-mail (2e envoi avec le code).
+    let attendCode = false;
+    const zoneCode = fo.querySelector('[data-code]');
+    if (zoneCode) {
+      fo.code.addEventListener('input', () => { fo.code.value = fo.code.value.replace(/\D/g, '').slice(0, 6); if (fo.code.value.length === 6) fo.requestSubmit(); });
+      fo.querySelector('[data-code-renvoi]').addEventListener('click', () => { attendCode = false; zoneCode.hidden = true; fo.code.value = ''; fo.requestSubmit(); });
+    }
     body.querySelector('#co').addEventListener('submit', async e => {
       e.preventDefault(); const f = e.target;
       if (!f.adr.value.trim() || !f.mail.value.trim()) { (f.adr.value.trim()?f.mail:f.adr).focus(); return; }
       const btn = f.querySelector('button[type=submit]'), err = f.querySelector('.form-err'), label = btn.textContent;
-      btn.disabled = true; btn.textContent = call ? 'Envoi…' : 'Ouverture du paiement sécurisé…'; err.hidden = true;
-      const data = {p:S.p, a:S.a, regul:S.regul, opt:S.opt, adresse:f.adr.value.trim(), lieu, promo: promo ? promo.code : (f.promo && f.promo.value.trim()) || undefined};
-      if (call) { data.tel = f.mail.value.trim(); data.motif = v.kind; } else data.email = f.mail.value.trim();
+      if (attendCode && f.code.value.length !== 6) { f.code.focus(); return; }
+      btn.disabled = true; btn.textContent = call ? 'Envoi…' : 'Création du dossier…'; err.hidden = true;
+      const data = {p:S.p, a:S.a, regul:S.regul, opt:S.opt, adresse:f.adr.value.trim(), lieu};
+      if (call) { data.tel = f.mail.value.trim(); data.motif = v.kind; } else { data.email = f.mail.value.trim(); if (attendCode) data.code = f.code.value; }
       try {
-        const r = await fetch(API + (call ? '/rappel' : '/commande'), {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data)});
+        const r = await fetch(API + (call ? '/rappel' : '/dossier/creer'), {method:'POST', headers:{'Content-Type':'application/json'}, credentials:'same-origin', body:JSON.stringify(data)});
         const j = await r.json().catch(() => ({}));
         if (!r.ok) throw new Error(j.erreur || 'Le service ne répond pas.');
         if (call) { S.stage='done'; render(); return; }
-        if (!j.url) throw new Error('Réponse inattendue du service de paiement.');
+        if (j.etape === 'code') {
+          attendCode = true; zoneCode.hidden = false; f.mail.readOnly = true;
+          zoneCode.querySelector('[data-code-lab]').textContent = `Code envoyé à ${data.email} (regardez aussi les indésirables)`;
+          btn.disabled = false; btn.textContent = 'Valider le code et créer mon dossier'; f.code.focus(); return;
+        }
+        if (!j.url) throw new Error('Réponse inattendue du service.');
         location.href = j.url;
       } catch (x) {
-        err.textContent = (x && x.message && !/fetch|network|JSON/i.test(x.message) ? x.message : 'Le service ne répond pas pour le moment.') + ' Réessayez, ou écrivez-nous à contact@bonpermis.fr.';
+        err.textContent = (x && x.message && !/fetch|network|JSON/i.test(x.message) ? x.message : 'Le service ne répond pas pour le moment.') + (attendCode ? '' : ' Réessayez, ou écrivez-nous à contact@bonpermis.fr.');
         err.hidden = false; btn.disabled = false; btn.textContent = label;
+        if (attendCode) { f.code.select(); }
       }
     });
     body.querySelector('[data-back]').addEventListener('click', () => { S.stage='v'; render(); });

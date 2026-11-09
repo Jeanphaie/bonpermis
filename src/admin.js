@@ -10,7 +10,7 @@
     const r = await fetch('/api/admin' + u, {method: m, headers: corps ? {'Content-Type': 'application/json'} : {}, body: corps ? JSON.stringify(corps) : undefined, credentials: 'same-origin'});
     return {ok: r.ok, s: r.status, j: await r.json().catch(() => ({}))};
   };
-  const ST = {elements: 'Attente client', verification: 'À vérifier', preparation: 'En préparation', apercu: 'Aperçu envoyé', corrections: 'Corrections', livre: 'Livré'};
+  const ST = {brouillon: 'Non payé', elements: 'Attente client', verification: 'À vérifier', preparation: 'En préparation', apercu: 'Aperçu envoyé', corrections: 'Corrections', livre: 'Livré'};
   const STC = {elements: 'elements', verification: 'verification', preparation: 'preparation', apercu: 'apercu', corrections: 'corrections', livre: 'livre'};
   const EP = {manquant: 'Manquant', a_verifier: 'À vérifier', valide: 'Validé', a_refaire: 'À refaire'};
   const CODES = ['CERFA', 'DP1', 'DP2', 'DP3', 'DP4', 'DP5', 'DP6', 'DP7', 'DP8', 'DP11', 'PC1', 'PC2', 'PC3', 'PC4', 'PC5', 'PC6', 'PC7', 'PC8', 'NOTICE', 'AUTRE'];

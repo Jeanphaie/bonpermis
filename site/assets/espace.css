@@ -34,6 +34,7 @@
 .st-a_verifier,.st-verification,.st-corrections{background:#FFF1D6;color:#7A4B00}
 .st-valide,.st-livre{background:var(--good-soft);color:#3E5A38}
 .st-a_refaire,.st-retard{background:#FDECEC;color:#8A1C1C}
+.st-brouillon{background:#FFF4DB;color:#7A4B00}
 .st-preparation,.st-apercu{background:#EDE9F7;color:#4B3A8A}
 .st-simulation{background:#EEEEF0;color:#3F4048}
 .prix{display:grid;grid-template-columns:1fr auto;gap:5px 14px;font-size:14px;margin:10px 0}
@@ -411,3 +412,34 @@ body[data-page=merci]{background:var(--warm)}
   .ok-mdp{padding:20px}
 }
 .dz-side [hidden],.ok-mdp [hidden]{display:none!important}
+/* ---------- dossier non validé : paiement de l'acompte ---------- */
+.dz-valider{margin-top:16px;background:var(--surface);border:2px solid var(--accent);border-radius:18px;padding:24px 28px;display:flex;flex-wrap:wrap;gap:20px 32px;align-items:center;box-shadow:0 16px 36px -26px rgba(1,39,177,.55)}
+.dz-valider-t{flex:1 1 420px}
+.esp .dz-valider h2{font-family:var(--f-display);font-weight:800;font-size:24px;letter-spacing:-.03em;margin:0}
+.dz-valider-t > p{margin:8px 0 0;font-size:15px;line-height:1.55;color:var(--muted)}
+.dz-valider-t b{color:var(--ink)}
+.dz-garanties{list-style:none;margin:12px 0 0;padding:0;display:flex;flex-direction:column;gap:4px;font-size:14px}
+.dz-garanties li{display:flex;gap:8px;align-items:flex-start}
+.dz-garanties li::before{content:'';flex:none;margin-top:3px;width:16px;height:16px;border-radius:50%;background:#1F7A45 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5' fill='none' stroke='white' stroke-width='3'/%3E%3C/svg%3E") center/11px no-repeat}
+.dz-valider-a{flex:0 1 340px;display:flex;flex-direction:column;align-items:stretch}
+.esp .dz-payer{min-height:58px;font-size:17px;font-weight:600;width:100%;white-space:nowrap;padding:0 22px}
+.dz-promo{margin-top:12px;text-align:center}
+.dz-promo .promo-l{text-align:left}
+.dz-promo .promo-l .btn{flex:0 0 auto;min-height:48px;padding:0 18px}
+.dz-promo [hidden]{display:none!important}
+.dz-barre-payer{position:fixed;left:0;right:0;bottom:0;z-index:40;background:rgba(255,255,255,.96);backdrop-filter:blur(10px);border-top:1px solid var(--line);box-shadow:0 -8px 24px -16px rgba(15,23,51,.35);display:flex;align-items:center;justify-content:center;gap:20px;padding:12px 20px calc(12px + env(safe-area-inset-bottom))}
+.dz-barre-payer span{display:flex;flex-direction:column;font-size:15px;line-height:1.3}
+.dz-barre-payer small{font-size:13px;color:var(--muted)}
+.esp .dz-barre-payer .btn,.dz-barre-payer .btn{min-height:48px;padding:0 24px;font-weight:600}
+body.dz-a-payer{padding-bottom:84px}
+.dz-bandeau{margin-top:14px;padding:14px 18px;border-radius:14px;font-size:15px;line-height:1.5;display:flex;gap:12px;align-items:flex-start}
+.dz-bandeau.ok{background:#E3F2E8;color:#1D5C36}
+.dz-bandeau.ok svg{flex:none;margin-top:1px}
+.dz-bandeau.info{background:var(--accent-soft);color:var(--ink);display:block}
+.dz-bandeau.attente{background:#FFF4DB;color:#7A4B00;display:block}
+.st-brouillon{background:#FFF4DB;color:#7A4B00}
+@media (max-width:700px){
+  .dz-valider{padding:18px}
+  .esp .dz-valider h2{font-size:21px}
+  .dz-barre-payer{justify-content:space-between;gap:12px}
+}

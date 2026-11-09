@@ -335,6 +335,7 @@ function adminDeconnexion(req, res) {
 }
 
 module.exports = {
+  nouveauCode, prendreCode,
   _t: {refusMdp, verifierAncien, aRefaire, hacher},
   purgerInactifs, lireUser, ecrireUser, userParMail, creerUser, sessionClient, sessionAdmin, ouvrirSession, lienConnexion, lienLong, vue,
   inscription, demanderCode, verifierCodeRoute, connexion, demanderLien, suivreLien, changerMdp, premierMdp, deconnexion, adminCode, adminConnexion, adminDeconnexion

@@ -20,15 +20,17 @@
     if (r.s === 401) { location.replace('/espace/?suite=' + encodeURIComponent(location.pathname + location.search)); return; }
     if (!r.ok) { el.innerHTML = `<h1>Mon dossier</h1><p class="answer">${esc(r.j.erreur || 'Dossier introuvable.')}</p><p><a href="/espace/">Retour à mon espace</a></p>`; return; }
     d = r.j; afficher();
+    // Retour du paiement : la confirmation de Stripe peut arriver quelques secondes après.
+    if (q.get('paye') === 'acompte' && d.statut === 'brouillon' && attente++ < 15) setTimeout(charger, 2000);
   }
 
   // ---------- avancement en 5 étapes ----------
   function etapes() {
-    const pos = {elements: 1, verification: 2, preparation: 3, apercu: 3, corrections: 3, livre: 5}[d.statut] ?? 1;
+    const pos = {brouillon: 0, elements: 1, verification: 2, preparation: 3, apercu: 3, corrections: 3, livre: 5}[d.statut] ?? 1;
     const delai = d.delai === 1 ? '24 h ouvrées' : d.delai === 2 ? '48 h ouvrées' : `${d.delai} jours ouvrés`;
     const L = [
-      ['Acompte payé', d.paiements.acompte ? new Date(d.paiements.acompte.date).toLocaleDateString('fr-FR', {day: 'numeric', month: 'short'}) : ''],
-      ['Vos pièces', pos === 1 ? `En cours · ${d.recues.n} sur ${d.recues.sur}` : `${d.recues.n} sur ${d.recues.sur} reçues`],
+      d.paiements.acompte ? ['Acompte payé', new Date(d.paiements.acompte.date).toLocaleDateString('fr-FR', {day: 'numeric', month: 'short'})] : ['Validation', `Acompte de ${euro(acompteAff())} à régler`],
+      ['Vos pièces', pos <= 1 ? `${pos === 1 ? 'En cours · ' : ''}${d.recues.n} sur ${d.recues.sur}` : `${d.recues.n} sur ${d.recues.sur} reçues`],
       ['Vérification', pos === 2 ? 'En cours, sous 24 h ouvrées' : 'sous 24 h ouvrées'],
       ['Aperçu des plans', d.statut === 'preparation' && d.echeance ? 'Au plus tard le ' + jour(d.echeance) : d.statut === 'apercu' ? 'À relire' : d.statut === 'corrections' ? 'Corrections en cours' : delai],
       ['Dossier prêt', d.paiements.solde ? 'Téléchargeable' : 'après le solde']
@@ -164,37 +166,108 @@
       <p class="dz-choix"><b>${esc(d.nom)}</b>${kind ? `<span>${kind}</span>` : ''}</p>
       <div class="prix">${L.map(([lab, px]) => `<span class="gris">${esc(lab)}</span><span class="gris">${euro(px)}</span>`).join('')}
         <span class="tot">Total</span><span class="tot">${euro(d.total)}</span>
+        ${!d.paiements.acompte ? `<span>Acompte, à la validation</span><span>${euro(acompteAff())}</span>` : ''}
         ${d.paiements.acompte ? `<span class="vert">Acompte payé le ${new Date(d.paiements.acompte.date).toLocaleDateString('fr-FR', {day: 'numeric', month: 'short'})}</span><span class="vert">${euro(d.paiements.acompte.montant)}</span>` : ''}
-        ${d.paiements.solde ? (d.paiements.solde.montant ? `<span class="vert">Solde payé le ${new Date(d.paiements.solde.date).toLocaleDateString('fr-FR', {day: 'numeric', month: 'short'})}</span><span class="vert">${euro(d.paiements.solde.montant)}</span>` : '') : `<span class="gris">Solde, après l'aperçu</span><span class="gris">${euro(d.solde)}</span>`}
+        ${d.paiements.solde ? (d.paiements.solde.montant ? `<span class="vert">Solde payé le ${new Date(d.paiements.solde.date).toLocaleDateString('fr-FR', {day: 'numeric', month: 'short'})}</span><span class="vert">${euro(d.paiements.solde.montant)}</span>` : '') : `<span class="gris">Solde, après l'aperçu</span><span class="gris">${euro(promoOk ? promoOk.solde : d.solde)}</span>`}
       </div><p class="note">Options : ${esc(d.options || 'aucune').replace(/,/g, ', ').replace('aucune', 'aucune')}. Les reçus de paiement vous sont envoyés par e-mail.</p></section>`;
+  }
+
+  // ---------- validation du dossier (statut « brouillon ») : paiement de l'acompte ----------
+  let promoOk = null;
+  const acompteAff = () => promoOk ? promoOk.acompte : d.acompte;
+  function blocValider() {
+    if (d.statut !== 'brouillon') return '';
+    const total = promoOk ? promoOk.total : d.total, solde = promoOk ? promoOk.solde : d.solde;
+    return `<section class="dz-valider" id="valider">
+      <div class="dz-valider-t">
+        <h2>Validez votre dossier pour qu'on commence</h2>
+        <p>Acompte de <b>${euro(acompteAff())}</b>, soit 30 % du prix de ${euro(total)}. Le solde de ${euro(solde)} se règle après l'aperçu de vos plans, quand tout vous convient.${d.recues.n < d.recues.sur ? ' Vous pouvez envoyer vos pièces avant ou après : rien n\'est perdu.' : ''}</p>
+        <ul class="dz-garanties">
+          <li>Paiement sécurisé par Stripe : carte, Apple Pay, Google Pay, PayPal</li>
+          <li>Corrections des plans comprises jusqu'au dépôt</li>
+          <li>Refus dû à une erreur de notre part : on corrige et on redépose gratuitement</li>
+        </ul>
+      </div>
+      <div class="dz-valider-a">
+        <button class="btn blue-btn dz-payer" type="button" data-payer>Valider et payer ${euro(acompteAff()).replace(' ', '\u00a0')}</button>
+        <div class="promo dz-promo">${promoOk ? `<p class="promo-msg ok">Code ${esc(promoOk.code)} appliqué : -${euro(promoOk.remise)}. <button type="button" class="lien" data-promo-retirer>Retirer</button></p>` : `<button type="button" class="more-btn" data-promo-ouvrir>J'ai un code promo</button>
+          <div class="promo-l" data-promo hidden><input name="promo" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Code promo" aria-label="Code promo"><button type="button" class="btn ghost" data-promo-ok>Appliquer</button></div>
+          <p class="promo-msg err" data-promo-msg aria-live="polite"></p>`}</div>
+        <p class="form-err" role="alert" hidden data-payer-err></p>
+      </div>
+    </section>`;
+  }
+  function barrePayer() {
+    if (d.statut !== 'brouillon') return '';
+    return `<div class="dz-barre-payer" role="region" aria-label="Valider le dossier"><span><b>Dossier non validé</b><small>Acompte de ${euro(acompteAff())}, solde après l'aperçu</small></span><button class="btn blue-btn" type="button" data-payer>Valider et payer</button></div>`;
+  }
+  function brancherPaiement() {
+    el.querySelectorAll('[data-payer]').forEach(b => b.addEventListener('click', async () => {
+      const err = el.querySelector('[data-payer-err]');
+      el.querySelectorAll('[data-payer]').forEach(x => { x.disabled = true; }); const lab = b.textContent; b.textContent = 'Ouverture du paiement sécurisé…';
+      const r = await api('POST', '/espace/dossier/payer?ref=' + R, {promo: promoOk ? promoOk.code : undefined}).catch(() => ({j: {}}));
+      if (r.ok && r.j.url) { location.href = r.j.url; return; }
+      el.querySelectorAll('[data-payer]').forEach(x => { x.disabled = false; }); b.textContent = lab;
+      if (err) { err.textContent = r.j.erreur || 'Le paiement n\'a pas pu s\'ouvrir. Réessayez.'; err.hidden = false; err.scrollIntoView({block: 'center'}); }
+    }));
+    const ouvrir = el.querySelector('[data-promo-ouvrir]');
+    if (ouvrir) {
+      const zone = el.querySelector('[data-promo]'), champ = zone.querySelector('input'), msg = el.querySelector('[data-promo-msg]');
+      ouvrir.addEventListener('click', () => { ouvrir.hidden = true; zone.hidden = false; champ.focus(); });
+      const verifier = async () => {
+        const code = champ.value.trim(); if (!code) return;
+        msg.textContent = 'Vérification…';
+        const r = await api('POST', '/promo', {code, ref}).catch(() => ({j: {}}));
+        if (!r.ok) { msg.textContent = r.j.erreur || 'Code non valable.'; return; }
+        promoOk = r.j; afficher(); const v = document.getElementById('valider'); if (v) v.scrollIntoView({block: 'center'});
+      };
+      zone.querySelector('[data-promo-ok]').addEventListener('click', verifier);
+      champ.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); verifier(); } });
+    }
+    const ret = el.querySelector('[data-promo-retirer]');
+    if (ret) ret.addEventListener('click', () => { promoOk = null; afficher(); });
   }
 
   function afficher() {
     const w = el.closest('.wrap'); if (w) w.classList.add('dz-large');
     const manque = d.pieces.filter(p => !p.facultatif && p.etat === 'manquant').length;
-    const statut = d.statut === 'elements' && manque ? [`À vous : ${manque} pièce${manque > 1 ? 's' : ''} à envoyer`, 'attente'] : d.statut === 'apercu' ? ['À vous : relire vos plans', 'attente'] : [d.statutTexte, d.statut === 'livre' ? 'ok' : 'info'];
+    const statut = d.statut === 'brouillon' ? ['Non validé : acompte à régler', 'attente'] : d.statut === 'elements' && manque ? [`À vous : ${manque} pièce${manque > 1 ? 's' : ''} à envoyer`, 'attente'] : d.statut === 'apercu' ? ['À vous : relire vos plans', 'attente'] : [d.statutTexte, d.statut === 'livre' ? 'ok' : 'info'];
     const kind = {dp: 'Déclaration préalable', pc: 'Permis de construire', pd: 'Permis de démolir'}[d.kind] || '';
     const pct = Math.round(d.recues.n / Math.max(1, d.recues.sur) * 100);
     el.innerHTML = `<a href="/espace/" class="dz-retour">← Mes dossiers</a>
       <div class="dz-tete"><div><p class="eyebrow" style="margin:0">Dossier ${esc(d.ref)}${kind ? ' · ' + kind : ''}</p><h1>${esc(d.nom)}</h1></div>
         <span class="dz-statut ${statut[1]}"><i aria-hidden="true"></i>${esc(statut[0])}</span></div>
-      ${q.get('paye') ? '<p class="ok-msg" style="margin-top:14px">Merci, le solde est réglé. Votre dossier est prêt à télécharger (la confirmation peut prendre quelques secondes).</p>' : ''}
+      ${bandeau()}
       ${etapes()}
+      ${blocValider()}
       <div class="dz-cols">
         <aside class="dz-gauche">${terrainBloc()}${commandeBloc()}${messages()}</aside>
         <div class="dz-droite">
           ${apercu()}
           <section class="dz-carte"><div class="rang ecart" style="align-items:baseline"><h2 class="dz-h2" style="margin:0">Vos pièces</h2><span class="note" style="margin:0;font-size:15px"><b style="color:var(--ink)">${d.recues.n} sur ${d.recues.sur}</b> envoyées${d.statut === 'elements' ? ' · environ 10 minutes' : ''}</span></div>
             <div class="dz-barre" aria-hidden="true"><i style="width:${pct}%"></i></div>
-            <p class="note">Chaque pièce est enregistrée dès l'envoi. Vous pouvez revenir quand vous voulez, ou continuer sur votre téléphone : même compte, même lien.</p></section>
+            <p class="note">${d.statut === 'brouillon' ? 'Vous pouvez les envoyer dès maintenant, avant de valider le dossier. ' : ''}Chaque pièce est enregistrée dès l'envoi. Vous pouvez revenir quand vous voulez, ou continuer sur votre téléphone : même compte, même lien.</p></section>
           ${pieces()}
           ${d.statut === 'elements' ? `<section class="dz-carte dz-fin"><div><h3 style="margin:0">Vous avez tout envoyé ?</h3><p class="note">Prévenez-nous : on vérifie et le délai de préparation démarre.</p><p class="form-err" role="alert" hidden id="errfin"></p></div><button class="btn blue-btn" type="button" data-fin>${manque ? `J'ai tout envoyé (il en manque ${manque})` : 'J\'ai tout envoyé'}</button></section>` : ''}
         </div>
       </div>
+      ${barrePayer()}
       <div class="lis" hidden id="lis" role="dialog" aria-modal="true" aria-label="Photo"></div>`;
+    document.body.classList.toggle('dz-a-payer', d.statut === 'brouillon');
     brancher();
+    brancherPaiement();
     terrainCharger();
   }
+
+  function bandeau() {
+    if (q.get('paye') === 'acompte') return d.statut === 'brouillon'
+      ? '<div class="dz-bandeau attente" role="status"><b>Paiement reçu, validation en cours.</b> Cela prend quelques secondes.</div>'
+      : `<div class="dz-bandeau ok" role="status"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><span><b>Paiement accepté : votre dossier est validé.</b> ${d.statut === 'verification' ? 'Toutes vos pièces sont là : nous les vérifions sous 24 h ouvrées.' : `Il reste ${d.recues.sur - d.recues.n} pièce${d.recues.sur - d.recues.n > 1 ? 's' : ''} à envoyer, ci-dessous.`} Un e-mail de confirmation vous est envoyé.</span></div>`;
+    if (q.get('paye')) return '<div class="dz-bandeau ok" role="status"><b>Merci, le solde est réglé.</b> Votre dossier est prêt à télécharger (la confirmation peut prendre quelques secondes).</div>';
+    if (q.get('nouveau') && d.statut === 'brouillon') return '<div class="dz-bandeau info" role="status"><b>Votre dossier est créé.</b> Voici tout ce qu\'il nous faut. Envoyez vos pièces quand vous voulez, puis validez le dossier en réglant l\'acompte : nous commençons à ce moment-là.</div>';
+    return '';
+  }
+  let attente = 0;
 
   // Données du terrain (même service que le simulateur), lues une fois par visite.
   let terrainCache = null;

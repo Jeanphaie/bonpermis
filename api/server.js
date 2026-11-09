@@ -79,6 +79,8 @@ const ROUTES = {
   'POST /api/stripe-webhook': webhook,
   'POST /api/rappel': rappel,
   'POST /api/promo': D.verifierPromo,
+  'POST /api/dossier/creer': D.creerDossier,
+  'POST /api/espace/dossier/payer': D.payerDossier,
   'GET /api/admin/promos': PR.liste,
   'POST /api/admin/promos': PR.enregistrer,
   'POST /api/admin/promos/actif': PR.basculer,
