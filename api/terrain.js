@@ -71,7 +71,8 @@ async function adresses(req, res, url) {
     const j = await lireUrl(`${GEOPF}/geocodage/search?q=${encodeURIComponent(q)}&limit=6&autocomplete=1`);
     const out = (j.features || []).filter(f => f.geometry && f.geometry.coordinates).map(f => ({
       label: f.properties.label, lon: f.geometry.coordinates[0], lat: f.geometry.coordinates[1],
-      insee: f.properties.citycode, type: f.properties.type
+      insee: f.properties.citycode, type: f.properties.type,
+      rue: f.properties.name, ville: [f.properties.postcode, f.properties.city].filter(Boolean).join(' ')
     }));
     repondre(res, 200, {adresses: out}, {'Cache-Control': 'public, max-age=3600'});
   } catch (e) {

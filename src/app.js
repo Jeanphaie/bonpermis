@@ -122,8 +122,10 @@
     const v = S.v, call = S.call;
     body.innerHTML = `<div class="qtitle" tabindex="-1">${call?'Comment vous joindre ?':'Encore deux choses, et c\'est parti'}</div><p class="qhelp">${call?'On vous rappelle dans la journée, ou le lendemain matin au plus tard.':'Pas besoin de créer un compte avant : il est créé avec votre commande. Vous payez 30 % aujourd\'hui, le solde après l\'aperçu de vos plans.'}</p>
       <form id="co" novalidate>
-        <label class="field"><span>L'adresse des travaux</span><input name="adr" autocomplete="off" placeholder="12 rue des Lilas, 44800 Saint-Herblain" required></label>
-        <div class="sugs" data-sug aria-live="polite"></div>
+        <div class="field adr-wrap"><label for="co-adr"><span>L'adresse des travaux</span></label>
+          <input id="co-adr" name="adr" autocomplete="off" placeholder="Tapez le début : 12 rue des Lilas, Saint-Herblain" required role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="co-sug">
+          <ul class="sugs" id="co-sug" role="listbox" data-sug></ul></div>
+        <div class="mini-carte" data-carte hidden></div>
         <p class="terrain-info" data-terrain hidden></p>
         <label class="field"><span>${call?'Votre téléphone':'Votre e-mail, pour recevoir le dossier'}</span><input name="mail" type="${call?'tel':'email'}" autocomplete="${call?'tel':'email'}" required></label>
         <p class="form-err" role="alert" hidden></p>
@@ -135,22 +137,76 @@
     let minuteur = null, lieu = null, demande = 0;
     const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
     const majBouton = () => { if (!call) fo.querySelector('button[type=submit]').textContent = 'Payer l\'acompte de ' + euro(acompte(S.v)) + ' et lancer mon dossier'; };
+    // Liste déroulante accessible : flèches, Entrée, Échap ; un clic ou Entrée choisit l'adresse.
+    let liste = [], actif = -1;
+    const carteEl = body.querySelector('[data-carte]');
+    const afficher = () => {
+      sug.innerHTML = liste.map((x, i) => `<li role="option" id="co-sug-${i}" class="sug${i === actif ? ' on' : ''}" aria-selected="${i === actif}" data-i="${i}"><b>${esc(x.rue || x.label)}</b>${x.ville ? `<small>${esc(x.ville)}</small>` : ''}</li>`).join('');
+      adr.setAttribute('aria-expanded', liste.length > 0 ? 'true' : 'false');
+      if (actif >= 0) adr.setAttribute('aria-activedescendant', 'co-sug-' + actif); else adr.removeAttribute('aria-activedescendant');
+    };
+    const fermerListe = () => { liste = []; actif = -1; afficher(); };
+    const choisir = x => { adr.value = x.label; fermerListe(); lieu = {lon: x.lon, lat: x.lat}; carte(x, null); terrain(x); };
+    sug.addEventListener('pointerdown', e => { const li = e.target.closest('[data-i]'); if (!li) return; e.preventDefault(); choisir(liste[+li.dataset.i]); });
+    adr.addEventListener('keydown', e => {
+      if (!liste.length) return;
+      if (e.key === 'ArrowDown') { e.preventDefault(); actif = (actif + 1) % liste.length; afficher(); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); actif = actif <= 0 ? liste.length - 1 : actif - 1; afficher(); }
+      else if (e.key === 'Enter') { e.preventDefault(); choisir(liste[Math.max(actif, 0)]); }
+      else if (e.key === 'Escape') { fermerListe(); }
+    });
+    adr.addEventListener('blur', () => setTimeout(fermerListe, 150));
     adr.addEventListener('input', () => {
-      lieu = null; info.hidden = true; clearTimeout(minuteur);
-      const q = adr.value.trim(); if (q.length < 4) { sug.innerHTML = ''; return; }
+      lieu = null; info.hidden = true; carteEl.hidden = true; clearTimeout(minuteur);
+      const q = adr.value.trim(); if (q.length < 3) { fermerListe(); return; }
       minuteur = setTimeout(async () => {
         const n = ++demande;
         try {
           const j = await (await fetch(API + '/terrain/adresses?q=' + encodeURIComponent(q))).json();
-          if (n !== demande) return;
-          sug.innerHTML = (j.adresses || []).map((x, i) => `<button type="button" class="sug" data-i="${i}">${esc(x.label)}</button>`).join('');
-          sug.querySelectorAll('[data-i]').forEach(b => b.addEventListener('click', () => { const x = j.adresses[+b.dataset.i]; adr.value = x.label; sug.innerHTML = ''; lieu = {lon: x.lon, lat: x.lat}; terrain(x); }));
-        } catch (x) { sug.innerHTML = ''; }
-      }, 250);
+          if (n !== demande || document.activeElement !== adr) return;
+          liste = j.adresses || []; actif = -1; afficher();
+        } catch (x) { fermerListe(); }
+      }, 200);
     });
+    // Mini-carte : photo aérienne IGN (tuiles relayées par bonpermis.fr), contour de la parcelle et point de l'adresse.
+    let fond = 'ortho';
+    function carte(x, t) {
+      const RAD = Math.PI / 180, W = carteEl.parentNode.clientWidth || 520, H = 230;
+      carteEl.hidden = false; carteEl.style.height = H + 'px';
+      const anneaux = [];
+      const g = t && t.parcelle && t.parcelle.geometrie;
+      if (g) (g.type === 'MultiPolygon' ? g.coordinates.flat() : g.type === 'Polygon' ? g.coordinates : []).forEach(r => anneaux.push(r));
+      const px = (z, lon, lat) => { const n = 256 * 2 ** z; return [(lon + 180) / 360 * n, (1 - Math.log(Math.tan(lat * RAD) + 1 / Math.cos(lat * RAD)) / Math.PI) / 2 * n]; };
+      // Zoom : le plus fort qui fait tenir la parcelle (photo IGN jusqu'au niveau 19).
+      let z = 19, cx, cy;
+      for (; z >= 15; z--) {
+        const pts = anneaux.flat().map(p => px(z, p[0], p[1]));
+        if (!pts.length) { [cx, cy] = px(z, x.lon, x.lat); break; }
+        const xs = pts.map(p => p[0]), ys = pts.map(p => p[1]);
+        const bw = Math.max(...xs) - Math.min(...xs), bh = Math.max(...ys) - Math.min(...ys);
+        cx = (Math.max(...xs) + Math.min(...xs)) / 2; cy = (Math.max(...ys) + Math.min(...ys)) / 2;
+        if (bw <= W - 60 && bh <= H - 50) break;
+      }
+      const ox = cx - W / 2, oy = cy - H / 2;
+      let h = '';
+      for (let tx = Math.floor(ox / 256); tx <= Math.floor((ox + W) / 256); tx++)
+        for (let ty = Math.floor(oy / 256); ty <= Math.floor((oy + H) / 256); ty++)
+          h += `<img alt="" draggable="false" src="${API}/terrain/tuile?c=${fond}&z=${z}&x=${tx}&y=${ty}" style="left:${Math.round(tx * 256 - ox)}px;top:${Math.round(ty * 256 - oy)}px">`;
+      const chemin = anneaux.map(r => 'M' + r.map(p => { const q = px(z, p[0], p[1]); return (q[0] - ox).toFixed(1) + ',' + (q[1] - oy).toFixed(1); }).join('L') + 'Z').join('');
+      const [mx, my] = px(z, x.lon, x.lat).map((v, i) => v - (i ? oy : ox));
+      h += `<svg width="${W}" height="${H}" aria-hidden="true">${chemin ? `<path d="${chemin}" fill="rgba(1,39,177,.18)" stroke="#fff" stroke-width="4" stroke-linejoin="round"/><path d="${chemin}" fill="none" stroke="#0127B1" stroke-width="2" stroke-linejoin="round"/>` : ''}
+        <g transform="translate(${mx.toFixed(1)},${my.toFixed(1)})"><path d="M0 0c-6-8-10-12-10-17a10 10 0 0 1 20 0c0 5-4 9-10 17z" fill="#0127B1" stroke="#fff" stroke-width="2"/><circle cy="-17" r="3.5" fill="#fff"/></g></svg>
+        <div class="mc-bt" role="group" aria-label="Fond de carte"><button type="button" data-fond="ortho" aria-pressed="${fond === 'ortho'}">Photo</button><button type="button" data-fond="plan" aria-pressed="${fond === 'plan'}">Plan</button></div>
+        <span class="mc-att">${chemin ? 'Contour : cadastre · ' : ''}© IGN</span>`;
+      carteEl.innerHTML = h;
+      carteEl.setAttribute('role', 'img');
+      carteEl.setAttribute('aria-label', 'Vue aérienne de l\'adresse' + (chemin ? ' avec le contour de la parcelle' : ''));
+      carteEl.querySelectorAll('[data-fond]').forEach(b => b.addEventListener('click', () => { fond = b.dataset.fond; carte(x, t); }));
+    }
     async function terrain(x) {
       info.hidden = false; info.className = 'terrain-info'; info.textContent = 'On regarde votre terrain…';
       let t; try { t = await (await fetch(API + `/terrain?lon=${x.lon}&lat=${x.lat}`)).json(); } catch (e) { info.hidden = true; return; }
+      if (lieu && lieu.lon === x.lon && lieu.lat === x.lat) carte(x, t);
       const l = [];
       if (t.parcelle) l.push(`Parcelle ${esc(t.parcelle.section)} ${esc(String(t.parcelle.numero).replace(/^0+/, ''))}${t.parcelle.contenance ? ', ' + t.parcelle.contenance.toLocaleString('fr-FR') + ' m²' : ''}`);
       if (t.zone) l.push(`Zone ${esc(t.zone.libelle)} du plan local d'urbanisme${t.zone.libelleLong && t.zone.libelleLong !== t.zone.libelle ? ' (' + esc(t.zone.libelleLong.toLowerCase()) + ')' : ''}`);
