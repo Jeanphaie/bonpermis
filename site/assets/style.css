@@ -511,3 +511,11 @@ nav.links a,.espace-lien{white-space:nowrap}
 /* Encadré prix : un cas par ligne */
 .cta-box .cta-offres{list-style:none;padding:0;margin:10px 0 6px;display:grid;gap:4px;font-size:15px;color:var(--ink)}
 .cta-box .cta-offres b{display:inline;font-family:inherit;font-size:15px;font-weight:700}
+.planches{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:20px;margin:28px 0 18px}
+.planches figure{margin:0;background:#fff;border:1px solid var(--line);border-radius:var(--r-sm);overflow:hidden}
+.planches a{display:block;border-bottom:1px solid var(--line)}
+.planches img{display:block;width:100%;height:auto}
+.planches figcaption{padding:12px 14px 14px;font-size:15px}
+.planches figcaption b{color:var(--accent);margin-right:6px}
+.planches figcaption span{display:block;color:var(--muted);font-size:13px;line-height:1.45;margin-top:4px}
+#exemple .lead + .lead{margin-top:12px}

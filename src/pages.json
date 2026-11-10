@@ -558,7 +558,60 @@
      "490 €",
      "Permis de construire, prêt en 5 jours"
     ]
-   ]
+   ],
+   "exemple": {
+    "dossier": "exemple-extension",
+    "titre": "Un vrai dossier, tel qu'on le livre",
+    "intro": [
+     "Une extension de 31 m² de surface de plancher sur une maison en Bretagne, classée en zone naturelle par le plan local d'urbanisme. Hors zone urbaine, la limite de la déclaration préalable est à 20 m² : il fallait donc un permis de construire.",
+     "Le règlement de la commune limitait l'agrandissement à la moitié de l'emprise de la maison, soit 38,28 m². L'extension en fait 37,27. On l'a vérifié avant de dessiner, et le calcul figure sur le plan de masse pour que l'instructeur le retrouve tout de suite. Cliquez sur une planche pour l'ouvrir en grand."
+    ],
+    "planches": [
+     [
+      "pcmi2-plan-de-masse",
+      "PCMI2",
+      "Plan de masse",
+      "Le terrain vu du dessus, l'extension cotée, les distances aux limites, le tableau des surfaces."
+     ],
+     [
+      "pcmi3-coupe",
+      "PCMI3",
+      "Plan en coupe",
+      "Le terrain et la construction en tranche, avec les hauteurs. Le relief vient des relevés d'altitude de l'IGN."
+     ],
+     [
+      "pcmi5-facades-existant",
+      "PCMI5",
+      "Façades avant travaux",
+      "Les quatre faces de la maison telle qu'elle est."
+     ],
+     [
+      "pcmi5-facades-projet",
+      "PCMI5",
+      "Façades après travaux",
+      "Les mêmes faces avec l'extension, les matériaux et les teintes."
+     ],
+     [
+      "pcmi5-toitures",
+      "PCMI5",
+      "Plan des toitures",
+      "Les pentes, la couverture et les châssis de toit."
+     ],
+     [
+      "pcmi6-insertion",
+      "PCMI6",
+      "Insertion dans le paysage",
+      "Une image du projet fini, calée sur une photo du terrain. À côté, la photo d'origine."
+     ],
+     [
+      "pcmi7-8-photos",
+      "PCMI7 et 8",
+      "Photos du terrain",
+      "Une vue de près et une vue de loin, repérées sur le plan de masse."
+     ]
+    ],
+    "note": "Dossier réel, publié avec l'accord écrit de la propriétaire. Nom, adresse, numéro de parcelle et plan de situation masqués. Le dossier complet contient aussi le plan de situation (PCMI1), la notice (PCMI4) et le formulaire officiel rempli."
+   }
   },
   "veranda": {
    "slug": "veranda",
