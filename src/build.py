@@ -225,7 +225,11 @@ def page(k):
     faq_html = '' if not c.get('faq') else (
         '<section id="faq" class="page-sec alt"><div class="wrap narrow"><h2>Questions fréquentes</h2><div class="faq">'
         + ''.join(f'<details><summary>{e(q)}</summary><p>{e(r)}</p></details>' for q, r in c['faq']) + '</div></div></section>')
-    blocs_sup = '' if not (etapes_html or erreurs_html) else f'<section class="page-sec"><div class="wrap narrow">{etapes_html}{erreurs_html}</div></section>'
+    blocs_html = ''.join(f'<h2 class="mt">{e(t)}</h2>' + ''.join(f'<p class="lead">{e(x)}</p>' for x in paras)
+                         for t, paras in c.get('blocs', []))
+    if blocs_html.startswith('<h2 class="mt">'):
+        blocs_html = '<h2>' + blocs_html[len('<h2 class="mt">'):]
+    blocs_sup = '' if not (blocs_html or etapes_html or erreurs_html) else f'<section class="page-sec"><div class="wrap narrow">{blocs_html}{etapes_html}{erreurs_html}</div></section>'
     gar_t, gar_p = c.get('garantie', ["Si la mairie dit non à cause de nous, on reprend tout, sans frais.",
                                       "Un refus ou une pièce manquante à cause d'une erreur dans le dossier ? On corrige et on redépose, sans rien vous facturer."])
     cta_txt = c.get('cta_txt', f"Dossier prêt en {c['delai']} après réception de vos photos. Près d'un monument : + 149 €. En copropriété : + 99 €.")
@@ -367,8 +371,24 @@ APPS = [
 
 
 def sitemap(chemins):
-    dates = {URL[k] + '/': maj(k) for k in PAGES}
-    urls = ''.join(f'<url><loc>{DOMAINE}/{c}</loc><lastmod>{dates.get(c, MAJ)}</lastmod></url>\n' for c in chemins)
+    """Date de dernière modification par page, d'après son contenu : src/dates.json garde l'empreinte
+    du texte de chaque page et la date du jour où elle a changé. Rien à remplir à la main."""
+    import hashlib, datetime, re as _re
+    f = SRC / 'dates.json'
+    memo = json.loads(f.read_text(encoding='utf-8')) if f.exists() else {}
+    auj = datetime.date.today().isoformat()
+    connues = {URL[k] + '/': maj(k) for k in PAGES}
+    for c in chemins:
+        html = (SITE / c / 'index.html').read_text(encoding='utf-8')
+        corps = html[html.find('<main'):html.find('</main>')]
+        corps = _re.sub(r'Mis à jour le [^.<]+', '', corps)
+        h = hashlib.sha256(corps.encode('utf-8')).hexdigest()[:16]
+        if c not in memo:
+            memo[c] = {'h': h, 'd': connues.get(c, MAJ)}
+        elif memo[c]['h'] != h:
+            memo[c] = {'h': h, 'd': auj}
+    f.write_text(json.dumps(memo, ensure_ascii=False, indent=1, sort_keys=True) + '\n', encoding='utf-8')
+    urls = ''.join(f'<url><loc>{DOMAINE}/{c}</loc><lastmod>{memo[c]["d"]}</lastmod></url>\n' for c in chemins)
     return f'<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n{urls}</urlset>\n'
 
 

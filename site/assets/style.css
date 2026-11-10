@@ -504,3 +504,6 @@ nav.links a,.espace-lien{white-space:nowrap}
 .tel-lien i{background:var(--accent);color:#fff}
 .tel-lien span{color:var(--accent)}
 @media (max-width:860px){.tel-lien i{background:var(--accent);color:#fff;border:0;border-radius:50%;width:38px;height:38px}}
+
+/* Blocs de texte des pages projet : deux paragraphes qui se suivent */
+.page-sec .lead + .lead{margin-top:12px}

@@ -40,6 +40,18 @@
   "PRESCR": [
    "Conseil d'État, 3 février 2017, n° 373898",
    "https://www.legifrance.gouv.fr/affichJuriAdmin.do?oldAction=rechJuriAdmin&idTexte=CETATEXT000033981644&fastReqId=2037680504&fastPos=1"
+  ],
+  "TA": [
+   "Taxe d'aménagement",
+   "https://www.service-public.gouv.fr/particuliers/vosdroits/F23263"
+  ],
+  "IMPOTS": [
+   "Travaux à déclarer aux impôts",
+   "https://www.justice.fr/fiche/travaux-declarer-impots"
+  ],
+  "CERFA": [
+   "Formulaire de déclaration préalable",
+   "https://www.service-public.gouv.fr/particuliers/vosdroits/R2028"
   ]
  },
  "pages": {
@@ -183,13 +195,78 @@
    "delai": "48 h",
    "sources": [
     "ANNEXE",
-    "DP"
+    "DP",
+    "CERFA",
+    "TA"
    ],
    "liens": [
     "carport",
     "terrasse",
     "veranda",
     "abri"
+   ],
+   "maj": "2026-11-10",
+   "blocs": [
+    [
+     "Une pergola est-elle imposable ?",
+     [
+      "Non, tant qu'elle n'est ni close ni couverte : service-public classe la pergola parmi les constructions non taxables. Si vous la fermez avec des parois et un toit fixe, la surface devient taxable.",
+      "Une pergola ouverte ne change donc ni la taxe d'aménagement ni la taxe foncière. La déclaration en mairie, elle, reste obligatoire dès 5 m²."
+     ]
+    ],
+    [
+     "Que risque-t-on avec une pergola non déclarée ?",
+     [
+      "Construire sans autorisation est un délit. Pendant 6 ans après les travaux, une amende est possible, de 1 200 € à 300 000 € selon le cas.",
+      "Le problème ressort surtout à la vente : le notaire relève les surfaces jamais déclarées, et l'acheteur ou sa banque peut demander que ce soit réglé avant de signer. Une régularisation reste possible à tout moment, si la construction respecte les règles actuelles de votre commune."
+     ]
+    ]
+   ],
+   "erreurs_titre": "Les erreurs qui font refuser une pergola",
+   "erreurs": [
+    "Mesurer entre les poteaux au lieu de la toiture. La surface déclarée est trop faible et la démarche peut être la mauvaise.",
+    "Un plan de masse sans cotes ni distances aux limites du terrain. La mairie ne peut pas vérifier l'implantation.",
+    "Oublier la couleur, le matériau ou la hauteur. La mairie a un mois pour réclamer les pièces manquantes, et le délai ne court qu'avec un dossier complet.",
+    "Ne pas voir que le terrain est en secteur protégé : l'avis de l'architecte des bâtiments de France est demandé et l'instruction dure en général deux mois.",
+    "Fermer la pergola plus tard avec des parois fixes. Elle devient close et couverte, donc taxable, et ne correspond plus au dossier déposé."
+   ],
+   "faq": [
+    [
+     "Est-il possible d'installer une pergola sans autorisation ?",
+     "Oui, si elle fait 5 m² d'emprise au sol ou moins. Même petite, elle demande une déclaration si elle modifie l'aspect extérieur de la maison, par exemple accolée à une façade."
+    ],
+    [
+     "Quelle surface pour une pergola sans permis de construire ?",
+     "Jusqu'à 20 m² au sol, une déclaration préalable suffit. Au-delà, il faut un permis de construire, sauf pergola collée à la maison en zone urbaine, où la déclaration va jusqu'à 40 m²."
+    ],
+    [
+     "Doit-on déclarer une pergola à la mairie ?",
+     "Oui, dès qu'elle dépasse 5 m² au sol. On mesure la toiture vue d'en haut, débords compris, pas seulement l'espace entre les poteaux."
+    ],
+    [
+     "Est-ce qu'une pergola de moins de 20 m² est imposable ?",
+     "Non, tant qu'elle n'est ni close ni couverte : la pergola fait partie des constructions non taxables. Fermée par des parois et un toit fixe, elle le devient."
+    ],
+    [
+     "Une pergola bioclimatique suit-elle les mêmes règles ?",
+     "Oui pour l'urbanisme : c'est la surface au sol qui compte, pas le type de toiture. Pour la taxe, tout dépend si elle reste ouverte sur les côtés."
+    ],
+    [
+     "Quel formulaire Cerfa pour une pergola ?",
+     "Le Cerfa 16702*03, « Déclaration préalable, constructions et travaux non soumis à permis de construire ». L'ancien 13703 n'est plus le bon formulaire."
+    ],
+    [
+     "À quelle distance du voisin installer une pergola ?",
+     "Le plan local d'urbanisme de votre commune fixe la règle. S'il ne dit rien, la pergola se place en limite de propriété ou à au moins 3 mètres."
+    ],
+    [
+     "Quel est le délai de réponse de la mairie ?",
+     "Un mois pour une déclaration préalable, à partir d'un dossier complet. En général deux mois en secteur protégé. La mairie a un mois pour réclamer une pièce manquante, et le délai ne court qu'une fois le dossier complet."
+    ],
+    [
+     "Que faire une fois l'accord obtenu ?",
+     "Afficher l'autorisation sur un panneau de plus de 80 cm, visible de la rue, pendant tout le chantier. Les voisins ont deux mois à partir de l'affichage pour contester. L'autorisation est valable 3 ans."
+    ]
    ]
   },
   "piscine": {
@@ -336,7 +413,7 @@
   "extension": {
    "slug": "extension-maison",
    "titre": "Extension de maison : déclaration ou permis en 2026 ? Dès 349 €",
-   "desc": "Extension jusqu'à 20 m² (40 m² en zone urbaine) : déclaration préalable. Au-delà, permis de construire. Dossier dès 349 €, permis 490 €.",
+   "desc": "Extension jusqu'à 20 m² (40 m² en zone urbaine) : déclaration préalable. Au-delà, permis de construire. Impôts, risques, erreurs à éviter. Dossier dès 349 €.",
    "h1": "Extension de maison : déclaration ou permis ?",
    "chapo": "Ça dépend de la surface créée. Jusqu'à 20 m², une déclaration préalable, et jusqu'à 40 m² si votre maison est en zone urbaine. Au-delà, un permis de construire.",
    "regles": [
@@ -362,13 +439,105 @@
    "delai": "48 h, 5 jours pour un permis",
    "sources": [
     "DP",
-    "PC"
+    "PC",
+    "TA",
+    "IMPOTS"
    ],
    "liens": [
     "veranda",
     "surelevation",
     "combles",
     "garage"
+   ],
+   "maj": "2026-11-10",
+   "blocs": [
+    [
+     "Une extension est-elle imposable ?",
+     [
+      "Oui. Une surface close et couverte de plus de 5 m² est soumise à la taxe d'aménagement, payée une seule fois. En 2026, elle se calcule sur 892 € par m² créé (1 011 € en Île-de-France), multipliés par les taux votés par votre commune et votre département.",
+      "Vous devez aussi déclarer les travaux aux impôts dans les 90 jours après leur achèvement, depuis votre espace impots.gouv.fr, rubrique « Biens immobiliers ». Sans déclaration dans ce délai, l'amende est de 150 €, et vous pouvez perdre l'exonération de taxe foncière de deux ans prévue pour les surfaces nouvelles."
+     ]
+    ],
+    [
+     "Que risque-t-on sans déclaration ?",
+     [
+      "Construire sans autorisation est un délit. Pendant 6 ans après les travaux, une amende est possible, de 1 200 € à 300 000 € selon le cas.",
+      "Le problème ressort surtout à la vente : le notaire relève les surfaces jamais déclarées, et l'acheteur ou sa banque peut demander que ce soit réglé avant de signer. Une régularisation reste possible à tout moment, si la construction respecte les règles actuelles de votre commune."
+     ]
+    ]
+   ],
+   "etapes_titre": "Ce que contient le dossier",
+   "etapes": [
+    [
+     "Le formulaire officiel.",
+     "Votre identité, l'adresse du terrain, les surfaces avant et après travaux. Une surface mal reportée suffit à changer la démarche."
+    ],
+    [
+     "Le plan de situation.",
+     "Il situe le terrain dans la commune. La mairie y vérifie la zone du plan local d'urbanisme et un éventuel secteur protégé."
+    ],
+    [
+     "Le plan de masse.",
+     "La maison et l'extension vues d'en haut, cotées, avec les distances aux limites du terrain. C'est la pièce la plus regardée."
+    ],
+    [
+     "Le plan en coupe.",
+     "L'extension posée sur le terrain, avec ses hauteurs à l'égout et au faîtage."
+    ],
+    [
+     "Les façades et les toitures.",
+     "Avant et après travaux, avec les matériaux et les couleurs."
+    ],
+    [
+     "L'insertion et les photos.",
+     "Un photomontage de l'extension dans son environnement, et deux photos du terrain, de près et de loin."
+    ]
+   ],
+   "erreurs_titre": "Les erreurs qui font refuser une extension",
+   "erreurs": [
+    "Compter la surface habitable au lieu de la surface créée. Les seuils de 20 et 40 m² se regardent à la fois en surface de plancher et en emprise au sol : il suffit que l'une des deux dépasse.",
+    "Oublier le seuil de 150 m². Si la maison dépasse 150 m² une fois agrandie, il faut un permis de construire signé par un architecte, même pour une extension de 25 m².",
+    "Se croire en zone urbaine sans vérifier. Le seuil de 40 m² ne vaut que dans les zones urbaines d'un plan local d'urbanisme. Ailleurs, le permis est exigé dès 20 m².",
+    "Ne pas lire les distances imposées par la commune. Une extension trop près de la limite du terrain ou trop haute est refusée, quelle que soit sa surface.",
+    "Un plan de masse sans cotes. La mairie ne peut pas vérifier l'implantation et réclame la pièce : le délai repart."
+   ],
+   "faq": [
+    [
+     "Quelle autorisation pour une extension de maison ?",
+     "Une déclaration préalable jusqu'à 20 m² créés, et jusqu'à 40 m² si la maison est en zone urbaine d'un plan local d'urbanisme. Au-delà, un permis de construire. En dessous de 5 m², aucune démarche en général."
+    ],
+    [
+     "Est-ce qu'une extension de 20 m² nécessite un permis de construire ?",
+     "Non. Jusqu'à 20 m² créés, une déclaration préalable suffit, partout en France. Le permis devient obligatoire au-delà de 20 m², ou au-delà de 40 m² en zone urbaine."
+    ],
+    [
+     "Peut-on faire une extension de 40 m² sans permis de construire ?",
+     "Oui, avec une déclaration préalable, à deux conditions : la maison est en zone urbaine d'un plan local d'urbanisme, et elle ne dépasse pas 150 m² une fois agrandie."
+    ],
+    [
+     "Faut-il un architecte pour une extension ?",
+     "Seulement si la maison dépasse 150 m² après travaux et que l'extension demande un permis de construire. En dessous, vous pouvez déposer le dossier sans architecte."
+    ],
+    [
+     "Une extension est-elle imposable ?",
+     "Oui : taxe d'aménagement à la construction, puis hausse de la taxe foncière. Les travaux se déclarent aux impôts dans les 90 jours après leur achèvement."
+    ],
+    [
+     "Quel risque si une extension n'est pas déclarée ?",
+     "C'est un délit. Pendant 6 ans après les travaux, une amende est possible, de 1 200 € à 300 000 € selon le cas. À la vente, le notaire peut relever le problème et l'acheteur demander une régularisation avant de signer."
+    ],
+    [
+     "Est-il possible de régulariser une extension sans permis de construire ?",
+     "Oui, si l'extension respecte les règles actuelles de votre commune. On dépose alors le dossier qui aurait dû l'être, déclaration préalable ou permis selon la surface."
+    ],
+    [
+     "Quel est le délai de réponse de la mairie ?",
+     "Un mois pour une déclaration préalable, deux mois pour un permis de construire de maison individuelle, à partir d'un dossier complet. Comptez en général un mois de plus en secteur protégé."
+    ],
+    [
+     "Que faire une fois l'accord obtenu ?",
+     "Afficher l'autorisation sur un panneau de plus de 80 cm, visible de la rue, pendant tout le chantier. Les voisins ont deux mois à partir de l'affichage pour contester. L'autorisation est valable 3 ans."
+    ]
    ]
   },
   "veranda": {
@@ -400,13 +569,66 @@
    "delai": "48 h, 5 jours pour un permis",
    "sources": [
     "DP",
-    "PC"
+    "PC",
+    "TA",
+    "IMPOTS"
    ],
    "liens": [
     "extension",
     "pergola",
     "combles",
     "surelevation"
+   ],
+   "maj": "2026-11-10",
+   "blocs": [
+    [
+     "Une véranda est-elle imposable ?",
+     [
+      "Oui. Une surface close et couverte de plus de 5 m² est soumise à la taxe d'aménagement, payée une seule fois. En 2026, elle se calcule sur 892 € par m² créé (1 011 € en Île-de-France), multipliés par les taux votés par votre commune et votre département.",
+      "Vous devez aussi déclarer les travaux aux impôts dans les 90 jours après leur achèvement, depuis votre espace impots.gouv.fr, rubrique « Biens immobiliers ». Sans déclaration dans ce délai, l'amende est de 150 €, et vous pouvez perdre l'exonération de taxe foncière de deux ans prévue pour les surfaces nouvelles."
+     ]
+    ],
+    [
+     "Que risque-t-on avec une véranda non déclarée ?",
+     [
+      "Construire sans autorisation est un délit. Pendant 6 ans après les travaux, une amende est possible, de 1 200 € à 300 000 € selon le cas.",
+      "Le problème ressort surtout à la vente : le notaire relève les surfaces jamais déclarées, et l'acheteur ou sa banque peut demander que ce soit réglé avant de signer. Une régularisation reste possible à tout moment, si la construction respecte les règles actuelles de votre commune."
+     ]
+    ]
+   ],
+   "erreurs_titre": "Les erreurs qui font refuser une véranda",
+   "erreurs": [
+    "Oublier que la véranda compte comme une extension. Elle s'ajoute à la surface de la maison : au-delà de 150 m² au total, il faut un permis signé par un architecte.",
+    "Se croire en zone urbaine sans vérifier. Le seuil de 40 m² ne vaut que dans les zones urbaines d'un plan local d'urbanisme.",
+    "Ne pas indiquer la couleur et le matériau des profilés. La mairie réclame la pièce et le délai repart.",
+    "Ignorer les règles de la commune sur les distances et la hauteur. Une véranda trop près du voisin est refusée, quelle que soit sa surface.",
+    "Ne pas voir que la maison est en secteur protégé. L'avis de l'architecte des bâtiments de France est alors demandé, et le délai s'allonge."
+   ],
+   "faq": [
+    [
+     "Est-il possible de construire une véranda sans autorisation ?",
+     "En général seulement en dessous de 5 m². Au-delà, il faut une déclaration préalable ou un permis de construire."
+    ],
+    [
+     "Quelle taille de véranda sans permis de construire ?",
+     "Jusqu'à 20 m², une déclaration préalable suffit. Jusqu'à 40 m² si la maison est en zone urbaine d'un plan local d'urbanisme et reste sous 150 m² une fois agrandie."
+    ],
+    [
+     "Quelle est l'imposition pour une véranda de moins de 20 m² ?",
+     "Une véranda est close et couverte : dès 5 m², elle est soumise à la taxe d'aménagement, calculée en 2026 sur 892 € par m² (1 011 € en Île-de-France) multipliés par les taux locaux. Elle augmente aussi la taxe foncière."
+    ],
+    [
+     "Quelles sont les conséquences d'une véranda non déclarée ?",
+     "Une amende est possible pendant 6 ans, de 1 200 € à 300 000 € selon le cas. À la vente, le notaire peut relever le problème et l'acheteur demander une régularisation avant de signer."
+    ],
+    [
+     "Quel est le délai de réponse de la mairie ?",
+     "Un mois pour une déclaration préalable, à partir d'un dossier complet. En général deux mois en secteur protégé. La mairie a un mois pour réclamer une pièce manquante, et le délai ne court qu'une fois le dossier complet."
+    ],
+    [
+     "Que faire une fois l'accord obtenu ?",
+     "Afficher l'autorisation sur un panneau de plus de 80 cm, visible de la rue, pendant tout le chantier. Les voisins ont deux mois à partir de l'affichage pour contester. L'autorisation est valable 3 ans."
+    ]
    ]
   },
   "combles": {
@@ -510,13 +732,69 @@
    "delai": "48 h",
    "sources": [
     "DP",
-    "PC"
+    "PC",
+    "IMPOTS"
    ],
    "liens": [
     "usage",
     "extension",
     "menuiseries",
     "facade"
+   ],
+   "maj": "2026-11-10",
+   "blocs": [
+    [
+     "Faut-il déclarer la transformation aux impôts ?",
+     [
+      "Oui. Un garage qui devient une pièce de vie change la nature du bien : la transformation se déclare aux impôts dans les 90 jours après la fin des travaux, depuis votre espace impots.gouv.fr, rubrique « Biens immobiliers ».",
+      "La base de calcul de la taxe foncière est alors revue. Sans déclaration dans le délai, l'amende est de 150 €."
+     ]
+    ],
+    [
+     "Que risque-t-on sans déclaration ?",
+     [
+      "Construire sans autorisation est un délit. Pendant 6 ans après les travaux, une amende est possible, de 1 200 € à 300 000 € selon le cas.",
+      "Le problème ressort surtout à la vente : le notaire relève les surfaces jamais déclarées, et l'acheteur ou sa banque peut demander que ce soit réglé avant de signer. Une régularisation reste possible à tout moment, si la construction respecte les règles actuelles de votre commune."
+     ]
+    ]
+   ],
+   "erreurs_titre": "Les erreurs qui bloquent une transformation de garage",
+   "erreurs": [
+    "Oublier le stationnement. Beaucoup de communes imposent un nombre de places par logement : supprimer le garage sans place de remplacement fait refuser le dossier.",
+    "Croire qu'il n'y a rien à déclarer parce que les travaux sont à l'intérieur. Dès que la porte de garage est remplacée, la façade change et la déclaration est obligatoire.",
+    "Ne pas compter la surface créée. Le garage ne comptait pas dans la surface de plancher : une fois transformé, il s'y ajoute, et peut faire passer la maison au-dessus de 150 m².",
+    "Dessiner la nouvelle façade sans les dimensions de la fenêtre ni les matériaux. La mairie réclame la pièce et le délai repart.",
+    "Créer un logement indépendant sans le dire. Un studio à louer n'est pas une chambre en plus : les règles de la commune peuvent être différentes."
+   ],
+   "faq": [
+    [
+     "Est-il possible de transformer un garage en chambre sans autorisation ?",
+     "Non, dès que la façade change. Remplacer la porte de garage par une fenêtre ou un mur demande une déclaration préalable. Sans aucun changement extérieur, il n'y a en général pas de démarche d'urbanisme, mais la déclaration aux impôts reste due."
+    ],
+    [
+     "Quel permis pour transformer un garage en habitation ?",
+     "Une déclaration préalable jusqu'à 20 m² transformés, et jusqu'à 40 m² en zone urbaine d'un plan local d'urbanisme. Au-delà, un permis de construire."
+    ],
+    [
+     "Est-il possible de transformer son garage en chambre ?",
+     "Oui, si le plan local d'urbanisme de votre commune le permet. Le point à vérifier d'abord est le stationnement : la commune peut exiger de garder une place sur le terrain."
+    ],
+    [
+     "Chambre, studio, buanderie, salle de sport : la démarche est-elle la même ?",
+     "Oui pour l'urbanisme : c'est le changement de façade et la surface transformée qui comptent, pas l'usage de la pièce. Un studio destiné à la location crée en revanche un logement de plus, ce que certaines communes encadrent."
+    ],
+    [
+     "Faut-il déclarer la transformation aux impôts ?",
+     "Oui, dans les 90 jours après la fin des travaux, depuis votre espace impots.gouv.fr. La base de calcul de la taxe foncière est revue."
+    ],
+    [
+     "Quel risque si la transformation n'est pas déclarée ?",
+     "C'est un délit. Pendant 6 ans après les travaux, une amende est possible, de 1 200 € à 300 000 € selon le cas. À la vente, le notaire peut relever le problème et l'acheteur demander une régularisation avant de signer."
+    ],
+    [
+     "Quel est le délai de réponse de la mairie ?",
+     "Un mois pour une déclaration préalable, à partir d'un dossier complet. En général deux mois en secteur protégé. La mairie a un mois pour réclamer une pièce manquante, et le délai ne court qu'une fois le dossier complet."
+    ]
    ]
   },
   "menuiseries": {
