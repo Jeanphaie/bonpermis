@@ -1,0 +1,145 @@
+{
+  "_doc": "Fiche zone PLU analysée à la main par Claude. Pages = pagination du règlement écrit PDF. Lu en entier : sommaire (p.3), zone N (p.141-161), titre V (p.162-174), lexique (p.176-180). Non lu : règlement graphique (reculs portés au plan le long des RD, EBC, haies protégées, zones humides, bande des 100 m), annexes sanitaires, règlement de voirie. Secteurs Ns, Np, Nzh, Nl, Nla, Nr, Ng, Nx : seules les règles propres à la zone N simple sont détaillées ici.",
+  "document": {
+    "nom": "PLU de Sauzon, règlement écrit",
+    "partition": "DU_56241",
+    "gpu_doc_id": "5c27f8ccc0582de1901c9deafdc4dcae",
+    "idurba": "56241_PLU_20240411",
+    "fichier": "56241_reglement_20240411.pdf",
+    "approbation": "2024-04-11",
+    "approbation_a_verifier": "date tirée du champ datvalid du Géoportail de l'urbanisme, pas lue dans une délibération",
+    "communes": ["Sauzon"]
+  },
+  "zone": "N",
+  "commune": "Sauzon",
+  "analyse": {"par": "Claude", "date": "2026-11-10", "statut": "brouillon"},
+  "vocation": {"texte": "Zone naturelle protégée (sites, milieux naturels, paysages, exploitation forestière). Secteurs : Ns, Np, Nzh, Nl, Nla, Nr, Ng, Nx", "page": 142},
+  "interdits": {"texte": "Tout est interdit sauf ce que l'article 1.2 autorise. Notamment : dépôts de véhicules et de déchets, caravanes, roulottes, HLL, affouillements et exhaussements non autorisés. Bande littorale des 100 m hors espace urbanisé : constructions, extensions et changements de destination interdits", "pages": [143]},
+  "autorises_sous_conditions": {
+    "extension_habitation": {
+      "texte": "Hors bande des 100 m : extension des habitations existantes, sans élévation du bâtiment principal, en continuité du volume existant, sans nouveau logement, avec bonne intégration paysagère",
+      "max_pct_emprise_existante": 50,
+      "max_m2_emprise": 50,
+      "reference": "emprise au sol du bâtiment existant à la date d'approbation du PLU",
+      "refus_possible": "constructions qu'il n'est pas souhaitable de maintenir ou d'agrandir (situation, nature, aspect, état de dégradation)",
+      "page": 145
+    },
+    "agricole": {"texte": "Constructions et installations strictement liées et nécessaires à l'activité agricole, forestière et de cultures marines, sous réserve d'une bonne insertion", "page": 145},
+    "bande_100m": {"texte": "Rénovation et aménagement dans le volume existant de constructions non en ruine (habitation, bâti d'intérêt patrimonial repéré par une étoile jaune au plan)", "page": 144},
+    "stationnements": {"texte": "Ni bitumés, ni cimentés", "page": 144},
+    "surelevation": {"texte": "Interdite dans tous les secteurs sauf Nla (7,50 m)", "page": 149}
+  },
+  "emprise": {"max_pct": null, "regle": "Pas de coefficient d'emprise. Seule limite : extension d'habitation plafonnée à 50 % de l'emprise existante et à 50 m²", "definition_lexique": "projection verticale de toutes les parties de la construction constitutives de surface de plancher (renvoi à R.420-1)", "pages": [145, 176]},
+  "hauteur": {
+    "max_m": null,
+    "regle": "Extension (volume secondaire) : pas plus haute que le point le plus haut, le faîtage ou l'acrotère de la construction qu'elle jouxte. Surélévation de l'existant interdite",
+    "annexes": "abri de jardin 2,50 m à l'égout ou à l'acrotère, garage 4,50 m",
+    "mesure": "depuis le point médian de l'emprise de la construction. Lexique : hauteur maximale = du point le plus haut à sa projection sur le sol naturel avant travaux ; hauteur à l'égout = au nu de la façade, du sol naturel au niveau le plus élevé de la façade",
+    "pages": [148, 149, 177]
+  },
+  "recul_voie": {
+    "min_m": 5,
+    "mesure": "depuis la limite d'emprise des voies publiques ou privées (et de toute limite s'y substituant) et des emprises publiques",
+    "s_applique_a": "constructions nouvelles ou installations",
+    "exceptions": "Des règles différentes « peuvent être imposées » : motifs architecturaux ou d'unité d'aspect dans le prolongement des constructions existantes et/ou en limites séparatives ; adaptation, changement de destination, réfection, extension de constructions existantes ; petits ouvrages d'intérêt général",
+    "nature_exception": "Faculté laissée au service instructeur, pas un droit. Une extension à moins de 5 m de la voie n'est donc pas garantie : à faire confirmer par écrit avant dépôt",
+    "routes_departementales": "reculs portés au plan de zonage à respecter pour les constructions nouvelles",
+    "garages_portails": "recul de 4 m des voies et emprises publiques, sauf configuration de parcelle",
+    "pages": [148, 156]
+  },
+  "limites_separatives": {"regle": "en limite ou en retrait d'au moins 2 m", "min_m": 2, "abris_jardin_garages": "implantation en limite autorisée", "page": 148},
+  "implantation_sur_terrain": {"texte": "Constructions successives sur une même propriété alignées en longère, sauf impossibilité (parcelle, topographie). Constructions non jointives sensiblement dans le même alignement et la même orientation", "page": 148},
+  "volumes": {"texte": "Simples, bas et allongés, plan rectangulaire, à l'échelle du bâti traditionnel. Façade au moins 2,5 fois plus longue que sa hauteur à l'égout. Chevronnière intermédiaire au-delà de 12 m de façade, décrochement de toiture au-delà de 20 m. Appentis de long pan : 2 si façade de moins de 12 m, 3 au-delà", "pages": [150, 151]},
+  "toiture": {
+    "volume_principal": "2 pentes égales, pans de même longueur",
+    "pente_deg": [40, 45],
+    "appentis_pente_deg": [18, 25],
+    "annexes_pente_deg": [30, 45],
+    "terrasse": "toit plat interdit sauf végétalisé",
+    "couverture": "ardoise de schiste. Autres matériaux seulement pour rénover ou étendre un bâtiment déjà couvert ainsi",
+    "faitage": "tuile faîtière obligatoire, marron foncé ou orange monochrome",
+    "chassis_solaire": "châssis de toit et panneaux solaires autorisés s'ils ne font pas saillie du plan de couverture ; ouvertures de toit à 60 cm au moins des chevronnières, pas plus larges que hautes sur le volume principal",
+    "lucarnes": "ouvrants de 0,90 x 1,15 m maximum ; lucarnes et châssis sur un tiers au plus de la longueur du versant",
+    "appentis_vitre": "un tiers de la toiture de l'appentis au maximum",
+    "debord": "corniche de 15 cm de saillie au maximum",
+    "pages": [152, 153, 154]
+  },
+  "cheminees_pignons": {
+    "souche": "chaque pignon principal porte une souche de cheminée ou un mât pignon ; la cheminée prolonge le mur pignon",
+    "souche_dimensions_m": {"largeur_min": 0.6, "longueur_min": 1.2},
+    "souche_finition": "parois verticales terminées par un chanfrein, listel de schiste ou de tuileaux possible",
+    "chevronnieres_cm": [25, 30],
+    "pignon_largeur": "8,50 m maximum et au moins 2 fois la hauteur à l'égout (pignon de l'extension non compris)",
+    "pignon_en_retour": "interdit",
+    "maison_bois": "cheminées et chevronnières obligatoires",
+    "pages": [152, 154]
+  },
+  "ouvertures": {
+    "fenetres_volume_principal": "plus hautes que larges, hauteur / largeur de 1,3 au minimum",
+    "baies": "façade de plus de 6 m : une seule baie de 2,40 m de large ; autres façades : 2 baies au plus, 1,60 m maximum",
+    "axe_cheminee": "ouvertures dans l'axe des cheminées interdites",
+    "meme_facade": "3 dimensions d'ouvertures différentes au plus, espacées d'au moins 1 m",
+    "porte": "une seule porte, une seconde seulement avec un escalier extérieur",
+    "pignons": "3 ouvertures au plus dont la porte ; 2 fenêtres au plus de 0,70 x 1,05 m maximum ; pour un bâtiment R+1 : 2 au rez-de-chaussée et 1 à l'étage. Extension sur pignon moins large que le bâtiment principal : une porte ou une petite fenêtre admise sur ce pignon",
+    "garage": "porte de 2,40 m de large au plus",
+    "linteaux": "alignés, droits ou légèrement cintrés ; cadres et appuis saillants en béton interdits",
+    "volets": "volets extérieurs à vantaux rabattables ou coulissants ; volets roulants tolérés seulement sur les lucarnes",
+    "appentis_monopente": "en façade : baies interdites, une seule ouverture plus large que haute (120 x 100 cm au plus, pas côté domaine public), fenêtres hautes de 100 cm au plus, retombée de linteau de 10 à 20 cm ; en pignon : une seule baie de 1,40 m de large au plus",
+    "pages": [151, 152, 155]
+  },
+  "facades": {
+    "materiaux": "enduits traditionnels ; parement pierre sur un tiers au plus de la surface des façades (pignons et appentis compris) ; bois brûlé interdit",
+    "interdits": "matériaux bruts destinés à être enduits, imitations (PVC imitant le bois, fausses pierres, pastiche), matériaux provisoires (fibrociment, tôle ondulée)",
+    "couleurs": "référence à la tradition locale ; façades pouvant être colorées ; pignons uniquement blancs avec bandeau ou liseret",
+    "liserets": "bandeaux ou liserets autour des ouvertures obligatoires en façade",
+    "pages": [149, 151, 153]
+  },
+  "extensions_appentis": {
+    "texte": "Adossés aux façades ou aux pignons, avec au moins une joue latérale maçonnée, en bois ou en pierre. Un seul appentis par façade, pas plus long que la façade ; en pignon, dépassement limité à la moitié de la largeur du pignon. Un seul pignon peut recevoir un appentis ; au second pignon, seule une extension à deux pans dans le prolongement du bâtiment est admise. Décrochement de 3,50 m au plus",
+    "verandas": "interdites ; appentis vitrés admis avec soubassement de 0,50 à 1,00 m",
+    "escaliers_exterieurs": "adossés au pignon, maçonnés, largeur totale inférieure à 1,20 m, 5 marches au plus en façade ; balcons et perrons interdits",
+    "pages": [154, 155]
+  },
+  "annexes": {
+    "definition": "édifice détaché du bâtiment principal, 40 m² d'emprise au plus, non utilisé pour l'habitation",
+    "abri_jardin": "bois ou aspect bois (noir, marron foncé ou vert foncé), couverture type ardoise de schiste, 2,50 m à l'égout",
+    "garage": "couverture type ardoise de schiste, 4,50 m de haut au plus",
+    "ordre": "aucune annexe avant le bâtiment principal",
+    "constructibilite_a_verifier": "l'article N 1.2 ne cite que l'extension des habitations : la possibilité de construire une annexe neuve en zone N n'est pas écrite, à faire confirmer par la mairie",
+    "pages": [149, 155, 176]
+  },
+  "clotures": {
+    "hauteur_max_m": 1.6,
+    "types": "mur bahut de 0,80 m enduit comme la maison ou en pierre de l'île, sans couronnement béton ; haie d'essences acclimatées (fusain, troène) ; grillage simple sur piquets métal ou bois ; clôture bois ; PVC et composites cités avec les grillages",
+    "interdits": "thuyas, cupressus et autres résineux en haie",
+    "existant": "talus et murets existants à maintenir",
+    "page": 156
+  },
+  "espaces_libres": {
+    "plante_min_fraction_parcelle": 0.1,
+    "texte": "Un dixième de la parcelle planté, de préférence en bosquets de feuillus au vent dominant. Plantations existantes maintenues ou remplacées",
+    "ruissellement_max_pct": 15,
+    "elements_proteges": "arbres, haies et bois repérés au plan (L.151-23) à conserver ; déclaration préalable pour tout aménagement à moins de 5 m",
+    "pages": [156, 157, 160]
+  },
+  "stationnement": {"logement": "1 place par logement au minimum, sur le terrain, hors des voies", "revetement": "ni bitumé, ni cimenté en zone N", "pages": [144, 157, 170]},
+  "reseaux": {
+    "eau_potable": "raccordement obligatoire, y compris pour une extension qui augmente les besoins",
+    "eaux_usees": "réseau collectif obligatoire s'il existe ; sinon assainissement autonome agréé permettant un raccordement ultérieur",
+    "eaux_pluviales": "gestion à la parcelle privilégiée ; rejet dans le réseau d'eaux usées interdit",
+    "electricite": "branchements en souterrain pour toute construction nouvelle",
+    "pages": [158, 159, 160]
+  },
+  "vigilance": [
+    "Loi Littoral : commune littorale ; extension interdite dans la bande des 100 m hors espace urbanisé (p.143-145)",
+    "Recul voie : l'exception pour les extensions est une faculté de l'administration, pas un droit (p.148)",
+    "Cours d'eau et plans d'eau repérés au plan : recul de 35 m pour toute artificialisation (p.164)",
+    "Zones humides Nzh : constructions interdites (p.143, 164)",
+    "Risque d'effondrement : étude obligatoire dans les 10 m autour du risque repéré au plan (p.165)",
+    "Submersion marine : constructibilité limitée dans les secteurs repérés (p.165, guide p.185-192)",
+    "Présomption de prescriptions archéologiques : secteurs repérés au plan (p.165, 174)",
+    "Bâti protégé L.151-19 : déclaration préalable, démolition interdite (p.174)",
+    "EBC et haies protégées : voir le règlement graphique (p.163)",
+    "Coquille du règlement : l'article N 1.1 renvoie au « chapitre 1 du titre IV » pour les EBC, il s'agit du titre V"
+  ]
+}
