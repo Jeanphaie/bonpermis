@@ -23,7 +23,7 @@
   function open(p, opener, regul){
     if (p==='regul') return openRegul(opener);
     if (opener) lastFocus = opener;
-    S = {p, a:{}, i:0, q:X.flow(P, p), opt:{depot:false, express:false, visio:false, concept:false, d3:false}, regul:!!regul, stage:'a'};
+    S = {p, a:{}, i:0, q:X.flow(P, p), opt:{depot:false, express:false, visio:false, concept:false, d3:false, amenag:false}, regul:!!regul, stage:'a'};
     showPanel((regul?'Travaux déjà faits · ':'') + P[p].n, P[p].img);
     render();
   }
@@ -129,6 +129,8 @@
       const dp = v.kind==='dp';
       const c = P[S.p].cat, canC = CONCEPT.includes(c);
       if (!canC) { S.opt.concept = false; S.opt.d3 = false; }
+      const canA = !!v.amenag && !S.opt.concept;
+      if (!canA) S.opt.amenag = false;
       const delay = v.kind==='pc' ? '5 jours ouvrés' : (dp && S.opt.express ? '24 h ouvrées' : '48 h ouvrées');
       const nd = NEED[S.p] || NEED.extension;
       const ndP = S.opt.concept ? 'Ce que vous voulez : la surface, à quoi ça servira (chambre, salon…), le style qui vous plaît, et une photo d\'inspiration si vous en avez' : nd[0];
@@ -148,6 +150,7 @@
         <div class="lines"><div><span>${v.label}</span><span>${euro(v.base)}</span></div>${v.re?`<div><span>Attestation énergétique, obligatoire pour une maison neuve</span><span>+ ${euro(v.re)}</span></div>`:''}${v.abf?`<div><span>Près d'un monument ou en quartier protégé</span><span>+ ${euro(v.abf)}</span></div>`:''}${v.copro?`<div><span>Copropriété : les documents pour le vote</span><span>+ ${euro(v.copro)}</span></div>`:''}</div>
         ${v.note.map(n=>`<p class="small-note">${n}</p>`).join('')}
         <div class="opts">
+          ${canA?`<label class="opt"><input type="checkbox" data-o="amenag" ${S.opt.amenag?'checked':''}><span><b>Plan d'aménagement intérieur</b><small>La pièce créée, meublée et cotée : une proposition, une retouche. Fait avant le dépôt, pour placer les fenêtres au bon endroit${v.amenag>199?'. Prix pour plus de 40 m²':''}</small></span><span class="p">+ ${v.amenag} €</span></label>`:''}
           ${canC?`<label class="opt"><input type="checkbox" data-o="concept" ${S.opt.concept?'checked':''}><span><b>On conçoit votre projet avec vous</b><small>Vous nous dites ce que vous voulez, on dessine : 2 propositions, les plans de l'intérieur, une vue 3D, et 2 tours d'ajustements</small></span><span class="p">+ 690 €</span></label>`:''}
           ${canC&&S.opt.concept?`<label class="opt"><input type="checkbox" data-o="d3" ${S.opt.d3?'checked':''}><span><b>Vue 3D de l'intérieur</b><small>Pour vous projeter dans vos futures pièces</small></span><span class="p">+ 190 €</span></label>`:''}
           ${dp?`<label class="opt"><input type="checkbox" data-o="express" ${S.opt.express?'checked':''}><span><b>Dossier prêt en 24 h</b><small>Au lieu de 48 h</small></span><span class="p">+ 49 €</span></label>`:''}

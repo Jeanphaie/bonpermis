@@ -74,12 +74,14 @@
     v.abf = a.abf==='oui' ? 149 : 0;
     if (a.abf==='nsp') v.note.push('On vérifie avec votre adresse si vous êtes en quartier protégé. Les 149 € ne sont ajoutés que si c\'est le cas, et avec votre accord.');
     v.copro = a.copro==='oui' ? 99 : 0;
+    if (AMENAG.includes(c)) v.amenag = prixAmenag(c, a);
     return v;
   }
 
 
   // Options payantes. Un seul endroit pour les montants et les libellés.
   const OPTIONS = {
+    amenag:  {prix: 199, label: 'Plan d\'aménagement intérieur'},
     concept: {prix: 690, label: 'Conception du projet avec vous'},
     d3:      {prix: 190, label: 'Vue 3D de l\'intérieur'},
     express: {prix: 49,  label: 'Dossier prêt en 24 h'},
@@ -87,11 +89,16 @@
     visio:   {prix: 49,  label: '20 minutes en visio'}
   };
   const CONCEPT = ['agrandir','garage','toit','usage'];
+  // Plan d'aménagement intérieur de la pièce créée : 199 € jusqu'à 40 m², 299 € au-delà.
+  // Déjà compris dans l'option conception, donc jamais les deux ensemble.
+  const AMENAG = ['agrandir','garage','usage'];
+  const prixAmenag = (c, a) => (c === 'agrandir' && a && a.size === 'pc') ? 299 : 199;
 
   // Garde seulement les options possibles pour ce projet et ce verdict.
   function optionsValides(P, pk, v, opt){
     const o = opt || {}, c = P[pk].cat, canC = CONCEPT.includes(c);
     return {
+      amenag: !!(AMENAG.includes(c) && v.amenag && o.amenag && !(canC && o.concept)),
       concept: !!(canC && o.concept),
       d3: !!(canC && o.concept && o.d3),
       express: !!(v.kind === 'dp' && o.express),
@@ -106,7 +113,7 @@
     if (v.re) L.push({label: 'Attestation énergétique', prix: v.re});
     if (v.abf) L.push({label: 'Monument historique ou quartier protégé', prix: v.abf});
     if (v.copro) L.push({label: 'Copropriété : documents pour le vote', prix: v.copro});
-    for (const k of Object.keys(OPTIONS)) if (o[k]) L.push({label: OPTIONS[k].label, prix: OPTIONS[k].prix});
+    for (const k of Object.keys(OPTIONS)) if (o[k]) L.push({label: OPTIONS[k].label, prix: k === 'amenag' ? v.amenag : OPTIONS[k].prix});
     return L;
   }
   const total = L => L.reduce((s, l) => s + l.prix, 0);
@@ -126,5 +133,5 @@
     return propre;
   }
 
-  return {QUESTIONS, OPTIONS, CONCEPT, flow, verdict, optionsValides, lignes, total, regulPossible, reponsesValides};
+  return {QUESTIONS, OPTIONS, CONCEPT, AMENAG, flow, verdict, optionsValides, lignes, total, regulPossible, reponsesValides};
 });
