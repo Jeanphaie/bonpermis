@@ -126,6 +126,16 @@
     "extension",
     "garage",
     "carport"
+   ],
+   "offres": [
+    [
+     "149 €",
+     "Déclaration préalable, prête en 48 h"
+    ],
+    [
+     "490 €",
+     "Permis de construire, prêt en 5 jours"
+    ]
    ]
   },
   "carport": {
@@ -538,6 +548,16 @@
      "Que faire une fois l'accord obtenu ?",
      "Afficher l'autorisation sur un panneau de plus de 80 cm, visible de la rue, pendant tout le chantier. Les voisins ont deux mois à partir de l'affichage pour contester. L'autorisation est valable 3 ans."
     ]
+   ],
+   "offres": [
+    [
+     "349 €",
+     "Déclaration préalable, prête en 48 h"
+    ],
+    [
+     "490 €",
+     "Permis de construire, prêt en 5 jours"
+    ]
    ]
   },
   "veranda": {
@@ -629,6 +649,16 @@
      "Que faire une fois l'accord obtenu ?",
      "Afficher l'autorisation sur un panneau de plus de 80 cm, visible de la rue, pendant tout le chantier. Les voisins ont deux mois à partir de l'affichage pour contester. L'autorisation est valable 3 ans."
     ]
+   ],
+   "offres": [
+    [
+     "349 €",
+     "Déclaration préalable, prête en 48 h"
+    ],
+    [
+     "490 €",
+     "Permis de construire, prêt en 5 jours"
+    ]
    ]
   },
   "combles": {
@@ -667,6 +697,16 @@
     "lucarne",
     "surelevation",
     "extension"
+   ],
+   "offres": [
+    [
+     "349 €",
+     "Déclaration préalable, prête en 48 h"
+    ],
+    [
+     "490 €",
+     "Permis de construire, prêt en 5 jours"
+    ]
    ]
   },
   "surelevation": {
@@ -705,6 +745,16 @@
     "combles",
     "toiture",
     "lucarne"
+   ],
+   "offres": [
+    [
+     "349 €",
+     "Déclaration préalable, prête en 48 h"
+    ],
+    [
+     "490 €",
+     "Permis de construire, prêt en 5 jours"
+    ]
    ]
   },
   "garage": {
@@ -895,6 +945,16 @@
     "velux",
     "toiture",
     "surelevation"
+   ],
+   "offres": [
+    [
+     "149 €",
+     "Lucarne seule, dossier prêt en 48 h"
+    ],
+    [
+     "349 €",
+     "Avec aménagement des combles, prêt en 48 h"
+    ]
    ]
   },
   "toiture": {
@@ -1061,6 +1121,16 @@
     "cu",
     "facade",
     "extension"
+   ],
+   "offres": [
+    [
+     "349 €",
+     "Déclaration préalable, prête en 48 h"
+    ],
+    [
+     "490 €",
+     "Permis de construire, prêt en 5 jours"
+    ]
    ]
   },
   "demolition": {
@@ -1131,6 +1201,16 @@
     "usage",
     "extension",
     "annexe"
+   ],
+   "offres": [
+    [
+     "89 €",
+     "Certificat d'information, prêt en 48 h"
+    ],
+    [
+     "149 €",
+     "Certificat opérationnel, prêt en 48 h"
+    ]
    ]
   },
   "modif": {

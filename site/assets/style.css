@@ -507,3 +507,7 @@ nav.links a,.espace-lien{white-space:nowrap}
 
 /* Blocs de texte des pages projet : deux paragraphes qui se suivent */
 .page-sec .lead + .lead{margin-top:12px}
+
+/* Encadré prix : un cas par ligne */
+.cta-box .cta-offres{list-style:none;padding:0;margin:10px 0 6px;display:grid;gap:4px;font-size:15px;color:var(--ink)}
+.cta-box .cta-offres b{display:inline;font-family:inherit;font-size:15px;font-weight:700}

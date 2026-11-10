@@ -233,6 +233,17 @@ def page(k):
     gar_t, gar_p = c.get('garantie', ["Si la mairie dit non à cause de nous, on reprend tout, sans frais.",
                                       "Un refus ou une pièce manquante à cause d'une erreur dans le dossier ? On corrige et on redépose, sans rien vous facturer."])
     cta_txt = c.get('cta_txt', f"Dossier prêt en {c['delai']} après réception de vos photos. Près d'un monument : + 149 €. En copropriété : + 99 €.")
+    # Plusieurs cas de prix (déclaration ou permis...) : une case par cas, jamais deux prix dans la même phrase
+    offres = c.get('offres')
+    if offres:
+        faits_prix = ''.join(f'<span><b>{e(p)}</b>{e(t)}</span>' for p, t in offres)
+        cta_prix = 'Dès ' + offres[0][0]
+        cta_lignes = '<ul class="cta-offres">' + ''.join(f'<li><b>{e(p)}</b> {e(t)}</li>' for p, t in offres) + '</ul>'
+        if 'cta_txt' not in c:
+            cta_txt = "Délais comptés à partir de la réception de vos photos. Prix TTC, tout compris. Près d'un monument : + 149 €. En copropriété : + 99 €."
+    else:
+        faits_prix = f"<span><b>{e(c['prix'])}</b>Prix TTC tout compris</span><span><b>{e(c['delai'])}</b>Dossier prêt</span>"
+        cta_prix, cta_lignes = c['prix'], ''
     need_html = '' if not need else (
         '<ul class="need-list">' + ''.join(f'<li><i>{t}</i>{e(x)}</li>' for t, x in zip(['Le projet', 'Les mesures', 'Les photos'], need)) + '</ul>')
     cat = 'regul' if simu == 'regul' else P[simu]['cat']
@@ -260,7 +271,7 @@ def page(k):
         <button class="btn blue-btn" type="button" data-p="{simu}">{e(c.get("cta", "Voir mon prix en une minute"))}</button>
         <a class="btn ghost" href="#regles">Les règles en détail</a>
       </div>
-      <div class="facts"><span><b>{e(c['prix'])}</b>Prix TTC tout compris</span><span><b>{e(c['delai'])}</b>Dossier prêt</span><span><b>{e(c.get("fait3", ["Sans frais", "Si refus de notre fait"])[0])}</b>{e(c.get("fait3", ["Sans frais", "Si refus de notre fait"])[1])}</span></div>
+      <div class="facts">{faits_prix}<span><b>{e(c.get("fait3", ["Sans frais", "Si refus de notre fait"])[0])}</b>{e(c.get("fait3", ["Sans frais", "Si refus de notre fait"])[1])}</span></div>
     </div>
     <div class="page-art"><img src="../img/{img(k)}.webp" alt="{e(n)} : illustration du projet" width="480" height="480" fetchpriority="high"></div>
   </div>
@@ -283,7 +294,7 @@ def page(k):
     <h2 class="mt">Ce qu'on fait pour vous</h2>
     <p class="lead">D'abord, on lit le plan local d'urbanisme de votre commune : distances aux voisins, hauteur, emprise, clôtures, couleurs. Si votre projet ne passe pas tel quel, on vous le dit avant de commencer. Ensuite on dessine tous les plans demandés par la mairie et on remplit le formulaire officiel. Une deuxième personne relit tout. Vous n'avez plus qu'à déposer, ou on dépose pour vous.</p>
     <div class="cta-box">
-      <div><b>{e(c['prix'])}</b><span>{e(cta_txt)}</span></div>
+      <div><b>{e(cta_prix)}</b>{cta_lignes}<span>{e(cta_txt)}</span></div>
       <button class="btn blue-btn" type="button" data-p="{simu}">Voir mon prix exact</button>
     </div>
   </div>
