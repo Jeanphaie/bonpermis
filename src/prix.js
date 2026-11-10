@@ -19,8 +19,12 @@
     cu:{id:'cutype',t:'Que voulez-vous savoir ?',h:'C\'est la mairie qui répond, par écrit. On prépare la demande pour vous.',c:[['a','Les règles qui s\'appliquent à mon terrain'],['b','Si mon projet précis est réalisable']]},
     modif:{id:'accorde',t:'La mairie a-t-elle déjà accordé votre permis ?',h:'Si elle l\'étudie encore, pas besoin de permis modificatif.',c:[['oui','Oui, il est accordé'],['non','Non, il est en cours d\'instruction']]},
     lucarne:{id:'size',t:'Aménagez-vous les combles en même temps ?',h:'Une lucarne seule change seulement le toit. Si elle sert à rendre les combles habitables, la surface créée compte.',c:[['seule','Non, seulement la lucarne'],['dp','Oui, moins de 20 m² créés (40 m² en ville)'],['pc','Oui, plus que ça'],['nsp','Je ne sais pas']]},
+    qui:{id:'qui',t:'Le projet est-il à votre nom, ou au nom d\'une société ?',h:'Une SCI, même familiale, compte comme une société. La loi lui impose un architecte pour tout permis de construire.',c:[['perso','À mon nom'],['societe','Au nom d\'une société ou d\'une SCI']]},
     copro:{id:'copro',t:'Êtes-vous en copropriété ?',h:'Un immeuble ou une résidence avec un syndic. Il faudra l\'accord des autres copropriétaires.',c:[['non','Non'],['oui','Oui']]}
   };
+
+  // Projets qui peuvent aboutir à un permis de construire : on demande alors si le demandeur est une société.
+  const PC_POSSIBLE = (P, p) => ['agrandir','maison','usage'].includes(P[p].cat) || p === 'lucarne' || (P[p].cat === 'petits' && !!P[p].size);
 
   function flow(P, p){
     const c = P[p].cat, q = [];
@@ -32,6 +36,7 @@
     if (c==='usage') q.push(QUESTIONS.usage);
     if (c==='cu') q.push(QUESTIONS.cu);
     if (c==='modif') q.push(QUESTIONS.modif);
+    if (PC_POSSIBLE(P, p)) q.push(QUESTIONS.qui);
     if (!P[p].svc) q.push(QUESTIONS.abf);
     if (P[p].copro) q.push(QUESTIONS.copro);
     return q;
@@ -59,7 +64,9 @@
     if (c==='toit' && p.n==='Lucarne' && a.size==='nsp') v.note = ['Si les combles ne sont pas aménagés, le dossier revient à 149 €.'];
     if (c==='garage') v = {kind:'dp',base:319,label:'Garage transformé'};
     if (c==='maison') v = {kind:'pc',base:590,label:'Maison neuve'};
+    if (a.qui === 'societe' && v.kind === 'pc') return {kind:'archi', raison:'societe'};
     v.note = v.note || [];
+    if (a.qui === 'societe') v.note.push('Pour une société, une déclaration préalable se dépose sans architecte. Si un permis de construire s\'avère nécessaire, la loi impose un architecte : on vous prévient avant de commencer.');
     if (small) v.note.push('Dans un quartier protégé, même les petites constructions demandent une déclaration. On le vérifie avec votre adresse avant de commencer.');
     if (c==='usage' && a.facade==='nsp') v.note.push('Si la façade ou la structure change, il faut un permis à 490 €. On le vérifie sur vos photos et on vous prévient avant de commencer.');
     if (c==='demol') v.note.push('Il n\'est obligatoire que dans un quartier protégé, ou si votre commune l\'a décidé. On le vérifie avec votre adresse et on vous le dit avant de commencer.');
@@ -88,10 +95,12 @@
     depot:   {prix: 69,  label: 'Dépôt du dossier à votre place'},
     visio:   {prix: 49,  label: '20 minutes en visio'}
   };
-  const CONCEPT = ['agrandir','garage','toit','usage'];
+  // Conception et aménagement intérieur : plus vendus en ligne (10/11/2026). Ce sont des missions de conception,
+  // qui demandent une assurance décennale : elles se font sur devis. Pour les rouvrir, remettre les catégories ici.
+  const CONCEPT = [];
   // Plan d'aménagement intérieur de la pièce créée : 199 € jusqu'à 40 m², 299 € au-delà.
   // Déjà compris dans l'option conception, donc jamais les deux ensemble.
-  const AMENAG = ['agrandir','garage','usage'];
+  const AMENAG = [];
   const prixAmenag = (c, a) => (c === 'agrandir' && a && a.size === 'pc') ? 299 : 199;
 
   // Garde seulement les options possibles pour ce projet et ce verdict.

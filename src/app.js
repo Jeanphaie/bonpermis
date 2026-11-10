@@ -123,7 +123,7 @@
       body.innerHTML = `<div class="verdict"><span class="kind">On s'en occupe</span><h3>${v.title}</h3><p class="qhelp">${v.text}</p></div><button class="btn" type="button" data-call>Être rappelé</button>${back}`;
       body.querySelector('[data-call]').addEventListener('click', () => { S.stage='c'; S.call=true; render(); });
     } else if (v.kind==='archi' || v.kind==='conception'){
-      body.innerHTML = `<div class="verdict"><span class="kind">${v.kind==='archi'?'Il vous faut un architecte':'Un projet à dessiner de zéro'}</span><h3>${v.kind==='archi'?'Au-delà de 150 m², la loi impose qu\'un architecte signe le permis.':'Votre maison est encore à concevoir.'}</h3><p class="qhelp">${v.kind==='archi'?'On vous met en relation avec un architecte partenaire, et on prépare le dossier avec lui. Laissez-nous votre numéro, on vous rappelle.':'C\'est un vrai travail de conception, qu\'on préfère chiffrer après vous avoir parlé. Laissez-nous votre numéro, on vous rappelle.'}</p></div><button class="btn" type="button" data-call>Être rappelé</button>${back}`;
+      body.innerHTML = `<div class="verdict"><span class="kind">${v.kind==='archi'?'Il vous faut un architecte':'Un projet à dessiner de zéro'}</span><h3>${v.kind==='archi'?(v.raison==='societe'?'Pour une société, la loi impose un architecte pour tout permis de construire.':'Au-delà de 150 m², la loi impose qu\'un architecte établisse le projet.'):'Votre maison est encore à concevoir.'}</h3><p class="qhelp">${v.kind==='archi'?'On vous met en relation avec un architecte partenaire, qui conçoit le projet et signe avec vous. Laissez-nous votre numéro, on vous rappelle.':'C\'est un vrai travail de conception, qu\'on préfère chiffrer après vous avoir parlé. Laissez-nous votre numéro, on vous rappelle.'}</p></div><button class="btn" type="button" data-call>Être rappelé</button>${back}`;
       body.querySelector('[data-call]').addEventListener('click', () => { S.stage='c'; S.call=true; render(); });
     } else {
       const dp = v.kind==='dp';
@@ -143,7 +143,7 @@
       body.innerHTML = `<div class="verdict"><span class="kind">${S.regul?'Travaux déjà faits · ':''}${KIND[0]}</span><h3>${KIND[1]}</h3><p class="qhelp">${S.opt.concept ? 'Vous recevez une première proposition sous 5 jours. Une fois validée, votre dossier est prêt en ' + delay + '.' : (v.kind==='svc'?'Prêt':'Votre dossier est prêt') + ' en ' + delay + ' après réception de vos photos.'}</p>
         <div class="need"><b>Ce qu'on vous demandera</b><small>Après le paiement, depuis votre téléphone. Un guide vous accompagne photo par photo.</small>
           <ul><li><i>Le projet</i>${ndP}</li><li><i>Les mesures</i>${nd[1]}</li><li><i>Les photos</i>${nd[2]}</li></ul>
-          ${canC&&!S.opt.concept?'<p>Vous n\'avez encore qu\'une idée, sans croquis ni devis ? L\'option conception, juste en dessous, est faite pour ça.</p>':''}
+          ${['agrandir','garage','toit','usage'].includes(c)?'<p>Vous n\'avez encore qu\'une idée, sans croquis ni devis ? La conception du projet se fait sur devis : appelez-nous.</p>':''}
         </div>
         <p class="do"><b>Ce qu'on fait pour vous :</b> ${DO}</p>
         ${URL[S.p]&&!document.body.dataset.page?`<p class="small-note"><a href="${BASE}${URL[S.p]}/">Les règles et le dossier en détail →</a></p>`:''}
