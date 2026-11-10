@@ -461,6 +461,8 @@ def main():
         (SITE / chemin / 'index.html').write_text(page_app(chemin, titre, desc, ident, script, large), encoding='utf-8')
     (SITE / '404.html').write_text(page_404(), encoding='utf-8')
     (SITE / (INDEXNOW + '.txt')).write_text(INDEXNOW, encoding='utf-8')
+    # Preuve de propriété pour Google Search Console (propriété https://bonpermis.fr/) : ne pas supprimer.
+    (SITE / 'google31aaa23d49f801da.html').write_text('google-site-verification: google31aaa23d49f801da.html', encoding='utf-8')
     (SITE / 'sitemap.xml').write_text(sitemap(chemins), encoding='utf-8')
     (SITE / 'robots.txt').write_text(f'User-agent: *\nAllow: /\nDisallow: /commande/\nDisallow: /dossier/\nDisallow: /espace/\nDisallow: /admin/\nDisallow: /api/\n\nSitemap: {DOMAINE}/sitemap.xml\n', encoding='utf-8')
     print(f'{len(chemins)} pages générées dans {SITE}')
