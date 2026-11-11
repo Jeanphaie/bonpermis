@@ -118,6 +118,27 @@
     return {pdf: await doc.save(), rate};
   }
 
+  // ---------- surfaces lues dans le projet.json du générateur de planches ----------
+  // Priorité au tableau « SURFACES » imprimé sur le plan de masse (le Cerfa doit dire la même chose que le plan),
+  // puis, à défaut, calcul sur les volumes.
+  function depuisPlans(j) {
+    const o = {}, pris = [], manque = [];
+    const fr2 = x => String(Math.round(x * 100) / 100).replace('.', ',');
+    const lu = re => { const l = (j.surfaces || []).find(x => re.test(String(x[0]))); const m = l && String(l[1]).match(/(\d+(?:[.,]\d+)?)\s*m²/); return m ? m[1].replace('.', ',') : ''; };
+    const vol = etat => (j.volumes || []).filter(x => (x.etat || 'existant') === etat && Array.isArray(x.rect)).reduce((a, x) => a + Math.abs((x.rect[2] - x.rect[0]) * (x.rect[3] - x.rect[1])), 0);
+    const pose = (k, lib, tab, calc) => { if (tab) { o[k] = tab; pris.push(lib + ' ' + tab + ' m² (tableau du plan)'); } else if (calc != null) { o[k] = fr2(calc); pris.push(lib + ' ' + o[k] + ' m² (calculée sur les volumes)'); } else manque.push(lib); };
+    const aVol = (j.volumes || []).length > 0;
+    pose('emprAvant', 'emprise existante', lu(/emprise\s+existante/i), aVol ? vol('existant') : null);
+    pose('emprCreee', 'emprise créée', lu(/emprise\s+cr[ée]{2}e/i), aVol ? vol('projet') : null);
+    const sp = j.surface_plancher || {};
+    pose('spExist', 'surface de plancher existante', sp.existante != null ? fr2(sp.existante) : lu(/plancher\s+existante/i), null);
+    pose('spCreee', 'surface de plancher créée', sp.creee != null ? fr2(sp.creee) : lu(/plancher\s+cr[ée]{2}e/i), null);
+    if (j.surface_terrain) { o.superficie = String(j.surface_terrain); pris.push('terrain ' + o.superficie + ' m²'); }
+    const pc = String(j.parcelle || '').trim().match(/^([A-Z0-9]{1,2})\s*0*(\d{1,4})$/i);
+    if (pc) { o.section = pc[1].toUpperCase(); o.numero = pc[2]; }
+    return {o, pris, manque};
+  }
+
   // ---------- fenêtre de relecture ----------
   const CHAMPS = [
     ['Demandeur', [['prenom', 'Prénom'], ['nom', 'Nom'], ['naissance', 'Né(e) le (JJ/MM/AAAA)'], ['naissCommune', 'Commune de naissance'], ['naissDept', 'Département'], ['naissPays', 'Pays'], ['societe', 'Société (si le demandeur est une société)'], ['siret', 'SIRET']]],
@@ -146,6 +167,7 @@
           <label class="field cf-c"><span>Surface de plancher créée (m²)${PLANCHER[d.projet] && v.spCreee ? ' · estimée d\'après le plan' : ''}</span><input name="spCreee" value="${esc(v.spCreee)}"></label>
           <label class="field cf-c"><span>Emprise au sol existante (m²) · cadastre</span><input name="emprAvant" value="${esc(v.emprAvant)}"></label>
           <label class="field cf-c"><span>Emprise au sol créée (m²)${v.emprCreee && v.emprCreee !== '0' ? ' · plan du client' : ''}</span><input name="emprCreee" value="${esc(v.emprCreee)}"></label>
+          <div style="flex:1 1 100%;margin:0 0 10px"><label class="btn ghost" style="cursor:pointer">Reprendre les surfaces des plans (projet.json)<input type="file" accept=".json,application/json" data-plans hidden></label><p class="note" data-plans-note hidden style="margin:8px 0 0"></p></div>
           <p class="note" style="flex:1 1 100%;margin:0 0 10px">Estimations de départ : remplacez-les par les surfaces des plans définitifs. Depuis 2022 la taxe d'aménagement ne se déclare plus sur ce formulaire, mais sur impots.gouv.fr après les travaux.</p></fieldset>
         <fieldset class="cf-g"><legend>Protections (données du Géoportail)</legend>
           ${[['mh', 'Abords d\'un monument historique'], ['spr', 'Site patrimonial remarquable'], ['classe', 'Site classé']].map(([k, l]) => `<label class="cf-coche" style="flex:1 1 220px"><input type="checkbox" name="${k}"${v[k] ? ' checked' : ''}> ${l}</label>`).join('')}</fieldset>
@@ -157,6 +179,16 @@
     document.body.appendChild(fen);
     const fermer = () => fen.remove(); fen.querySelector('.plan-x').onclick = fermer;
     const err = fen.querySelector('[data-err]'), F = fen.querySelector('form');
+    fen.querySelector('[data-plans]').onchange = async e => {
+      const f = e.target.files[0], n = fen.querySelector('[data-plans-note]'); if (!f) return;
+      try {
+        const r = depuisPlans(JSON.parse(await f.text()));
+        if (!r.pris.length) throw 0;
+        Object.entries(r.o).forEach(([k, x]) => { if (F[k]) F[k].value = x; });
+        n.textContent = 'Repris des plans : ' + r.pris.join(', ') + '.' + (r.manque.length ? ' Absent des plans, à vérifier : ' + r.manque.join(', ') + '.' : '');
+      } catch (_) { n.textContent = 'Ce fichier n\'est pas un projet.json du générateur de planches.'; }
+      n.hidden = false; e.target.value = '';
+    };
     fen.querySelectorAll('[data-gen]').forEach(b => b.onclick = async () => {
       const vals = {}; new FormData(F).forEach((x, k) => vals[k] = String(x).trim()); vals.okMail = F.okMail.checked; ['mh', 'spr', 'classe'].forEach(k => vals[k] = F[k].checked); vals.pj = [...F.querySelectorAll('[name=pj]:checked')].map(x => x.value);
       const lib = b.textContent; b.disabled = true; b.textContent = 'Préparation…'; err.hidden = true;
@@ -170,5 +202,5 @@
       b.disabled = false; b.textContent = lib;
     });
   }
-  window.BPCerfa = {ouvrir, _test: {lire, remplir, decouperAdresse}};
+  window.BPCerfa = {ouvrir, _test: {lire, remplir, decouperAdresse, depuisPlans}};
 })();
