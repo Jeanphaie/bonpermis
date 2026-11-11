@@ -180,8 +180,11 @@ def tuiles_accueil():
         return (f'<a class="tile" href="{URL[k]}/"><img src="img/{image}.webp" alt="" loading="lazy" width="480" height="480">'
                 f'<span>{titre}<small>{sous}</small></span></a>')
     out.append('<div class="group"><div class="group-h"><h3>Travaux déjà faits, à régulariser</h3><small>Dès 149 €</small></div><div class="tiles">'
-               + t_regul('regul', 'Travaux jamais déclarés', 'Abri, véranda, extension…', REGUL_IMG)
-               + t_regul('vente', 'Avant une vente', 'À régler avant de signer', '10-accorde') + '</div></div>')
+               + t_regul('regul', 'Véranda déjà posée', 'Jamais déclarée', REGUL_IMG)
+               + t_regul('regul', 'Abri déjà construit', 'Jamais déclaré', '46-regul-abri')
+               + t_regul('regul', 'Garage déjà transformé', 'Jamais déclaré', '47-regul-garage')
+               + t_regul('regul', 'Extension déjà faite', 'Jamais déclarée', '48-regul-extension')
+               + t_regul('vente', 'Avant une vente', 'À régler avant de signer', '40-avant-vente') + '</div></div>')
     autres = ''.join(tuile(s['k'], '', False) for s in SVCS if s['k'] in P)
     out.append(f'<div class="group"><div class="group-h"><h3>Les autres démarches</h3><small>Avant ou après les travaux</small></div><div class="tiles">{autres}</div></div>')
     return ''.join(out)
@@ -239,6 +242,10 @@ def page(k):
         '<h2>À savoir aussi</h2><div class="faq">'
         + ''.join(f'<details><summary>{e(t)}</summary>' + ''.join(f'<p>{e(x)}</p>' for x in paras) + '</details>' for t, paras in c['blocs'])
         + '</div>')
+    PLU_IMG = {'abri': '49-plu-abri', 'annexe': '49-plu-abri', 'cloture': '50-plu-cloture', 'portail': '50-plu-cloture', 'piscine': '51-plu-piscine',
+               'extension': '52-plu-extension', 'veranda': '52-plu-extension'}
+    plu_illu = (f'<figure class="plu-illu"><img src="../img/{PLU_IMG.get(k, "44-plu")}.webp" alt="" loading="lazy" width="960" height="960">'
+                '<figcaption>On lit le règlement de votre mairie avant de dessiner : distances, hauteur, part du terrain bâtie.</figcaption></figure>')
     # Exemple de dossier réel (avec l'accord écrit du client, données personnelles masquées) : planches cliquables
     ex = c.get('exemple')
     exemple_html = '' if not ex else (
@@ -311,6 +318,7 @@ def page(k):
     <p class="lead">Votre projet, sous la forme que vous avez : un croquis à main levée suffit. Vous l'envoyez après le paiement, depuis votre téléphone, avec un guide pas à pas.</p>
     {need_html}
     <h2 class="mt">Ce qu'on fait pour vous</h2>
+    {plu_illu}
     <p class="lead">D'abord, on étudie en entier le plan local d'urbanisme qui s'applique à votre terrain : le règlement de votre zone, les chapitres communs, le lexique, les protections. Distances aux voisins, hauteur, emprise, clôtures, couleurs : votre projet est confronté à chaque règle. Si votre projet ne passe pas tel quel, on vous le dit avant de commencer, avec la règle qui bloque : vous décidez de ce que vous changez. Ensuite on trace à l'échelle, d'après votre croquis et vos mesures, tous les plans demandés par la mairie, et on remplit le formulaire officiel. Une deuxième personne relit tout. Vous n'avez plus qu'à déposer, ou on dépose pour vous.</p>
     <div class="cta-box">
       <div><b>{e(cta_prix)}</b>{cta_lignes}<span>{e(cta_txt)}</span></div>
@@ -605,7 +613,7 @@ def page_plan_situation():
 
 <section class="page-sec">
   <div class="wrap pm-recu">
-    <figure class="pm-ex ps-illu"><img src="../img/27-plan-situation.webp" alt="Un terrain repéré sur le plan d'un quartier" loading="lazy" width="480" height="480"></figure>
+    <figure class="pm-ex ps-illu"><img src="../img/45-plan-situation-carte.webp" alt="Un terrain entouré sur le plan d'un quartier" loading="lazy" width="960" height="960"></figure>
     <div>
     <h2>Trois choses à savoir</h2>
     <ul class="need-list">

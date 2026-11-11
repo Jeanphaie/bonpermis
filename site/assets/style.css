@@ -644,7 +644,6 @@ nav.links a,.espace-lien{white-space:nowrap}
 .confiance-tel b{display:block;font-size:20px;letter-spacing:.02em}
 .confiance-tel small{color:var(--muted);font-size:13px}
 .fin-adr{max-width:780px;margin-top:36px}
-@media (max-width:900px){.steps.trois .step:has(.step-dessin){display:flex}.steps.trois .step-dessin{aspect-ratio:4/3;height:auto;min-height:0}}
 /* Logo : ne s'écrase plus quand le menu manque de place */
 .logo,.logo img{flex:none}
 .logo img{width:auto;max-width:none}
@@ -689,3 +688,10 @@ h1,h2,h3{text-wrap:balance}
 .refus-fin .btn{background:#fff;color:var(--ink);border-color:#fff}
 .refus-fin .btn:hover{background:var(--accent);border-color:var(--accent);color:#fff}
 @media (max-width:760px){.refus-duo{grid-template-columns:1fr}}
+/* Illustrations 39 à 52 */
+.avap-c{background:#fff;padding:30px 10px 10px}
+.plu-illu{margin:20px 0 0;display:grid;grid-template-columns:200px 1fr;gap:20px;align-items:center;border:1px solid var(--line);border-radius:var(--r);overflow:hidden;background:var(--paper)}
+.plu-illu img{display:block;width:100%;height:auto;aspect-ratio:1;object-fit:cover}
+.plu-illu figcaption{padding:0 20px 0 0;font-weight:600;font-size:16px;line-height:1.45}
+.plu-illu + .lead{margin-top:20px}
+@media (max-width:560px){.plu-illu{grid-template-columns:110px 1fr;gap:14px}.plu-illu figcaption{font-size:14px}}
