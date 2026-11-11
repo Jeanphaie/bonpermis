@@ -167,6 +167,7 @@
           <label class="field cf-c"><span>Surface de plancher créée (m²)${PLANCHER[d.projet] && v.spCreee ? ' · estimée d\'après le plan' : ''}</span><input name="spCreee" value="${esc(v.spCreee)}"></label>
           <label class="field cf-c"><span>Emprise au sol existante (m²) · cadastre</span><input name="emprAvant" value="${esc(v.emprAvant)}"></label>
           <label class="field cf-c"><span>Emprise au sol créée (m²)${v.emprCreee && v.emprCreee !== '0' ? ' · plan du client' : ''}</span><input name="emprCreee" value="${esc(v.emprCreee)}"></label>
+          <p class="form-err" data-seuil hidden style="flex:1 1 100%;margin:0 0 10px"></p>
           <div style="flex:1 1 100%;margin:0 0 10px"><label class="btn ghost" style="cursor:pointer">Reprendre les surfaces des plans (projet.json)<input type="file" accept=".json,application/json" data-plans hidden></label><p class="note" data-plans-note hidden style="margin:8px 0 0"></p></div>
           <p class="note" style="flex:1 1 100%;margin:0 0 10px">Estimations de départ : remplacez-les par les surfaces des plans définitifs. Depuis 2022 la taxe d'aménagement ne se déclare plus sur ce formulaire, mais sur impots.gouv.fr après les travaux.</p></fieldset>
         <fieldset class="cf-g"><legend>Protections (données du Géoportail)</legend>
@@ -179,6 +180,13 @@
     document.body.appendChild(fen);
     const fermer = () => fen.remove(); fen.querySelector('.plan-x').onclick = fermer;
     const err = fen.querySelector('[data-err]'), F = fen.querySelector('form');
+    const seuil = () => {
+      const n = fen.querySelector('[data-seuil]'), a = nbr(F.spExist.value), c = nbr(F.spCreee.value), t = (a || 0) + (c || 0);
+      n.hidden = !(t > 130); if (n.hidden) return;
+      const tx = String(Math.round(t * 100) / 100).replace('.', ',');
+      n.textContent = t > 150 ? `Total ${tx} m² de surface de plancher : au-delà de 150 m², l'architecte est obligatoire pour un particulier. Recalculez sur les plans avant d'aller plus loin.` : `Total ${tx} m² de surface de plancher : proche du seuil de 150 m² (architecte obligatoire au-delà). La surface donnée par le client est souvent la surface habitable, un peu plus faible : recalculez sur les plans.`;
+    };
+    F.spExist.oninput = F.spCreee.oninput = seuil; seuil();
     fen.querySelector('[data-plans]').onchange = async e => {
       const f = e.target.files[0], n = fen.querySelector('[data-plans-note]'); if (!f) return;
       try {
@@ -187,7 +195,7 @@
         Object.entries(r.o).forEach(([k, x]) => { if (F[k]) F[k].value = x; });
         n.textContent = 'Repris des plans : ' + r.pris.join(', ') + '.' + (r.manque.length ? ' Absent des plans, à vérifier : ' + r.manque.join(', ') + '.' : '');
       } catch (_) { n.textContent = 'Ce fichier n\'est pas un projet.json du générateur de planches.'; }
-      n.hidden = false; e.target.value = '';
+      n.hidden = false; e.target.value = ''; seuil();
     };
     fen.querySelectorAll('[data-gen]').forEach(b => b.onclick = async () => {
       const vals = {}; new FormData(F).forEach((x, k) => vals[k] = String(x).trim()); vals.okMail = F.okMail.checked; ['mh', 'spr', 'classe'].forEach(k => vals[k] = F[k].checked); vals.pj = [...F.querySelectorAll('[name=pj]:checked')].map(x => x.value);
