@@ -6,6 +6,7 @@
    - comptes         POST /api/compte/{inscription,code,verifier,connexion,lien,mot-de-passe,premier-mot-de-passe,deconnexion}, GET /api/compte/lien
    - espace client   GET /api/espace, POST/DELETE /api/projets, POST /api/projets/commander, /api/espace/dossier/...
    - équipe          POST /api/admin/{code,connexion,deconnexion}, /api/admin/dossiers, /api/admin/dossier/...
+   - plan de masse   POST /api/plan-masse/apercu, POST /api/plan-masse/payer, GET /api/plan-masse/{apercu,etat,telecharger}
    - terrain         GET /api/terrain/adresses?q=, GET /api/terrain?lon=&lat= (parcelle, bâtiments, PLU, secteur protégé)
    - GET /api/sante  état du service (sans aucun secret)
    Aucune dépendance npm. Les secrets viennent des variables d'environnement, jamais du dépôt. */
@@ -16,6 +17,7 @@ const C = require('./comptes');
 const D = require('./dossiers');
 const PR = require('./promos');
 const T = require('./terrain');
+const PV = require('./planvente');
 const {crypto, CONF, P, repondre, lireCorps, lireJson, texte, journal, envoyerMail, signatureValide} = B;
 
 // ---------- demande de rappel ----------
@@ -41,7 +43,7 @@ async function webhook(req, res) {
   if (!['checkout.session.completed', 'checkout.session.async_payment_succeeded'].includes(ev.type)) return repondre(res, 200, {recu: true});
   const s = ev.data.object;
   if (s.payment_status !== 'paid') return repondre(res, 200, {recu: true});
-  try { await D.paiementRecu(s); } catch (e) { journal('erreur webhook', e.stack || e.message); return repondre(res, 500, {}); } // Stripe réessaiera
+  try { if (s.metadata && s.metadata.type === 'plan') await PV.paiementRecu(s); else await D.paiementRecu(s); } catch (e) { journal('erreur webhook', e.stack || e.message); return repondre(res, 500, {}); } // Stripe réessaiera
   repondre(res, 200, {recu: true});
 }
 
@@ -89,6 +91,12 @@ const ROUTES = {
   'GET /api/terrain': T.terrain,
   'GET /api/terrain/tuile': T.tuile,
   'GET /api/terrain/reglement': T.reglement,
+  // plan de masse automatique vendu à l'unité
+  'POST /api/plan-masse/apercu': PV.apercu,
+  'GET /api/plan-masse/apercu': PV.image,
+  'POST /api/plan-masse/payer': PV.payer,
+  'GET /api/plan-masse/etat': PV.etat,
+  'GET /api/plan-masse/telecharger': PV.telecharger,
   // comptes
   'POST /api/compte/inscription': C.inscription,
   'POST /api/compte/connexion': C.connexion,

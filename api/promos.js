@@ -63,4 +63,12 @@ async function basculer(req, res) {
   p.actif = !!d.actif; sauver(codes); repondre(res, 200, {ok: true, codes});
 }
 
-module.exports = {appliquer, compterUtilisation, liste, enregistrer, basculer, normal};
+// Code créé par le service lui-même (plan de masse déduit du dossier complet).
+function creerCode({code, type, valeur, max, expire, note}) {
+  const c = normal(code); if (!CODE_RE.test(c)) throw new Error('code invalide');
+  const codes = tous(); if (codes.find(x => x.code === c)) return;
+  codes.unshift({code: c, type, valeur: arrondi(valeur), max: max || 0, expire: expire || '', actif: true, note: texte(note, 200), utilises: 0, cree: new Date().toISOString(), par: 'service'});
+  sauver(codes); journal('code promo créé par le service', c);
+}
+
+module.exports = {appliquer, compterUtilisation, liste, enregistrer, basculer, normal, creerCode};

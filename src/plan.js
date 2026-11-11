@@ -334,13 +334,13 @@
         <div class="plan-zoom"><button type="button" data-z="-1" aria-label="Rapprocher">+</button><button type="button" data-z="1" aria-label="Éloigner">−</button><button type="button" data-couche aria-label="Changer de fond">${st.couche === 'ortho' ? 'Plan' : 'Photo'}</button></div></div>
       <div class="plan-mes" data-mes aria-live="polite"></div>
       <div class="plan-pied">
-        <button type="button" class="btn blue-btn" data-ok>Enregistrer</button>
-        <button type="button" class="lien" data-autre>Je préfère décrire autrement</button>
+        <button type="button" class="btn blue-btn" data-ok>${esc(o.libelleOk || 'Enregistrer')}</button>
+        ${o.sansAutre ? '' : '<button type="button" class="lien" data-autre>Je préfère décrire autrement</button>'}
       </div></div>`;
     const svg = fen.querySelector('[data-svg]'), gFond = fen.querySelector('[data-fond]'), gC = fen.querySelector('[data-calques]');
     const ctrl = fen.querySelector('[data-ctrl]'), mesEl = fen.querySelector('[data-mes]');
     fen.querySelector('.plan-x').onclick = fermer;
-    fen.querySelector('[data-autre]').onclick = () => { fermer(); if (o.autrement) o.autrement(); };
+    if (fen.querySelector('[data-autre]')) fen.querySelector('[data-autre]').onclick = () => { fermer(); if (o.autrement) o.autrement(); };
     fen.querySelector('[data-consigne]').textContent = (!W.parc ? 'Le cadastre ne répond pas pour cette adresse : placez le projet sur la photo, on vérifiera les limites. ' : '') + CONSIGNE[mode];
     if (!W.parc) st.couche = 'ortho';
 
@@ -363,7 +363,7 @@
     function dessiner() { scene(gC, W, st, vue, ech(), {edit: true, sel, nom, facades: facadesDispo}); majMesures(); }
     function majMesures() {
       const r = mesurer(st, W, o.projet);
-      mesEl.innerHTML = (r.lignes.length ? `<p>${r.lignes.map(esc).join('<br>')}</p>` : '') + r.alertes.map(a => `<p class="plan-alerte">${esc(a)}</p>`).join('');
+      mesEl.innerHTML = (r.lignes.length ? `<p>${r.lignes.map(esc).join('<br>')}</p>` : '') + r.alertes.map(a => `<p class="plan-alerte">${esc(o.sansAutre ? a.replace('On le vérifie pour vous.', 'Ce plan ne le vérifie pas.') : a)}</p>`).join('');
       return r;
     }
 
@@ -468,9 +468,9 @@
       const r = majMesures();
       const plan = {mode, formes: st.formes, cotes: st.cotes, facades: st.facades, bats: st.bats, existants: (st.existants || []).map(e => ({id: e.id, c: e.c, L: e.L, P: e.P, a: e.a || 0, ll: e.ll})), mesures: r.mesures, lieu, couche: st.couche, marge: st.marge};
       const resume = [...r.lignes, ...r.alertes.map(a => 'À vérifier : ' + a)].join('\n');
-      const b = fen.querySelector('[data-ok]'); b.disabled = true; b.textContent = 'Enregistrement…';
+      const b = fen.querySelector('[data-ok]'); b.disabled = true; b.textContent = o.libelleAttente || 'Enregistrement…';
       const ok = await o.enregistrer(plan, resume).catch(() => false);
-      if (ok) fermer(); else { b.disabled = false; b.textContent = 'Enregistrer'; mesEl.insertAdjacentHTML('afterbegin', '<p class="plan-alerte">L\'enregistrement n\'a pas marché. Réessayez.</p>'); }
+      if (ok) fermer(); else { b.disabled = false; b.textContent = o.libelleOk || 'Enregistrer'; mesEl.insertAdjacentHTML('afterbegin', '<p class="plan-alerte">L\'enregistrement n\'a pas marché. Réessayez.</p>'); }
     };
 
     requestAnimationFrame(() => { cadrer(); controles(); dessiner(); });

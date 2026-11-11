@@ -94,6 +94,7 @@ def entete(base, accueil, simu=None):
     a = '' if accueil else base
     logo = '#top' if accueil else (base or './')
     liens = f'''<a href="{a}#projets">Projets</a>
+      <a href="{base}plan-de-masse/">Plan de masse</a>
       <a href="{base}regularisation-avant-vente/">Avant une vente</a>
       <a href="{a}#comment">Comment ça marche</a>
       <a href="{a}#tarifs">Tarifs</a>
@@ -415,6 +416,94 @@ def page_404():
     return h + '<body data-page="legal">\n\n' + entete(base, False) + '\n' + corps + '\n' + pied(base) + OVERLAY + scripts(base)
 
 
+# ---------- page outil : plan de masse automatique ----------
+PRIX_PLAN = 29  # le même montant est dans api/planvente.js (PRIX_PLAN)
+PM_FAQ = [
+    ("Qu'est-ce qu'un plan de masse ?",
+     "C'est le terrain vu du dessus, à l'échelle : ses limites, les constructions qui existent, celle que vous voulez ajouter, avec ses dimensions et ses distances aux limites. C'est la pièce n° 2 du dossier (DP2 pour une déclaration préalable, PCMI2 pour un permis de construire)."),
+    ("Que veut dire « coté dans les trois dimensions » ?",
+     "Le plan doit donner la longueur, la largeur et la hauteur de la construction. Les deux premières se lisent sur le dessin, la hauteur est écrite à côté. C'est le code de l'urbanisme qui le demande (articles R. 431-9 et R. 431-36)."),
+    ("Ce plan suffit-il pour déposer ma déclaration préalable ?",
+     "Non, c'est une des pièces. Il faut aussi le formulaire officiel, le plan de situation, le plan en coupe, les façades, l'insertion du projet et deux photos. Et il faut que le projet respecte le règlement de votre commune, ce que ce plan ne vérifie pas."),
+    ("D'où viennent les limites de mon terrain ?",
+     "Du plan cadastral, et les bâtiments de la base de données de l'IGN. Ces données publiques peuvent s'écarter du terrain réel de 1 à 2 mètres. Le plan le précise : les cotes n'ont pas valeur de bornage. Si une distance est juste, à quelques centimètres près, seul un géomètre peut la garantir."),
+    ("Et si je préfère que vous fassiez tout ?",
+     "C'est notre dossier complet : on étudie le règlement de votre commune, on trace tous les plans à partir de votre croquis, on remplit le formulaire. Le prix du plan de masse est déduit pendant 30 jours."),
+]
+
+
+def page_plan_masse():
+    base = '../'
+    faq = ''.join(f'<details><summary>{e(q)}</summary><p>{e(r)}</p></details>' for q, r in PM_FAQ)
+    ld = [
+        {"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [
+            {"@type": "ListItem", "position": 1, "name": "Le Bon Permis", "item": DOMAINE + "/"},
+            {"@type": "ListItem", "position": 2, "name": "Plan de masse", "item": DOMAINE + "/plan-de-masse/"}]},
+        {"@context": "https://schema.org", "@type": "Product", "name": "Plan de masse coté en ligne", "description": "Plan de masse coté dans les trois dimensions, au format PDF A3, généré à partir du cadastre.",
+         "brand": {"@id": DOMAINE + "/#org"}, "offers": {"@type": "Offer", "price": str(PRIX_PLAN), "priceCurrency": "EUR", "availability": "https://schema.org/InStock"}},
+        {"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [
+            {"@type": "Question", "name": q, "acceptedAnswer": {"@type": "Answer", "text": r}} for q, r in PM_FAQ]},
+    ]
+    corps = f"""<main id="top">
+<section class="page-hero">
+  <div class="wrap narrow">
+    <nav class="crumbs" aria-label="Fil d'Ariane"><a href="../">Accueil</a> › <span>Plan de masse</span></nav>
+    <h1>Votre plan de masse en ligne, coté et à l'échelle</h1>
+    <p class="answer">Tapez votre adresse, posez votre projet sur votre terrain : les distances aux limites se calculent toutes seules. L'aperçu est gratuit. Le plan prêt à déposer coûte {PRIX_PLAN} €.</p>
+    <div class="facts"><span><b>Gratuit</b>L'aperçu sur votre terrain</span><span><b>{PRIX_PLAN} €</b>Le PDF prêt à déposer</span><span><b>2 minutes</b>Sans logiciel ni compte</span></div>
+  </div>
+</section>
+
+<section class="page-sec alt" id="outil">
+  <div class="wrap">
+    <div id="pm-outil" data-prix="{PRIX_PLAN}" aria-live="polite"><p class="pm-note">Chargement…</p></div>
+  </div>
+</section>
+
+<section class="page-sec">
+  <div class="wrap narrow">
+    <h2>Ce qu'il y a sur le plan</h2>
+    <ul class="need-list">
+      <li><i>Votre terrain</i>Ses limites d'après le cadastre, les parcelles voisines et leurs numéros, le nord et l'échelle.</li>
+      <li><i>Ce qui existe</i>La maison et les autres constructions, d'après les relevés de l'IGN.</li>
+      <li><i>Votre projet</i>À l'emplacement que vous choisissez, avec sa longueur, sa largeur et sa hauteur : les trois dimensions que demande la mairie.</li>
+      <li><i>Les distances</i>Aux limites du terrain et à la maison, calculées automatiquement.</li>
+      <li><i>Les surfaces</i>Le terrain, l'emprise au sol existante, l'emprise créée et le total en pourcentage.</li>
+    </ul>
+    <h2 class="mt">Un plan juste peut quand même être refusé</h2>
+    <p class="lead">Ce plan met votre projet au propre. Il ne dit pas s'il est autorisé, et il ne garantit rien.</p>
+    <p class="lead">Ce que la mairie vérifie, c'est le plan local d'urbanisme, le PLU. Chaque commune a le sien, différent de celui de la commune voisine : distance aux limites, hauteur maximale et façon de la mesurer, emprise au sol autorisée, forme du toit, matériaux, couleurs, clôtures. Des dizaines de pages techniques, avec un lexique et des renvois d'un chapitre à l'autre.</p>
+    <p class="lead">Si votre projet ne respecte pas une seule de ces règles, la mairie s'y oppose, même avec un plan parfaitement dessiné. Vous avez alors perdu le mois d'instruction et il faut redéposer un dossier corrigé. Aucun outil automatique, le nôtre compris, ne fait cette lecture à votre place.</p>
+    <p class="lead">Ce plan ne remplace pas non plus un géomètre : les limites viennent du cadastre et n'ont pas valeur de bornage.</p>
+    <div class="cta-box">
+      <div><b>Pour savoir si ça passe avant de déposer : le dossier complet, dès 149 €</b><span>On étudie en entier le règlement de votre terrain et on vous dit si le projet passe, avant de tracer. Puis on fait tous les plans d'après votre croquis et on remplit le formulaire. Prêt en 48 h. Les {PRIX_PLAN} € du plan de masse sont déduits pendant 30 jours.</span></div>
+      <a class="btn blue-btn" href="../#projets">Voir mon prix</a>
+    </div>
+  </div>
+</section>
+
+<section class="page-sec alt">
+  <div class="wrap narrow">
+    <h2>Un plan de masse fait par nous</h2>
+    <p class="lead">Pour comparer : le plan de masse d'un vrai dossier de permis de construire, tracé par notre équipe, avec le calcul d'emprise demandé par le règlement de la commune. Données personnelles masquées, publié avec l'accord de la propriétaire.</p>
+    <figure class="pm-ex"><a href="../img/exemple-extension/pcmi2-plan-de-masse.webp" target="_blank" rel="noopener"><img src="../img/exemple-extension/pcmi2-plan-de-masse-p.webp" alt="Plan de masse d'un dossier de permis de construire, exemple réel" loading="lazy" width="720" height="509"></a></figure>
+    <p class="rules-src">Le plan de masse est exigé par le code de l'urbanisme : article R. 431-36 b pour une déclaration préalable, article R. 431-9 pour un permis de construire. Mis à jour le {date_txt('2026-11-11')}.</p>
+  </div>
+</section>
+
+<section id="faq" class="page-sec">
+  <div class="wrap narrow"><h2>Questions fréquentes</h2><div class="faq">{faq}</div></div>
+</section>
+</main>
+"""
+    h = head(f'Plan de masse en ligne : coté, à l\'échelle, {PRIX_PLAN} € | Le Bon Permis',
+             f"Plan de masse coté dans les 3 dimensions pour déclaration préalable ou permis de construire. Posez votre projet sur votre terrain, aperçu gratuit, PDF prêt à déposer pour {PRIX_PLAN} €.",
+             'plan-de-masse/', base, ld)
+    h = h.replace('</head>', f'<link rel="stylesheet" href="{base}assets/espace.css">\n</head>')
+    return (h + '<body data-page="legal">\n\n' + entete(base, False) + '\n' + corps + '\n' + pied(base) + OVERLAY
+            + f'<script src="{base}assets/plan.js"></script>\n<script src="{base}assets/plan-masse.js"></script>\n' + scripts(base))
+
+
 def sitemap(chemins):
     """Date de dernière modification par page, d'après son contenu : src/dates.json garde l'empreinte
     du texte de chaque page et la date du jour où elle a changé. Rien à remplir à la main."""
@@ -441,7 +530,7 @@ def main():
     (SITE / 'assets').mkdir(exist_ok=True)
     data = {'P': P, 'GROUPS': GROUPS, 'SVCS': SVCS, 'NEED': NEED, 'URL': URL}
     (SITE / 'assets' / 'data.js').write_text('window.OP = ' + json.dumps(data, ensure_ascii=False) + ';\n', encoding='utf-8')
-    for f in ('app.js', 'prix.js', 'consentement.js', 'merci.js', 'dossier.js', 'espace.js', 'espace-dossier.js', 'admin.js', 'espace.css', 'plan.js', 'carte.js'):
+    for f in ('app.js', 'prix.js', 'consentement.js', 'merci.js', 'dossier.js', 'espace.js', 'espace-dossier.js', 'admin.js', 'espace.css', 'plan.js', 'carte.js', 'plan-masse.js'):
         shutil.copy(SRC / f, SITE / 'assets' / f)
     shutil.copy(SRC / 'style.css', SITE / 'assets' / 'style.css')
     shutil.copytree(SRC / 'fonts', SITE / 'assets' / 'fonts', dirs_exist_ok=True)
@@ -459,6 +548,9 @@ def main():
     for chemin, titre, desc, ident, script, large in APPS:
         (SITE / chemin).mkdir(parents=True, exist_ok=True)
         (SITE / chemin / 'index.html').write_text(page_app(chemin, titre, desc, ident, script, large), encoding='utf-8')
+    (SITE / 'plan-de-masse').mkdir(exist_ok=True)
+    (SITE / 'plan-de-masse' / 'index.html').write_text(page_plan_masse(), encoding='utf-8')
+    chemins.append('plan-de-masse/')
     (SITE / '404.html').write_text(page_404(), encoding='utf-8')
     (SITE / (INDEXNOW + '.txt')).write_text(INDEXNOW, encoding='utf-8')
     # Preuve de propriété pour Google Search Console (propriété https://bonpermis.fr/) : ne pas supprimer.
