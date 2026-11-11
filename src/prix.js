@@ -92,7 +92,7 @@
     concept: {prix: 690, label: 'Conception du projet avec vous'},
     d3:      {prix: 190, label: 'Vue 3D de l\'intérieur'},
     express: {prix: 49,  label: 'Dossier prêt en 24 h'},
-    depot:   {prix: 69,  label: 'Dépôt du dossier à votre place'},
+    depot:   {prix: 99,  label: 'Dépôt et suivi jusqu\'à la réponse de la mairie'},
     visio:   {prix: 49,  label: '20 minutes en visio'}
   };
   // Conception et aménagement intérieur : plus vendus en ligne (10/11/2026). Ce sont des missions de conception,

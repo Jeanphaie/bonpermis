@@ -429,7 +429,7 @@ async function soldeRecu(s, m) {
   journal('solde payé', cmd.ref, s.amount_total / 100 + ' €');
   const u = C.lireUser(cmd.uid);
   await envoyerMail(CONF.mailA, `Solde payé ${cmd.ref} : ${cmd.nom}`, `Le client a réglé le solde (${euro(s.amount_total / 100)}). Il peut télécharger son dossier.\n\n${CONF.site}/admin/#${cmd.ref}\n`, cmd.email);
-  if (u) await envoyerMail(cmd.email, `Dossier ${cmd.ref} : prêt à télécharger`, `Bonjour,\n\nMerci, le solde est bien reçu. Votre dossier complet est prêt à télécharger, sans filigrane :\n${C.lienLong(u, '/espace/dossier/?ref=' + cmd.ref)}\n\n${String(cmd.options).includes('depot') ? 'Vous avez choisi le dépôt en mairie : nous le déposons pour vous et vous tenons au courant.' : 'Il ne vous reste qu\'à signer le formulaire et à le déposer en mairie, ou en ligne si votre commune le permet.'}${signature}`, CONF.mailA);
+  if (u) await envoyerMail(cmd.email, `Dossier ${cmd.ref} : prêt à télécharger`, `Bonjour,\n\nMerci, le solde est bien reçu. Votre dossier complet est prêt à télécharger, sans filigrane :\n${C.lienLong(u, '/espace/dossier/?ref=' + cmd.ref)}\n\n${String(cmd.options).includes('depot') ? 'Vous avez choisi le dépôt et le suivi : nous déposons le dossier pour vous, nous vous envoyons le numéro d\'enregistrement et nous répondons à la mairie si elle demande une pièce, jusqu\'à sa réponse.' : 'Il ne vous reste qu\'à signer le formulaire et à le déposer en mairie, ou en ligne si votre commune le permet.'}${signature}`, CONF.mailA);
 }
 
 // GET /api/commande?ref=cs_... : page « Commande reçue »
