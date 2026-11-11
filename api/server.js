@@ -97,6 +97,8 @@ const ROUTES = {
   'POST /api/plan-masse/payer': PV.payer,
   'GET /api/plan-masse/etat': PV.etat,
   'GET /api/plan-masse/telecharger': PV.telecharger,
+  'POST /api/plan-situation': PV.situation,
+  'GET /api/plan-situation': PV.situationPdf,
   // comptes
   'POST /api/compte/inscription': C.inscription,
   'POST /api/compte/connexion': C.connexion,

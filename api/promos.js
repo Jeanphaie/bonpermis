@@ -71,4 +71,6 @@ function creerCode({code, type, valeur, max, expire, note}) {
   sauver(codes); journal('code promo créé par le service', c);
 }
 
-module.exports = {appliquer, compterUtilisation, liste, enregistrer, basculer, normal, creerCode};
+function desactiver(code) { const c = normal(code), codes = tous(), p = codes.find(x => x.code === c); if (p && p.actif) { p.actif = false; sauver(codes); journal('code promo désactivé par le service', c); } }
+
+module.exports = {appliquer, compterUtilisation, liste, enregistrer, basculer, normal, creerCode, desactiver};

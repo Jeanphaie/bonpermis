@@ -563,3 +563,13 @@ nav.links a,.espace-lien{white-space:nowrap}
 .pm-zone.pm-alerte p{color:var(--ink)}
 .pm-zone.pm-alerte p b{margin-bottom:2px}
 .pm-zone.pm-alerte .btn{margin-top:12px;width:100%;justify-content:center;background:#fff}
+.pm-ap .pm-faits{margin:14px 0 10px;grid-template-columns:repeat(4,1fr)}
+.pm-offre{display:flex;gap:14px;align-items:center;justify-content:space-between;border:1px solid var(--line);border-radius:var(--r-sm);padding:14px 16px;margin-bottom:10px;background:#fff}
+.pm-offre b{display:block;font-size:16px}
+.pm-offre span{display:block;font-size:13px;color:var(--muted);line-height:1.45;margin-top:2px}
+.pm-offre .pm-moins{color:#9A5B00}
+.pm-offre .btn{width:auto;min-width:96px;white-space:nowrap;flex:none}
+.pm-offre.reco{border:2px solid var(--accent);background:var(--warm)}
+.pm-offre i{font-style:normal;font:600 11px/1 var(--f-body);letter-spacing:.1em;text-transform:uppercase;color:var(--accent);display:block;margin-bottom:6px}
+.pm-cote h3{font-size:20px;line-height:1.25}
+@media(max-width:900px){.pm-ap .pm-faits{grid-template-columns:1fr 1fr}}

@@ -417,14 +417,18 @@ def page_404():
 
 
 # ---------- page outil : plan de masse automatique ----------
-PRIX_PLAN = 29  # le même montant est dans api/planvente.js (PRIX_PLAN)
+PRIX_PLAN, PRIX_ETUDE = 29, 79  # les mêmes montants sont dans api/planvente.js (FORMULES)
 PM_FAQ = [
     ("Qu'est-ce qu'un plan de masse ?",
      "C'est le terrain vu du dessus, à l'échelle : ses limites, les constructions qui existent, celle que vous voulez ajouter, avec ses dimensions et ses distances aux limites. C'est la pièce n° 2 du dossier (DP2 pour une déclaration préalable, PCMI2 pour un permis de construire)."),
     ("Que veut dire « coté dans les trois dimensions » ?",
      "Le plan doit donner la longueur, la largeur et la hauteur de la construction. Les deux premières se lisent sur le dessin, la hauteur est écrite à côté. C'est le code de l'urbanisme qui le demande (articles R. 431-9 et R. 431-36)."),
     ("Ce plan suffit-il pour déposer ma déclaration préalable ?",
-     "Non, c'est une des pièces. Il faut aussi le formulaire officiel, le plan de situation, le plan en coupe, les façades, l'insertion du projet et deux photos. Et il faut que le projet respecte le règlement de votre commune, ce que ce plan ne vérifie pas."),
+     "Non. Vous avez deux pièces sur huit : le plan de masse et le plan de situation. Il faut aussi le formulaire officiel, le plan en coupe, les façades, l'insertion du projet et deux photos. Et il faut que le projet respecte le règlement de votre commune, ce que ce plan ne vérifie pas."),
+    ("Le plan de situation est-il vraiment gratuit ?",
+     "Oui, sans compte et sans paiement. Vous tapez votre adresse, vous vérifiez que c'est bien votre terrain, vous téléchargez le PDF : deux cartes de l'IGN à deux échelles, avec votre terrain repéré."),
+    ("Que contient l'étude du règlement, dans le plan vérifié ?",
+     "Une personne de notre équipe lit le règlement de la zone où se trouve votre terrain, les chapitres auxquels il renvoie et son lexique, puis confronte votre projet à chaque règle : distances, hauteur, emprise, aspect. Vous recevez la réponse par e-mail sous 48 h ouvrées, avec la page du règlement pour chaque point. C'est la mairie qui décide en dernier."),
     ("D'où viennent les limites de mon terrain ?",
      "Du plan cadastral, et les bâtiments de la base de données de l'IGN. Ces données publiques peuvent s'écarter du terrain réel de 1 à 2 mètres. Le plan le précise : les cotes n'ont pas valeur de bornage. Si une distance est juste, à quelques centimètres près, seul un géomètre peut la garantir."),
     ("Et si je préfère que vous fassiez tout ?",
@@ -449,26 +453,35 @@ def page_plan_masse():
   <div class="wrap narrow">
     <nav class="crumbs" aria-label="Fil d'Ariane"><a href="../">Accueil</a> › <span>Plan de masse</span></nav>
     <h1>Votre plan de masse en ligne, coté et à l'échelle</h1>
-    <p class="answer">Tapez votre adresse, posez votre projet sur votre terrain : les distances aux limites se calculent toutes seules. L'aperçu est gratuit. Le plan prêt à déposer coûte {PRIX_PLAN} €.</p>
-    <div class="facts"><span><b>Gratuit</b>L'aperçu sur votre terrain</span><span><b>{PRIX_PLAN} €</b>Le PDF prêt à déposer</span><span><b>2 minutes</b>Sans logiciel ni compte</span></div>
+    <p class="answer">Tapez votre adresse, posez votre projet sur votre terrain : les distances aux limites se calculent toutes seules. L'aperçu et le plan de situation sont gratuits. Le plan de masse prêt à déposer coûte {PRIX_PLAN} €.</p>
+    <div class="facts"><span><b>Gratuit</b>L'aperçu et le plan de situation</span><span><b>{PRIX_PLAN} €</b>Le plan de masse prêt à déposer</span><span><b>2 minutes</b>Sans logiciel ni compte</span></div>
   </div>
 </section>
 
 <section class="page-sec alt" id="outil">
   <div class="wrap">
-    <div id="pm-outil" data-prix="{PRIX_PLAN}" aria-live="polite"><p class="pm-note">Chargement…</p></div>
+    <div id="pm-outil" data-prix="{PRIX_PLAN}" data-etude="{PRIX_ETUDE}" data-dossier="149" aria-live="polite"><p class="pm-note">Chargement…</p></div>
   </div>
 </section>
 
 <section class="page-sec">
   <div class="wrap narrow">
-    <h2>Ce qu'il y a sur le plan</h2>
+    <h2>Trois formules, chacune contient la précédente</h2>
+    <table class="rules"><thead><tr><th scope="col">Formule</th><th scope="col">Ce que vous recevez</th><th scope="col">Prix</th></tr></thead><tbody>
+      <tr><td><b>Le plan</b></td><td>Plan de masse coté et plan de situation, en PDF, tout de suite. Vous placez votre projet vous-même. Ne dit pas si le projet est autorisé.</td><td><b>{PRIX_PLAN} €</b></td></tr>
+      <tr><td><b>Le plan vérifié</b></td><td>Le plan, et notre équipe étudie le règlement d'urbanisme de votre terrain : votre projet passe ou non, règle par règle, avec la page du règlement. Réponse sous 48 h ouvrées.</td><td><b>{PRIX_ETUDE} €</b></td></tr>
+      <tr><td><b>Le dossier complet</b></td><td>On étudie le règlement, on trace tous les plans d'après votre croquis, on remplit le formulaire. Vous n'avez plus qu'à déposer. Prêt en 48 h.</td><td><b>Dès 149 €</b></td></tr>
+    </tbody></table>
+    <p class="rules-note">Ce que vous payez pour une formule est déduit si vous passez à la suivante dans les 30 jours. Le plan de situation seul est gratuit.</p>
+    <h2 class="mt">Ce qu'il y a sur le plan</h2>
     <ul class="need-list">
       <li><i>Votre terrain</i>Ses limites d'après le cadastre, les parcelles voisines et leurs numéros, le nord et l'échelle.</li>
       <li><i>Ce qui existe</i>La maison et les autres constructions, d'après les relevés de l'IGN.</li>
-      <li><i>Votre projet</i>À l'emplacement que vous choisissez, avec sa longueur, sa largeur et sa hauteur : les trois dimensions que demande la mairie.</li>
+      <li><i>Votre projet</i>À l'emplacement que vous choisissez, avec sa longueur, sa largeur et sa hauteur : les trois dimensions que demande la mairie. Abri, piscine, garage, extension collée à la maison, terrasse de forme libre, maison en plusieurs volumes.</li>
+      <li><i>L'accès</i>Le côté du terrain qui donne sur la voie, repéré d'après votre adresse.</li>
       <li><i>Les distances</i>Aux limites du terrain et à la maison, calculées automatiquement.</li>
       <li><i>Les surfaces</i>Le terrain, l'emprise au sol existante, l'emprise créée et le total en pourcentage.</li>
+      <li><i>Le plan de situation</i>En deuxième page : deux cartes de l'IGN, à deux échelles, avec votre terrain repéré. C'est la pièce n° 1 du dossier.</li>
     </ul>
     <h2 class="mt">Un plan juste peut quand même être refusé</h2>
     <p class="lead">Ce plan met votre projet au propre. Il ne dit pas s'il est autorisé, et il ne garantit rien.</p>
@@ -476,7 +489,7 @@ def page_plan_masse():
     <p class="lead">Si votre projet ne respecte pas une seule de ces règles, la mairie s'y oppose, même avec un plan parfaitement dessiné. Vous avez alors perdu le mois d'instruction et il faut redéposer un dossier corrigé. Aucun outil automatique, le nôtre compris, ne fait cette lecture à votre place.</p>
     <p class="lead">Ce plan ne remplace pas non plus un géomètre : les limites viennent du cadastre et n'ont pas valeur de bornage.</p>
     <div class="cta-box">
-      <div><b>Pour savoir si ça passe avant de déposer : le dossier complet, dès 149 €</b><span>On étudie en entier le règlement de votre terrain et on vous dit si le projet passe, avant de tracer. Puis on fait tous les plans d'après votre croquis et on remplit le formulaire. Prêt en 48 h. Les {PRIX_PLAN} € du plan de masse sont déduits pendant 30 jours.</span></div>
+      <div><b>Pour savoir si ça passe avant de déposer : le dossier complet, dès 149 €</b><span>On étudie en entier le règlement de votre terrain et on vous dit si le projet passe, avant de tracer. Puis on fait tous les plans d'après votre croquis et on remplit le formulaire. Prêt en 48 h. Ce que vous avez payé pour le plan est déduit pendant 30 jours.</span></div>
       <a class="btn blue-btn" href="../#projets">Voir mon prix</a>
     </div>
   </div>
@@ -497,7 +510,7 @@ def page_plan_masse():
 </main>
 """
     h = head(f'Plan de masse en ligne : coté, à l\'échelle, {PRIX_PLAN} € | Le Bon Permis',
-             f"Plan de masse coté dans les 3 dimensions pour déclaration préalable ou permis de construire. Posez votre projet sur votre terrain, aperçu gratuit, PDF prêt à déposer pour {PRIX_PLAN} €.",
+             f"Plan de masse coté dans les 3 dimensions pour déclaration préalable ou permis de construire. Posez votre projet sur votre terrain : aperçu et plan de situation gratuits, PDF prêt à déposer pour {PRIX_PLAN} €.",
              'plan-de-masse/', base, ld)
     h = h.replace('</head>', f'<link rel="stylesheet" href="{base}assets/espace.css">\n</head>')
     return (h + '<body data-page="legal">\n\n' + entete(base, False) + '\n' + corps + '\n' + pied(base) + OVERLAY
