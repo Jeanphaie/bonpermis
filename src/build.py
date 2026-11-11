@@ -234,10 +234,11 @@ def page(k):
     faq_html = '' if not c.get('faq') else (
         '<section id="faq" class="page-sec alt"><div class="wrap narrow"><h2>Questions fréquentes</h2><div class="faq">'
         + ''.join(f'<details><summary>{e(q)}</summary><p>{e(r)}</p></details>' for q, r in c['faq']) + '</div></div></section>')
-    blocs_html = ''.join(f'<h2 class="mt">{e(t)}</h2>' + ''.join(f'<p class="lead">{e(x)}</p>' for x in paras)
-                         for t, paras in c.get('blocs', []))
-    if blocs_html.startswith('<h2 class="mt">'):
-        blocs_html = '<h2>' + blocs_html[len('<h2 class="mt">'):]
+    # Les blocs « à savoir » (impôts, risques, cas particuliers) : repliés, pour garder la page courte
+    blocs_html = '' if not c.get('blocs') else (
+        '<h2>À savoir aussi</h2><div class="faq">'
+        + ''.join(f'<details><summary>{e(t)}</summary>' + ''.join(f'<p>{e(x)}</p>' for x in paras) + '</details>' for t, paras in c['blocs'])
+        + '</div>')
     # Exemple de dossier réel (avec l'accord écrit du client, données personnelles masquées) : planches cliquables
     ex = c.get('exemple')
     exemple_html = '' if not ex else (
@@ -435,10 +436,12 @@ PM_FAQ = [
      "Non. Vous avez deux pièces sur huit : le plan de masse et le plan de situation. Il faut aussi le formulaire officiel, le plan en coupe, les façades, l'insertion du projet et deux photos. Et il faut que le projet respecte le règlement de votre commune, ce que ce plan ne vérifie pas."),
     ("Le plan de situation est-il vraiment gratuit ?",
      "Oui. Il a sa propre page : vous tapez votre adresse, vous donnez votre e-mail, vous recevez le PDF. Il est aussi inclus en deuxième page du plan de masse."),
-    ("Que contient l'étude du règlement, dans le plan vérifié ?",
-     "Une personne de notre équipe lit le règlement de la zone où se trouve votre terrain, les chapitres auxquels il renvoie et son lexique, puis confronte votre projet à chaque règle : distances, hauteur, emprise, aspect. Vous recevez la réponse par e-mail sous 48 h ouvrées, avec la page du règlement pour chaque point. C'est la mairie qui décide en dernier."),
+    ("Que contient l'étude du PLU, dans le plan vérifié ?",
+     "Une personne de notre équipe lit le PLU de votre commune : le règlement de votre zone, les chapitres auxquels il renvoie et ses définitions. Puis elle confronte votre projet à chaque règle : distances, hauteur, part du terrain bâtie, aspect. Vous recevez la réponse par e-mail sous 48 h ouvrées, règle par règle. C'est la mairie qui décide en dernier."),
     ("D'où viennent les limites de mon terrain ?",
      "Du plan cadastral, et les bâtiments de la base de données de l'IGN. Ces données publiques peuvent s'écarter du terrain réel de 1 à 2 mètres. Le plan le précise : les cotes n'ont pas valeur de bornage. Si une distance est juste, à quelques centimètres près, seul un géomètre peut la garantir."),
+    ("Pourquoi un plan juste peut-il être refusé ?",
+     "Parce que la mairie ne juge pas le dessin : elle compare votre projet au PLU, le règlement de votre commune. Un exemple réel, à Tarnos dans les Landes, en zone U40.9 : pas de mur plein en clôture, alors qu'il est admis dans les communes voisines, et pas plus de 40 % du terrain bâti, constructions existantes comprises. Un outil automatique, le nôtre compris, ne lit pas ce règlement à votre place."),
     ("Et si je préfère que vous fassiez tout ?",
      "C'est notre dossier complet : on étudie le règlement de votre commune, on trace tous les plans à partir de votre croquis, on remplit le formulaire. Le prix du plan de masse est déduit pendant 30 jours."),
 ]
@@ -470,55 +473,36 @@ def page_plan_masse():
 </section>
 
 <section class="page-sec">
-  <div class="wrap narrow">
-    <h2>Notre vrai métier : lire le règlement de votre commune</h2>
-    <p class="lead">N'importe quel outil dessine un plan. Ce qui fait accepter ou refuser un dossier, c'est le plan local d'urbanisme, le PLU : le règlement de votre commune. Il est différent dans chaque commune, il fait des dizaines de pages, et il se lit comme un texte de loi.</p>
-    <ol class="steps-list">
-      <li>On repère votre zone sur le plan de zonage, à partir de votre adresse.</li>
-      <li>On lit le règlement de cette zone en entier, article par article.</li>
-      <li>On lit les chapitres communs auxquels il renvoie : clôtures, toitures, stationnement, espaces verts.</li>
-      <li>On lit le lexique : la façon dont la commune mesure une hauteur ou une emprise change le résultat.</li>
-      <li>On vérifie les protections et les risques : monument historique, zone inondable, littoral.</li>
-      <li>On confronte votre projet à chaque règle, et on vous dit ce qui passe et ce qui bloque, avec la page du règlement.</li>
-    </ol>
-    <p class="lead" style="margin-top:20px"><b>Un exemple réel.</b> À Tarnos, dans les Landes, en zone U40.9 : pas de mur plein en clôture, alors qu'il est admis dans les communes voisines. Emprise au sol limitée à 40 % du terrain, bâti existant compris. Toit plat autorisé ici, interdit dans d'autres communes du même plan. Ces règles tiennent en quelques lignes aux pages 34, 52 et 121 à 123 du règlement. Un projet qui en ignore une est refusé.</p>
-    <p class="rules-src">Règlement écrit du PLUi du Seignanx, approuvé le 18 décembre 2025.</p>
-    <h2 class="mt">Trois formules, chacune contient la précédente</h2>
-    <table class="rules"><thead><tr><th scope="col">Formule</th><th scope="col">Ce que vous recevez</th><th scope="col">Prix</th></tr></thead><tbody>
-      <tr><td><b>Le plan</b></td><td>Plan de masse coté et plan de situation, en PDF, tout de suite. Vous placez votre projet vous-même. Ne dit pas si le projet est autorisé.</td><td><b>{PRIX_PLAN} €</b></td></tr>
-      <tr><td><b>Le plan vérifié</b></td><td>Le plan, et notre équipe étudie le règlement d'urbanisme de votre terrain : votre projet passe ou non, règle par règle, avec la page du règlement. Réponse sous 48 h ouvrées.</td><td><b>{PRIX_ETUDE} €</b></td></tr>
-      <tr><td><b>Le dossier complet</b></td><td>On étudie le règlement, on trace tous les plans d'après votre croquis, on remplit le formulaire. Vous n'avez plus qu'à déposer. Prêt en 48 h.</td><td><b>Dès 149 €</b></td></tr>
-    </tbody></table>
-    <p class="rules-note">Ce que vous payez pour une formule est déduit si vous passez à la suivante dans les 30 jours. Le plan de situation seul est gratuit.</p>
-    <h2 class="mt">Ce qu'il y a sur le plan</h2>
-    <ul class="need-list">
-      <li><i>Votre terrain</i>Ses limites d'après le cadastre, les parcelles voisines et leurs numéros, le nord et l'échelle.</li>
-      <li><i>Ce qui existe</i>La maison et les autres constructions, d'après les relevés de l'IGN.</li>
-      <li><i>Votre projet</i>À l'emplacement que vous choisissez, avec sa longueur, sa largeur et sa hauteur : les trois dimensions que demande la mairie. Abri, piscine, garage, extension collée à la maison, terrasse de forme libre, maison en plusieurs volumes.</li>
-      <li><i>L'accès</i>Le côté du terrain qui donne sur la voie, repéré d'après votre adresse.</li>
-      <li><i>Les distances</i>Aux limites du terrain et à la maison, calculées automatiquement.</li>
-      <li><i>Les surfaces</i>Le terrain, l'emprise au sol existante, l'emprise créée et le total en pourcentage.</li>
-      <li><i>Le plan de situation</i>En deuxième page : deux cartes de l'IGN, à deux échelles, avec votre terrain repéré. C'est la pièce n° 1 du dossier.</li>
-    </ul>
-    <h2 class="mt">Un plan juste peut quand même être refusé</h2>
-    <p class="lead">Ce plan met votre projet au propre. Il ne dit pas s'il est autorisé, et il ne garantit rien.</p>
-    <p class="lead">Ce que la mairie vérifie, c'est le plan local d'urbanisme, le PLU. Chaque commune a le sien, différent de celui de la commune voisine : distance aux limites, hauteur maximale et façon de la mesurer, emprise au sol autorisée, forme du toit, matériaux, couleurs, clôtures. Des dizaines de pages techniques, avec un lexique et des renvois d'un chapitre à l'autre.</p>
-    <p class="lead">Si votre projet ne respecte pas une seule de ces règles, la mairie s'y oppose, même avec un plan parfaitement dessiné. Vous avez alors perdu le mois d'instruction et il faut redéposer un dossier corrigé. Aucun outil automatique, le nôtre compris, ne fait cette lecture à votre place.</p>
-    <p class="lead">Ce plan ne remplace pas non plus un géomètre : les limites viennent du cadastre et n'ont pas valeur de bornage.</p>
-    <div class="cta-box">
-      <div><b>Pour savoir si ça passe avant de déposer : le dossier complet, dès 149 €</b><span>On étudie en entier le règlement de votre terrain et on vous dit si le projet passe, avant de tracer. Puis on fait tous les plans d'après votre croquis et on remplit le formulaire. Prêt en 48 h. Ce que vous avez payé pour le plan est déduit pendant 30 jours.</span></div>
-      <a class="btn blue-btn" href="../#projets">Voir mon prix</a>
+  <div class="wrap">
+    <h2>Trois formules</h2>
+    <div class="prices formules" style="margin-top:24px">
+      <div class="price"><h3>Le plan de masse</h3><div class="amount">{PRIX_PLAN} €</div><p>Plan de masse coté et plan de situation, en PDF, tout de suite. Ne dit pas si votre projet est autorisé.</p></div>
+      <div class="price"><h3>Le plan vérifié</h3><div class="amount">{PRIX_ETUDE} €</div><p>Le plan, et on lit le PLU de votre commune : votre projet passe ou non, règle par règle. Réponse sous 48 h ouvrées.</p></div>
+      <div class="price star"><span class="badge">RECOMMANDÉ</span><h3>Le dossier complet</h3><div class="amount"><small>dès</small> 149 €</div><p>PLU lu en entier, tous les plans d'après votre croquis, le formulaire. Prêt en 48 h.</p><a class="btn blue-btn" href="../#projets">Voir mon prix</a></div>
     </div>
+    <p class="formules-note">Ce que vous avez payé est déduit de la formule au-dessus pendant 30 jours. Le <a href="../plan-de-situation/">plan de situation</a> seul est gratuit.</p>
   </div>
 </section>
 
 <section class="page-sec alt">
-  <div class="wrap narrow">
-    <h2>Un plan de masse fait par nous</h2>
-    <p class="lead">Pour comparer : le plan de masse d'un vrai dossier de permis de construire, tracé par notre équipe, avec le calcul d'emprise demandé par le règlement de la commune. Données personnelles masquées, publié avec l'accord de la propriétaire.</p>
-    <figure class="pm-ex"><a href="../img/exemple-extension/pcmi2-plan-de-masse.webp" target="_blank" rel="noopener"><img src="../img/exemple-extension/pcmi2-plan-de-masse-p.webp" alt="Plan de masse d'un dossier de permis de construire, exemple réel" loading="lazy" width="720" height="509"></a></figure>
-    <p class="rules-src">Le plan de masse est exigé par le code de l'urbanisme : article R. 431-36 b pour une déclaration préalable, article R. 431-9 pour un permis de construire. Mis à jour le {date_txt('2026-11-11')}.</p>
+  <div class="wrap pm-recu">
+    <figure class="pm-ex"><a href="../img/exemple-plan-masse-auto.webp" target="_blank" rel="noopener"><img src="../img/exemple-plan-masse-auto-p.webp" alt="Exemple de plan de masse sorti de l'outil : terrain, maison, abri de jardin coté, distances aux limites" loading="lazy" width="900" height="637"></a><figcaption>Exemple sorti de l'outil. Cliquez pour agrandir.</figcaption></figure>
+    <div>
+      <h2>Ce que vous recevez</h2>
+      <ul class="pm-puces">
+        <li>Votre terrain et les voisins</li>
+        <li>La maison et les constructions existantes</li>
+        <li>Votre projet : longueur, largeur, hauteur</li>
+        <li>Les distances aux limites, calculées</li>
+        <li>L'accès, le nord, l'échelle</li>
+        <li>Les surfaces et la part du terrain bâtie</li>
+        <li>Le plan de situation, en page 2</li>
+      </ul>
+      <div class="pm-zone pm-alerte"><b>Ce plan ne vérifie pas le PLU</b>
+        <p>Il met votre projet au propre. Il ne dit pas si le règlement de votre commune l'autorise, et un projet qui oublie une règle peut être refusé, même avec un plan juste. Pour le savoir avant de déposer : le plan vérifié ou le dossier complet.</p></div>
+    </div>
   </div>
+  <div class="wrap narrow"><p class="rules-src">Limites d'après le cadastre, sans valeur de bornage. Plan de masse exigé par le code de l'urbanisme : article R. 431-36 b pour une déclaration préalable, article R. 431-9 pour un permis de construire. Mis à jour le {date_txt('2026-11-11')}.</p></div>
 </section>
 
 <section id="faq" class="page-sec">
@@ -587,7 +571,7 @@ def page_plan_situation():
   <div class="wrap narrow" id="ps-hero">
     <nav class="crumbs" aria-label="Fil d'Ariane"><a href="../">Accueil</a> › <span>Plan de situation</span></nav>
     <h1>Votre plan de situation, gratuit</h1>
-    <p class="answer">Tapez votre adresse. On vous montre votre terrain et ce que dit le règlement de votre commune.</p>
+    <p class="answer">Tapez votre adresse. On vous montre votre terrain et ce que dit le PLU de votre commune.</p>
     <div class="outil-carte"><div class="adr" data-id="ps" data-bouton="Voir mon terrain"></div></div>
     <p class="outil-sous">Gratuit · Sans compte · PDF prêt à déposer (DP1, PCMI1)</p>
   </div>
@@ -595,15 +579,20 @@ def page_plan_situation():
 </section>
 
 <section class="page-sec">
-  <div class="wrap narrow">
+  <div class="wrap pm-recu">
+    <figure class="pm-ex ps-illu"><img src="../img/27-plan-situation.webp" alt="Un terrain repéré sur le plan d'un quartier" loading="lazy" width="480" height="480"></figure>
+    <div>
     <h2>Trois choses à savoir</h2>
     <ul class="need-list">
       <li><i>La pièce n° 1</i>La mairie la demande dans tous les dossiers, pour savoir où est votre terrain.</li>
       <li><i>Deux cartes</i>Une vue large de la commune, une vue rapprochée du quartier. Votre terrain est entouré.</li>
-      <li><i>Ce n'est que le début</i>Ce qui fait accepter un dossier, c'est le respect du règlement de la commune. C'est ce qu'on vérifie pour vous.</li>
+      <li><i>Ce n'est que le début</i>Ce qui fait accepter un dossier, c'est le respect du PLU, le règlement de votre commune. C'est ce qu'on vérifie pour vous.</li>
     </ul>
+    </div>
+  </div>
+  <div class="wrap narrow">
     <div class="cta-box">
-      <div><b>On fait tout le dossier, dès 149 €</b><span>Règlement lu en entier, tous les plans, le formulaire. Prêt en 48 h.</span></div>
+      <div><b>On fait tout le dossier, dès 149 €</b><span>PLU lu en entier, tous les plans, le formulaire. Prêt en 48 h.</span></div>
       <a class="btn blue-btn" href="../#projets">Voir mon prix</a>
     </div>
   </div>
