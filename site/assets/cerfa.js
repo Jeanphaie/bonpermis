@@ -21,22 +21,32 @@
   const AUTRE_NEUF = {carport: 'Carport', annexe: 'Annexe', pergola: 'Pergola'};
   const AUTRE_EXIST = {garage: 'Transformation du garage en pièce habitable', menuiseries: 'Remplacement de menuiseries extérieures', velux: 'Pose de fenêtres de toit', lucarne: 'Création d\'une lucarne', toiture: 'Réfection de la toiture', facade: 'Ravalement de façade', solaire: 'Pose de panneaux solaires', terrasse: 'Terrasse', usage: 'Changement de destination'};
 
+  // Bordereau des pièces jointes : case à cocher de chaque pièce, relevée sur les PDF officiels.
+  const BORD = {"13703":{"DP1":"P5PA1","DP2":"P5PB1","DP3":"P3GE1","DP4":"P3GD1","DP5":"P5PC1","DP6":"P3GF1","DP7":"P3GG1","DP8":"P3GH1","DP8-1":"P4LC1","DP11":"P4CD1","DP11-1":"P4CF1","DP11-2":"P4EC1","DP12-2":"P4GF1","DP14":"P4LA1","DP15":"P4LD1","DP16":"P4LE1","DP17":"P5PE1","DP22":"P4HG1","DP23":"P4EG1","DP24":"P4MA1","DP25":"P8EA1","DP12-1":"P4GE1"},"16702":{"DPC1":"P5PA2","DPC2":"P5PB1","DPC3":"P3GE1","DPC4":"P3GD1","DPC5":"P5PC1","DPC6":"P3GF1","DPC7":"P3GG1","DPC8":"P3GH1","DPC11":"P4CD1","DPC11-1":"P4CF1","DPC11-2":"P4EC1","DPC12":"P4EH1","DPC12-1":"P4GE1","DPC12-2":"P4GF1","DPC14":"P4LA1","DPC14-1":"P4LG1","DPC15":"P4LD1","DP16":"P4LE1","DPC16-1":"P5PD1","DPC17":"P5PE1","DPC18":"P6PF1","DPC21":"P1FP1","DPC22":"P4HG1","DPC23":"P4EG1","DPC25":"P8EA1","DPC26":"P9ZA1","DPC29":"P4FJ1","DPC32":"P4FK1","DPC33":"P4FK2","DPC34":"P4KB2","DPC35":"P4KB3","DPC36":"P4KB4","DPC37":"P3FA1"},"13406":{"PCMI1":"P3GA1","PCMI2":"P3GC1","PCMI3":"P3GE1","PCMI4":"P3GB1","PCMI5":"P3GD1","PCMI6":"P3GF1","PCMI7":"P3GG1","PCMI8":"P3GH1","PCMI9":"P7LC1","PCMI10":"P4HC1","PCMI11":"P4HE1","PCMI12":"P4HF1","PCMI12-1":"P4EC1","PCMI12-2":"P4ED1","PCMI13":"P4EE1","PCMI14":"P4EF1","PCMI14-1":"P4EK1","PCMI15":"P4GE1","PCMI16":"P4GF1","PCMI17":"P4GG1","PCMI18":"P4HA1","PCMI19":"P4HB1","PCMI20":"P4CC1","PCMI21":"P4CD1","PCMI21-1":"P4CF1","PCMI22":"P4KA1","PCMI23":"P4KB1","PCMI23-1":"P4LA1","PCMI23-2":"P4LB1","PCMI23-3":"P4LC1","PCMI23-4":"P4LG1","PCMI24":"P4LD1","PCMI25":"P4LE1","PCMI26":"P4HG1","PCMI28":"P8EA1"}};
+  const PREFIXE = {'13703': 'DP', '16702': 'DPC', '13406': 'PCMI'};
+  const PIECES_J = ['1', '2', '3', '4', '5', '6', '7', '8', '11'];
+  const NOM_PJ = {1: 'Plan de situation', 2: 'Plan de masse', 3: 'Plan en coupe', 4: 'Façades et toitures (notice en permis)', 5: 'Aspect extérieur (façades en permis)', 6: 'Insertion', 7: 'Photo proche', 8: 'Photo lointaine', 11: 'Notice matériaux (secteur protégé)'};
+  // Projets qui créent de la surface de plancher (clos et couverts), avec la part de l'emprise retenue comme première estimation (murs déduits).
+  const PLANCHER = {extension: 0.88, veranda: 0.93, annexe: 0.88, abri: 0.93, surelevation: 0.88, maison: 0.85};
+  const nbr = s => { const m = String(s || '').replace(',', '.').match(/\d+(\.\d+)?/); return m ? +m[0] : null; };
+  const m2 = x => x == null || !Number.isFinite(x) ? '' : String(Math.round(x * 100) / 100).replace('.', ',');
+
   // ---------- lecture « au mieux » des réponses libres du client ----------
   const rep = (d, id) => ((d.pieces || []).find(p => p.id === id) || {}).texte || '';
   function decouperAdresse(s) {
     const m = String(s || '').replace(/\s+/g, ' ').trim().match(/^(\d+\s?(?:bis|ter|quater|[A-Da-d])?)?[\s,]*(.*?)[\s,]*(\d{5})\s+(.+)$/i);
-    return m ? {numero: (m[1] || '').trim(), voie: m[2].trim(), code: m[3], localite: m[4].trim()} : {numero: '', voie: String(s || '').trim(), code: '', localite: ''};
+    return m ? {numero: (m[1] || '').trim(), voie: m[2].trim(), code: m[3], localite: m[4].replace(/[\s,;.-]+$/, '').trim()} : {numero: '', voie: String(s || '').trim(), code: '', localite: ''};
   }
   function lire(d, t) {
     const o = {};
     const nom = rep(d, 'cerfa-nom').split(/[\n,;]| et /)[0].trim(), mots = nom.split(/\s+/).filter(Boolean);
     const maj = mots.filter(m => m.length > 1 && m === m.toUpperCase());
     if (maj.length && maj.length < mots.length) { o.nom = maj.join(' '); o.prenom = mots.filter(m => !maj.includes(m)).join(' '); }
-    else { o.nom = mots.slice(-1).join(' '); o.prenom = mots.slice(0, -1).join(' '); }
+    else { let i = mots.findIndex((m, k) => k > 0 && /^(de|du|des|le|la|d'.*|von|van)$/i.test(m)); if (i < 0) i = mots.length - 1; o.nom = mots.slice(i).join(' '); o.prenom = mots.slice(0, i).join(' '); }
     const na = rep(d, 'cerfa-naissance'), dn = na.match(/(\d{1,2})[\/.\- ](\d{1,2})[\/.\- ](\d{4})/);
     o.naissance = dn ? `${dn[1].padStart(2, '0')}/${dn[2].padStart(2, '0')}/${dn[3]}` : '';
     const lieu = na.replace(dn ? dn[0] : '', '').replace(/^[\s,àa]+(?=[A-ZÀ-Ý])/, '').trim(), dp = lieu.match(/\((\d{2,3}|2[AB])\)/i);
-    o.naissCommune = lieu.replace(/\(.*?\)/g, '').replace(/^à\s+/i, '').trim(); o.naissDept = dp ? dp[1] : ''; o.naissPays = o.naissCommune ? 'France' : '';
+    o.naissCommune = lieu.replace(/\(.*?\)/g, '').replace(/n[ée]e?\s+le/i, '').replace(/^[\s,;:.-]*(à\s+)?/i, '').replace(/[\s,;.-]+$/, '').trim(); o.naissDept = dp ? dp[1] : ''; o.naissPays = o.naissCommune ? 'France' : '';
     const ad = rep(d, 'cerfa-adresse'), tel = ad.replace(/[.\s-]/g, '').match(/(?:\+33|0)(\d{9})/);
     o.tel = tel ? '0' + tel[1] : '';
     const terrain = decouperAdresse(d.adresse), meme = !ad || /m[êe]me/i.test(ad);
@@ -48,6 +58,21 @@
     const p = t && t.parcelle;
     if (p) { o.section = p.section || ''; o.numero = String(p.numero || ''); o.prefixe = p.idu && p.idu.length >= 14 ? p.idu.slice(5, 8) : '000'; o.superficie = String(p.contenance || p.surfaceCalculee || ''); if (!o.tLocalite) o.tLocalite = p.commune || ''; }
     o.description = rep(d, 'projet');
+    // Surfaces : emprise existante au cadastre, emprise créée d'après le plan placé par le client, plancher estimé.
+    const bats = ((t && t.batiments) || []).filter(b => b.surParcelle), plan = ((d.pieces || []).find(x => x.type === 'plan') || {}).plan;
+    const cree = plan && plan.mesures && plan.mesures.surface ? plan.mesures.surface : null;
+    o.emprAvant = bats.length ? m2(bats.reduce((a, b) => a + (b.emprise || 0), 0)) : '';
+    o.emprCreee = ['cloture', 'portail', 'menuiseries', 'velux', 'lucarne', 'toiture', 'facade', 'solaire', 'combles', 'garage', 'usage', 'surelevation'].includes(d.projet) ? '0' : m2(cree);
+    const dit = nbr(rep(d, 'surface')), est = bats.filter(b => !b.leger && b.emprise >= 20).reduce((a, b) => a + b.emprise * Math.max(1, b.etages || (b.hauteur > 5 ? 2 : 1)) * 0.85, 0);
+    o.spExist = d.projet === 'maison' ? '0' : dit ? m2(dit) : est ? m2(Math.round(est)) : ''; o.spExistSource = dit ? 'donnée par le client' : est ? 'estimée d\'après le cadastre' : '';
+    const k = PLANCHER[d.projet];
+    o.spCreee = d.projet === 'combles' ? m2(nbr(rep(d, 'surface-combles'))) : d.projet === 'garage' ? m2((() => { const g = rep(d, 'dimensions-du-garage').replace(/,/g, '.').match(/(\d+(?:\.\d+)?)\s*m?\s*[x×]\s*(\d+(?:\.\d+)?)/i); return g ? g[1] * g[2] * 0.9 : null; })()) : k && cree ? m2(cree * k) : k ? '' : '0';
+    const pr = (t && t.protections) || [];
+    o.mh = pr.some(x => x.type === 'ac1'); o.spr = pr.some(x => x.type === 'ac4'); o.classe = pr.some(x => x.type === 'ac2' && /class/i.test((x.libelle || '') + (x.detail || '')));
+    // Pièces jointes : celles déjà déposées dans « Pièces à livrer », sinon le jeu habituel du projet.
+    const dep = (d.livrables || []).map(l => (String(l.code).match(/^(?:DP|PC)(\d+)$/) || [])[1]).filter(Boolean);
+    o.pj = dep.length ? dep : ['1', '2', '4', '6', '7', '8'].concat(d.kind === 'pc' || ['piscine', 'extension', 'maison', 'surelevation', 'annexe'].includes(d.projet) ? ['3'] : [], d.kind === 'pc' ? ['5'] : [], pr.length && d.kind !== 'pc' ? ['11'] : []);
+    o.pjSource = dep.length ? 'd\'après les PDF déposés' : 'jeu habituel pour ce projet, à ajuster';
     o.lieuSignature = o.pLocalite || ''; const j = new Date(); o.dateSignature = `${String(j.getDate()).padStart(2, '0')}/${String(j.getMonth() + 1).padStart(2, '0')}/${j.getFullYear()}`;
     return o;
   }
@@ -78,6 +103,17 @@
     if (AUTRE_EXIST[projet]) txt('C2ZB5_travaux', AUTRE_EXIST[projet]);
     txt('C2ZD1_description', v.description);
     coche('C2ZF1_principale', v.residence === 'principale'); coche('C2ZF2_secondaire', v.residence === 'secondaire');
+    // Surfaces : trois cases sur le 13703, ligne « Logement » et ligne des totaux du tableau sur les deux autres.
+    const A = nbr(v.spExist), Bc = nbr(v.spCreee);
+    if (v.spCreee !== '' && Bc != null) {
+      txt('C7A_surface', v.spExist); txt('C7U_creee', v.spCreee);
+      const tot = m2((A || 0) + Bc);
+      [['W2LA1', v.spExist], ['W2LB1', v.spCreee], ['W2LF1', tot], ['W2SA1', v.spExist], ['W2SB1', v.spCreee], ['W2SF1', tot]].forEach(([n, x]) => txt(n, x));
+      if (code === '13406' && !v.societe && (A || 0) + Bc <= 150) coche('H1H_honneur', true);
+    }
+    txt('W3ES1_avanttravaux', v.emprAvant); txt('W3ES2_creee', v.emprCreee);
+    coche('X2H_historique', v.mh); coche('X2R_remarquable', v.spr); coche('X2C_classe', v.classe);
+    (v.pj || []).forEach(n => { if (code === '13406' && +n > 8) return; const c = BORD[code][PREFIXE[code] + n]; if (c) coche(c, true); });
     txt('E1L_lieu', v.lieuSignature); txt('E1D_date', v.dateSignature, true);
     return {pdf: await doc.save(), rate};
   }
@@ -105,6 +141,16 @@
           <label class="field" style="flex:1 1 100%"><span>Courte description (reprise sur le formulaire)</span><textarea name="description" rows="3" maxlength="1000">${esc(v.description)}</textarea></label>
           <label class="field cf-c"><span>Résidence</span><select name="residence"><option value="">Non précisé</option><option value="principale"${v.residence === 'principale' ? ' selected' : ''}>Principale</option><option value="secondaire"${v.residence === 'secondaire' ? ' selected' : ''}>Secondaire</option></select></label>
           <label class="cf-coche"><input type="checkbox" name="okMail"${v.okMail ? ' checked' : ''}> Le demandeur accepte les courriers de la mairie par e-mail</label></fieldset>
+        <fieldset class="cf-g"><legend>Surfaces</legend>
+          <label class="field cf-c"><span>Surface de plancher existante (m²)${v.spExistSource ? ' · ' + v.spExistSource : ''}</span><input name="spExist" value="${esc(v.spExist)}"></label>
+          <label class="field cf-c"><span>Surface de plancher créée (m²)${PLANCHER[d.projet] && v.spCreee ? ' · estimée d\'après le plan' : ''}</span><input name="spCreee" value="${esc(v.spCreee)}"></label>
+          <label class="field cf-c"><span>Emprise au sol existante (m²) · cadastre</span><input name="emprAvant" value="${esc(v.emprAvant)}"></label>
+          <label class="field cf-c"><span>Emprise au sol créée (m²)${v.emprCreee && v.emprCreee !== '0' ? ' · plan du client' : ''}</span><input name="emprCreee" value="${esc(v.emprCreee)}"></label>
+          <p class="note" style="flex:1 1 100%;margin:0 0 10px">Estimations de départ : remplacez-les par les surfaces des plans définitifs. Depuis 2022 la taxe d'aménagement ne se déclare plus sur ce formulaire, mais sur impots.gouv.fr après les travaux.</p></fieldset>
+        <fieldset class="cf-g"><legend>Protections (données du Géoportail)</legend>
+          ${[['mh', 'Abords d\'un monument historique'], ['spr', 'Site patrimonial remarquable'], ['classe', 'Site classé']].map(([k, l]) => `<label class="cf-coche" style="flex:1 1 220px"><input type="checkbox" name="${k}"${v[k] ? ' checked' : ''}> ${l}</label>`).join('')}</fieldset>
+        <fieldset class="cf-g"><legend>Pièces jointes cochées au bordereau · ${esc(v.pjSource)}</legend>
+          ${PIECES_J.map(n => `<label class="cf-coche" style="flex:1 1 220px"><input type="checkbox" name="pj" value="${n}"${v.pj.includes(n) ? ' checked' : ''}> ${n} · ${NOM_PJ[n]}</label>`).join('')}</fieldset>
         <p class="form-err" role="alert" hidden data-err></p>
       </form>
       <div class="plan-pied"><button type="button" class="btn blue-btn" data-gen="dl">Télécharger le PDF pré-rempli</button>${o.deposer ? '<button type="button" class="btn ghost" data-gen="depot">Déposer dans « Pièces à livrer »</button>' : ''}</div></div>`;
@@ -112,7 +158,7 @@
     const fermer = () => fen.remove(); fen.querySelector('.plan-x').onclick = fermer;
     const err = fen.querySelector('[data-err]'), F = fen.querySelector('form');
     fen.querySelectorAll('[data-gen]').forEach(b => b.onclick = async () => {
-      const vals = {}; new FormData(F).forEach((x, k) => vals[k] = String(x).trim()); vals.okMail = F.okMail.checked;
+      const vals = {}; new FormData(F).forEach((x, k) => vals[k] = String(x).trim()); vals.okMail = F.okMail.checked; ['mh', 'spr', 'classe'].forEach(k => vals[k] = F[k].checked); vals.pj = [...F.querySelectorAll('[name=pj]:checked')].map(x => x.value);
       const lib = b.textContent; b.disabled = true; b.textContent = 'Préparation…'; err.hidden = true;
       try {
         const r = await remplir(vals.code, vals, d.projet), nomF = `${d.ref}-cerfa-${vals.code}.pdf`;
