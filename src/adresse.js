@@ -20,7 +20,9 @@
     const chercher = () => { clearTimeout(tm); tm = setTimeout(async () => {
       const k = ++n, q = inp.value.trim(); if (q.length < 4) { sug.innerHTML = ''; liste = []; return; }
       try {
-        const j = await (await fetch('/api/terrain/adresses?q=' + encodeURIComponent(q))).json(); if (k !== n) return;
+        const r = await fetch('/api/terrain/adresses?q=' + encodeURIComponent(q)); const j = await r.json().catch(() => ({})); if (k !== n) return;
+        // Service d'adresses de l'IGN en panne : on le dit, au lieu d'accuser l'adresse.
+        if (!r.ok) { liste = []; sug.innerHTML = '<p class="adr-rien">La recherche d\'adresse est en panne pour quelques minutes (service public de l\'IGN). Réessayez un peu plus tard, ou appelez-nous au <a href="tel:+33184166553">01 84 16 65 53</a>.</p>'; return; }
         liste = j.adresses || [];
         sug.innerHTML = liste.length ? liste.map((a, i) => `<button type="button" class="sug" role="option" data-i="${i}">${esc(a.label)}</button>`).join('') : '<p class="adr-rien">Adresse introuvable. Essayez avec le nom de la rue et la commune.</p>';
         sug.querySelectorAll('[data-i]').forEach(b => b.onclick = () => choisir(liste[+b.dataset.i]));
