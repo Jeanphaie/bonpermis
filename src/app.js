@@ -135,13 +135,13 @@
       const nd = NEED[S.p] || NEED.extension;
       const ndP = S.opt.concept ? 'Ce que vous voulez : la surface, à quoi ça servira (chambre, salon…), le style qui vous plaît, et une photo d\'inspiration si vous en avez' : nd[0];
       const DO = S.opt.concept ? 'On vous propose deux projets, avec les plans de l\'intérieur et une vue 3D. Vous choisissez, on ajuste, puis on prépare tout le dossier.'
-        : canC ? 'On dessine votre projet en respectant les règles de votre commune, on l\'ajuste avec vous, puis on prépare tout le dossier.'
+        : canC ? 'On vérifie que votre projet respecte les règles de votre commune, on trace les plans à l\'échelle d\'après votre croquis, puis on prépare tout le dossier.'
         : c==='maison' ? 'On prépare tout le dossier de permis à partir de vos plans, on le vérifie avec les règles de votre commune, et on vous dit où joindre l\'attestation énergétique de votre constructeur.'
         : v.kind==='svc' ? 'On prépare et on remplit tout. Il ne vous reste qu\'à envoyer.'
-        : 'On place votre projet au bon endroit, on vérifie qu\'il respecte les règles de votre commune, et on dessine tous les plans.';
+        : 'On vérifie que votre projet respecte les règles de votre commune, à l\'emplacement que vous avez choisi, et on trace tous les plans.';
       const KIND = {dp:['Déclaration de travaux','Une déclaration de travaux suffit.'], pc:['Permis de construire','Il vous faut un permis de construire.'], pd:['Permis de démolir','Il vous faudra peut-être un permis de démolir.'], svc:[v.title, v.h3]}[v.kind];
       body.innerHTML = `<div class="verdict"><span class="kind">${S.regul?'Travaux déjà faits · ':''}${KIND[0]}</span><h3>${KIND[1]}</h3><p class="qhelp">${S.opt.concept ? 'Vous recevez une première proposition sous 5 jours. Une fois validée, votre dossier est prêt en ' + delay + '.' : (v.kind==='svc'?'Prêt':'Votre dossier est prêt') + ' en ' + delay + ' après réception de vos photos.'}</p>
-        <div class="need"><b>Ce qu'on vous demandera</b><small>Après le paiement, depuis votre téléphone. Un guide vous accompagne photo par photo.</small>
+        <div class="need"><b>Ce qu'on vous demandera</b><small>Votre projet tel que vous l'avez, même en croquis à main levée. Après le paiement, depuis votre téléphone, avec un guide pas à pas.</small>
           <ul><li><i>Le projet</i>${ndP}</li><li><i>Les mesures</i>${nd[1]}</li><li><i>Les photos</i>${nd[2]}</li></ul>
           ${['agrandir','garage','toit','usage'].includes(c)?'<p>Vous n\'avez encore qu\'une idée, sans croquis ni devis ? La conception du projet se fait sur devis : appelez-nous.</p>':''}
         </div>

@@ -196,8 +196,8 @@ def accueil():
           {"@context": "https://schema.org", "@type": "WebSite", "name": "Le Bon Permis", "url": DOMAINE + "/", "inLanguage": "fr-FR"},
           faq_ld(corps)]
     titre = 'Le Bon Permis : déclaration préalable et permis de construire en ligne'
-    desc = ("Abri, piscine, extension, véranda : on vérifie les règles d'urbanisme de votre commune (PLU) avant de dessiner, "
-            "puis on prépare votre dossier de mairie, plans compris. Prix connu en une minute, dossier prêt en 48 h.")
+    desc = ("Abri, piscine, extension, véranda : envoyez votre projet, même en croquis. On vérifie qu'il respecte le PLU de votre commune, "
+            "puis on trace les plans et on remplit le dossier de mairie. Prix connu en une minute, prêt en 48 h.")
     return head(titre, desc, '', '', ld) + '<body>\n\n' + entete('', True) + '\n' + corps + '\n' + pied('') + OVERLAY + scripts('')
 
 
@@ -298,10 +298,10 @@ def page(k):
 <section class="page-sec alt">
   <div class="wrap narrow">
     <h2>Ce qu'on vous demandera</h2>
-    <p class="lead">Après le paiement, depuis votre téléphone. Un guide vous accompagne photo par photo.</p>
+    <p class="lead">Votre projet, sous la forme que vous avez : un croquis à main levée suffit. Vous l'envoyez après le paiement, depuis votre téléphone, avec un guide pas à pas.</p>
     {need_html}
     <h2 class="mt">Ce qu'on fait pour vous</h2>
-    <p class="lead">D'abord, on lit le plan local d'urbanisme de votre commune : distances aux voisins, hauteur, emprise, clôtures, couleurs. Si votre projet ne passe pas tel quel, on vous le dit avant de commencer. Ensuite on dessine tous les plans demandés par la mairie et on remplit le formulaire officiel. Une deuxième personne relit tout. Vous n'avez plus qu'à déposer, ou on dépose pour vous.</p>
+    <p class="lead">D'abord, on lit le plan local d'urbanisme de votre commune : distances aux voisins, hauteur, emprise, clôtures, couleurs. Si votre projet ne passe pas tel quel, on vous le dit avant de commencer, avec la règle qui bloque : vous décidez de ce que vous changez. Ensuite on trace à l'échelle, d'après votre croquis et vos mesures, tous les plans demandés par la mairie, et on remplit le formulaire officiel. Une deuxième personne relit tout. Vous n'avez plus qu'à déposer, ou on dépose pour vous.</p>
     <div class="cta-box">
       <div><b>{e(cta_prix)}</b>{cta_lignes}<span>{e(cta_txt)}</span></div>
       <button class="btn blue-btn" type="button" data-p="{simu}">Voir mon prix exact</button>

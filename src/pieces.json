@@ -225,7 +225,7 @@
     "id": "forme",
     "nom": "L'extension en quelques mots",
     "type": "texte",
-    "aide": "Hauteur (plain-pied ou étage), toit plat ou en pente, fenêtres et portes voulues. Sa place et sa taille : sur le plan ci-dessus. Un croquis à la main pris en photo est bienvenu, dans « Autres documents » : on dessine une proposition, vous la validez.",
+    "aide": "Hauteur (plain-pied ou étage), toit plat ou en pente, fenêtres et portes voulues. Sa place et sa taille : sur le plan ci-dessus. Joignez un croquis à la main pris en photo, dans « Autres documents » : on le met au propre et à l'échelle, vous validez.",
     "exemple": "Exemple : plain-pied, toit plat, une grande baie vitrée côté jardin"
    },
    {
@@ -342,7 +342,7 @@
     "id": "forme",
     "nom": "L'étage voulu en quelques mots",
     "type": "texte",
-    "aide": "Sur toute la maison ou une partie, forme du toit, fenêtres. Un croquis à la main pris en photo est bienvenu, dans « Autres documents » : on dessine une proposition, vous la validez.",
+    "aide": "Sur toute la maison ou une partie, forme du toit, fenêtres. Joignez un croquis à la main pris en photo, dans « Autres documents » : on le met au propre et à l'échelle, vous validez.",
     "exemple": "Exemple : un étage complet, même toit en tuiles, 3 fenêtres côté rue comme en bas"
    },
    {

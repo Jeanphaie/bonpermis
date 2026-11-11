@@ -519,3 +519,13 @@ nav.links a,.espace-lien{white-space:nowrap}
 .planches figcaption b{color:var(--accent);margin-right:6px}
 .planches figcaption span{display:block;color:var(--muted);font-size:13px;line-height:1.45;margin-top:4px}
 #exemple .lead + .lead{margin-top:12px}
+.roles{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-bottom:28px}
+.role{background:var(--paper);border:1px solid var(--line);border-radius:var(--r);padding:24px 24px 26px}
+.role.us{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
+.role .n{font:600 12px/1 var(--f-body);color:var(--terra);letter-spacing:.1em}
+.role.us .n{color:var(--accent)}
+.role h3{margin:10px 0 12px}
+.role ul{list-style:none;padding:0;margin:0;display:grid;gap:10px}
+.role li{position:relative;padding-left:22px;font-size:15px;color:var(--muted);line-height:1.5}
+.role li::before{content:'';position:absolute;left:2px;top:8px;width:9px;height:5px;border-left:2px solid var(--accent);border-bottom:2px solid var(--accent);transform:rotate(-45deg)}
+@media(max-width:900px){.roles{grid-template-columns:1fr}}
