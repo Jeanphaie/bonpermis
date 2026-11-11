@@ -151,7 +151,7 @@
     const defaut = d.kind === 'pc' ? '13406' : '13703';
     const fen = document.createElement('div'); fen.className = 'plan-fen'; fen.setAttribute('role', 'dialog'); fen.setAttribute('aria-modal', 'true'); fen.setAttribute('aria-label', 'Formulaire Cerfa');
     const champ = ([k, lib]) => `<label class="field cf-c"><span>${esc(lib)}</span><input name="${k}" value="${esc(v[k] || '')}"></label>`;
-    const brut = ['cerfa-nom', 'cerfa-naissance', 'cerfa-adresse', 'cerfa-residence', 'cerfa-courriel'].map(id => { const p = (d.pieces || []).find(x => x.id === id); return p ? `<dt>${esc(p.nom)}</dt><dd>${esc(p.texte) || '<i>pas de réponse</i>'}</dd>` : ''; }).join('');
+    const brut = ['cerfa-nom', 'cerfa-naissance', 'cerfa-adresse', 'cerfa-residence', 'cerfa-courriel', 'cerfa-mandat'].map(id => { const p = (d.pieces || []).find(x => x.id === id); return p ? `<dt>${esc(p.nom)}</dt><dd>${esc(p.texte) || '<i>pas de réponse</i>'}</dd>` : ''; }).join('');
     fen.innerHTML = `<div class="plan-boite"><div class="plan-tete"><b>Formulaire Cerfa · ${esc(d.ref)}</b><button type="button" class="plan-x" aria-label="Fermer">×</button></div>
       <form class="plan-corps cf">
         <p class="note" style="margin-top:0">Relisez chaque case : elles sont remplies au mieux d'après les réponses du client et le cadastre. Le reste du formulaire (surfaces, pièces jointes, taxe) se complète ensuite dans le PDF.</p>

@@ -166,6 +166,7 @@
           <section class="carte"><h3>Commande</h3><dl class="dl">
             <dt>Projet</dt><dd>${esc(d.nom)}</dd><dt>Client</dt><dd>${esc(d.client)}<br><a href="mailto:${esc(d.email)}">${esc(d.email)}</a></dd>
             <dt>Options</dt><dd>${esc((d.options || '').replace(/,/g, ', '))}</dd>
+            ${d.depot ? (() => { const m = d.pieces.find(x => x.id === 'cerfa-mandat'), f = d.depot.fait; return `<dt>Dépôt</dt><dd><b style="color:${f ? '#3E5A38' : '#B3261E'}">${f ? 'Déposé le ' + jour(f.date) + ', numéro ' + esc(f.numero) : 'À faire par nous'}</b><br><small class="note">Accord du client : ${m && m.texte ? '« ' + esc(m.texte) + ' »' : f ? 'non enregistré' : 'pas encore donné, ne pas déposer'}</small>${f ? '' : '<br><button class="btn petit ghost" type="button" data-depot style="margin-top:6px">Dossier déposé, prévenir le client</button>'}</dd>`; })() : ''}
             <dt>Prix</dt><dd>${euro(d.total)}</dd><dt>Acompte</dt><dd style="color:#3E5A38">${d.paiements.acompte ? euro(d.paiements.acompte.montant) + ' le ' + jour(d.paiements.acompte.date) : '-'}</dd>
             <dt>Solde</dt><dd>${d.paiements.solde ? `<span style="color:#3E5A38">payé le ${jour(d.paiements.solde.date)}</span>` : euro(d.solde) + ' à l\'aperçu'}</dd>
             <dt>Échéance</dt><dd>${d.echeance ? jour(d.echeance) : `${d.delai === 1 ? '24 h' : d.delai === 2 ? '48 h' : d.delai + ' jours'} ouvrés après validation`}</dd></dl>
@@ -227,6 +228,13 @@
       const motif = refaire ? prompt('Ce qu\'il faut compléter (le client le lira) :') : ''; if (refaire && !motif) return;
       const r = await api('POST', '/piece?ref=' + R(), {piece, statut: refaire ? 'a_refaire' : 'valide', motif}); if (!r.ok) return alert(r.j.erreur || 'Erreur.'); maj(r.j);
     }));
+    const dp = $('[data-depot]'); if (dp) dp.addEventListener('click', async () => {
+      const m = d.pieces.find(x => x.id === 'cerfa-mandat');
+      if (!(m && m.texte) && !confirm('Le client n\'a pas encore donné son accord écrit. Continuer quand même ?')) return;
+      const numero = prompt('Numéro d\'enregistrement donné par la mairie (ex. DP 056 241 26 X0042) :', ''); if (!numero) return;
+      const guichet = prompt('Adresse du guichet en ligne utilisé (facultatif) :', ''); if (guichet === null) return;
+      const r = await api('POST', '/depot?ref=' + R(), {numero, guichet}); if (!r.ok) return alert(r.j.erreur || 'Erreur.'); maj(r.j);
+    });
     const lc = $('[data-lancer]'); if (lc) lc.addEventListener('click', async () => {
       if (!confirm('Valider les pièces reçues et lancer les plans ? Le client est prévenu et l\'échéance démarre.')) return;
       const r = await api('POST', '/lancer?ref=' + R()); if (!r.ok) return alert(r.j.erreur || 'Erreur.'); maj(r.j);

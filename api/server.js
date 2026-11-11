@@ -140,6 +140,7 @@ const ROUTES = {
   'POST /api/admin/fichier': D.equipeFichier,
   'POST /api/admin/message': D.equipeMessage,
   'POST /api/admin/lancer': D.equipeLancer,
+  'POST /api/admin/depot': D.equipeDepot,
   'POST /api/admin/livrable': D.equipeLivrable,
   'DELETE /api/admin/livrable': D.equipeSupprimerLivrable,
   'POST /api/admin/apercu': D.equipeEnvoyerApercu,

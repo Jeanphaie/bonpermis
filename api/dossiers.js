@@ -22,6 +22,10 @@ const dDir = ref => B.chemin('dossiers', ref);
 // Liste propre à chaque projet (src/pieces.json) : description, pièces du projet, pièces communes,
 // pièces liées à la situation (secteur protégé, copropriété) et aux travaux déjà faits, puis « Autres documents ».
 // ctx = {regul, reponses} (réponses du simulateur, en JSON). Sans fichier ou projet inconnu : liste générique.
+// Option « Dépôt du dossier à votre place » : il nous faut l'accord écrit du propriétaire (article R. 423-1 du code de l'urbanisme : dépôt par le propriétaire ou son mandataire).
+const aDepot = options => String(options || '').split(',').includes('depot');
+const MANDAT = {id: 'cerfa-mandat', nom: 'Votre accord pour que nous déposions le dossier', type: 'texte', exemple: 'Exemple : Bon pour accord, Jeanne Martin',
+  aide: 'Vous avez choisi que nous déposions le dossier à votre place. Pour nous y autoriser, écrivez « Bon pour accord » suivi de votre prénom et de votre nom. Cela vaut mandat pour déposer ce dossier, et seulement celui-ci, auprès de votre mairie.'};
 function piecesInitiales(kind, p, ctx) {
   const nd = NEED[p] || NEED.extension, c = ctx || {};
   const autre = {id: 'autre', nom: 'Autres documents', type: 'fichier', facultatif: true, aide: 'Tout ce qui peut nous aider : croquis, devis, inspiration…'};
@@ -43,6 +47,7 @@ function piecesInitiales(kind, p, ctx) {
     if (a.abf === 'oui') out.push(...copie(PIECES.situations.secteur_protege));
     if (a.copro === 'oui') out.push(...copie(PIECES.situations.copropriete));
     out.push(...copie(PIECES.formulaire).filter(x => x.id !== 'cerfa-residence' || !['cu', 'daact'].includes(p)));
+    if (aDepot(c.options)) out.push(Object.assign({}, MANDAT));
     const vus = new Set();
     return out.filter(x => !vus.has(x.id) && vus.add(x.id)).concat(autre);
   }
@@ -88,7 +93,8 @@ function norm(cmd) {
   cmd.paiements = cmd.paiements || {acompte: {montant: cmd.montant, date: cmd.date, session: cmd.session}};
   if (cmd.solde <= 0 && !cmd.paiements.solde) cmd.paiements.solde = {montant: 0, date: cmd.date, ancien: true};
   cmd.kind = cmd.kind || 'dp';
-  cmd.pieces = cmd.pieces || piecesInitiales(cmd.kind, cmd.projet, {regul: cmd.regul, reponses: cmd.reponses});
+  cmd.pieces = cmd.pieces || piecesInitiales(cmd.kind, cmd.projet, {regul: cmd.regul, reponses: cmd.reponses, options: cmd.options});
+  if (aDepot(cmd.options) && cmd.pieces.some(x => /^cerfa-/.test(x.id)) && !cmd.pieces.some(x => x.id === 'cerfa-mandat')) { const i = cmd.pieces.findIndex(x => x.id === 'autre'); cmd.pieces.splice(i < 0 ? cmd.pieces.length : i, 0, Object.assign({}, MANDAT)); }
   cmd.fichiers = cmd.fichiers || []; cmd.messages = cmd.messages || []; cmd.livrables = cmd.livrables || []; cmd.historique = cmd.historique || [];
   const st = lireOld(cmd.ref);
   cmd.statut = cmd.statut || (st.termine ? 'verification' : 'elements');
@@ -125,6 +131,7 @@ function vueCmd(cmd, pourEquipe) {
     pieces: cmd.pieces.map(p => ({id: p.id, nom: p.nom, aide: p.aide, exemple: p.exemple || '', type: p.type, facultatif: facultative(p, cmd), couverte: couverte(p, cmd) && etatPiece(p, cmd) === 'manquant', texte: p.texte || '', etat: etatPiece(p, cmd), motif: p.motif || '', plusTard: !!p.plusTard && etatPiece(p, cmd) === 'manquant', ...(p.type === 'plan' ? {mode: p.mode, plan: p.plan || null} : {})})),
     fichiers: cmd.fichiers.map(fichierPublic), messages: cmd.messages, recues: r,
     livrables: cmd.livrables.map(l => ({id: l.id, code: l.code, nom: l.nom, pages: l.pages, taille: l.taille, date: l.date})),
+    depot: aDepot(cmd.options) ? {fait: cmd.depot || null} : null,
     telechargeable: !!cmd.paiements.solde, demandes: NEED[cmd.projet] || NEED.extension,
     lignes: cmd.lignes || null, promo: cmd.promo || null
   };
@@ -307,7 +314,7 @@ async function paiementRecu(s) {
     projet: m.projet, kind: m.kind || 'dp', nom: m.nom, regul: m.regul, adresse: m.adresse, lieu: lireLieu(m.lieu), reponses: m.reponses, options: m.options, lignes,
     total, acompte, solde: Math.round((total - acompte) * 100) / 100,
     paiements: {acompte: {montant: s.amount_total / 100, date: new Date().toISOString(), session: s.id, pi: s.payment_intent || null}},
-    statut: 'elements', pieces: piecesInitiales(m.kind || 'dp', m.projet, {regul: m.regul, reponses: m.reponses}), fichiers: [], messages: [], livrables: [],
+    statut: 'elements', pieces: piecesInitiales(m.kind || 'dp', m.projet, {regul: m.regul, reponses: m.reponses, options: m.options}), fichiers: [], messages: [], livrables: [],
     historique: [{date: new Date().toISOString(), texte: `Acompte reçu : ${euro(s.amount_total / 100)}`}]
   };
   if (!m.type) { // commande de la première version : payée en une fois
@@ -333,7 +340,7 @@ function nouveauDossier(x, u, adresse, lieu) {
     v: 2, ref: '', date, email: u.email, nom_client: '', uid: u.id, projet: x.p, kind: (x.v && x.v.kind) || 'dp', nom: x.nom, regul: String(!!(x.regul === true || x.regul === 'true')),
     adresse, lieu: lireLieu(lieu), reponses, options: Object.keys(x.opt || {}).filter(k => x.opt[k]).join(',') || 'aucune', lignes,
     total: x.total, acompte: partAcompte(x.total), solde: Math.round((x.total - partAcompte(x.total)) * 100) / 100,
-    paiements: {}, statut: 'brouillon', pieces: piecesInitiales((x.v && x.v.kind) || 'dp', x.p, {regul: x.regul, reponses}),
+    paiements: {}, statut: 'brouillon', pieces: piecesInitiales((x.v && x.v.kind) || 'dp', x.p, {regul: x.regul, reponses, options: Object.keys(x.opt || {}).filter(k => x.opt[k]).join(',')}),
     fichiers: [], messages: [], livrables: [], historique: [{date, texte: 'Dossier créé par le client (acompte à régler)'}]
   };
   for (let k = 0; k < 20; k++) {
@@ -669,6 +676,18 @@ async function equipeLancer(req, res, url) {
   const u = C.lireUser(cmd.uid);
   if (u) await envoyerMail(cmd.email, `Dossier ${cmd.ref} : c'est parti`, `Bonjour,\n\nNous avons tout ce qu'il faut. Vos plans sont en préparation : vous recevrez l'aperçu au plus tard le ${ech.toLocaleDateString('fr-FR', {weekday: 'long', day: 'numeric', month: 'long', timeZone: 'Europe/Paris'})}.\n\nSuivre votre dossier : ${C.lienLong(u, '/espace/dossier/?ref=' + cmd.ref)}${signature}`, CONF.mailA);
 }
+// Dépôt fait par l'équipe (option « depot ») : on note la date, le numéro d'enregistrement et le guichet, et on prévient le client.
+async function equipeDepot(req, res, url) {
+  const cmd = cmdEquipe(req, res, url); if (!cmd) return;
+  if (!aDepot(cmd.options)) return repondre(res, 409, {erreur: 'Ce client n\'a pas pris l\'option dépôt.'});
+  const d = await lireJson(req, 5000) || {}, numero = texte(d.numero, 60), guichet = texte(d.guichet, 200);
+  if (!numero) return repondre(res, 400, {erreur: 'Indiquez le numéro d\'enregistrement donné par la mairie.'});
+  cmd.depot = {date: new Date().toISOString(), numero, guichet};
+  histo(cmd, 'Dossier déposé en mairie, numéro ' + numero); sauver(cmd);
+  repondre(res, 200, vueCmd(cmd, true));
+  const delai = cmd.kind === 'pc' ? 'deux mois' : 'un mois';
+  await envoyerMail(cmd.email, `Dossier ${cmd.ref} : déposé en mairie`, `Bonjour,\n\nVotre dossier « ${cmd.nom} » est déposé auprès de votre mairie.\nNuméro d'enregistrement : ${numero}\n\nLa mairie a en général ${delai} pour répondre. Ce délai est plus long dans un secteur protégé, et elle peut demander une pièce de plus pendant le premier mois : dans ce cas, nous nous en occupons et nous vous prévenons.\n\nSi vous recevez un courrier ou un e-mail de la mairie, transférez-le nous : nous vous dirons quoi faire.\n\nSuivre votre dossier : ${CONF.site}/espace/dossier/?ref=${cmd.ref}${signature}`, CONF.mailA);
+}
 async function equipeLivrable(req, res, url) {
   if (!C.sessionAdmin(req)) { req.resume(); return repondre(res, 401, {erreur: 'Connexion équipe requise.'}); }
   const cmd = lireCmd(url.searchParams.get('ref')); if (!cmd) { req.resume(); return repondre(res, 404, {}); }
@@ -715,6 +734,6 @@ module.exports = {
   verifierPromo, creerDossier, payerDossier,
   REF_RE, lireCmd, sauver, vueCmd, commande, etatCommande, paiementRecu, enregistrerProjet, supprimerProjet, commanderProjet, espace,
   clientDossier, clientTexte, clientPlusTard, clientPlan, clientFichier, clientSupprimerFichier, clientMessage, clientTerminer, clientValider, clientVoir, clientTelecharger,
-  equipeListe, equipeDossier, equipeVoir, equipePiece, equipeClasser, equipeFichier, equipeMessage, equipeLancer, equipeLivrable,
+  equipeListe, equipeDossier, equipeVoir, equipePiece, equipeClasser, equipeFichier, equipeMessage, equipeLancer, equipeDepot, equipeLivrable,
   equipeSupprimerLivrable, equipeEnvoyerApercu, equipeZip, analyser, partAcompte, piecesInitiales, listePieces
 };
