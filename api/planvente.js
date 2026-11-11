@@ -64,21 +64,28 @@ async function carte(lon, lat, ech, titre, cle, L = 190, H = 205) {
   const cx = (lon + 180) / 360 * n * 256, s = Math.sin(lat * Math.PI / 180), cy = (0.5 - Math.log((1 + s) / (1 - s)) / (4 * Math.PI)) * n * 256;
   const x0 = Math.floor((cx - wpx / 2) / 256), x1 = Math.floor((cx + wpx / 2) / 256), y0 = Math.floor((cy - hpx / 2) / 256), y1 = Math.floor((cy + hpx / 2) / 256);
   if ((x1 - x0 + 1) * (y1 - y0 + 1) > 64) return null;
-  const lignes = [];
-  for (let y = y0; y <= y1; y++) { const rang = []; for (let x = x0; x <= x1; x++) rang.push(tuilePlan(z, ((x % n) + n) % n, y)); lignes.push(await Promise.all(rang)); }
+  // Tuiles demandées quatre par quatre, avec un second essai : l'IGN freine les rafales.
+  const lignes = [], essai = async (x, y) => { try { return await tuilePlan(z, x, y); } catch { await new Promise(r => setTimeout(r, 400)); return tuilePlan(z, x, y); } };
+  for (let y = y0; y <= y1; y++) {
+    const xs = []; for (let x = x0; x <= x1; x++) xs.push(((x % n) + n) % n);
+    const rang = []; for (let i = 0; i < xs.length; i += 4) rang.push(...await Promise.all(xs.slice(i, i + 4).map(x => essai(x, y))));
+    lignes.push(rang);
+  }
   const args = [];
   for (const rang of lignes) args.push('(', ...rang, '+append', ')');
   args.push('-append', '-background', 'white', '-alpha', 'remove', '-alpha', 'off', '-colorspace', 'sRGB',
     '-crop', `${Math.round(wpx)}x${Math.round(hpx)}+${Math.round(cx - wpx / 2 - x0 * 256)}+${Math.round(cy - hpx / 2 - y0 * 256)}`, '+repage', '-resize', `${PXL}x${PXH}!`, '-quality', '84', sortie);
   fs.mkdirSync(path.dirname(sortie), {recursive: true});
-  if (!await lancer(B.OUTILS.magick, args)) return null;
+  if (!await lancer(B.OUTILS.magick, args)) throw new Error('assemblage des tuiles (' + B.OUTILS.magick + ')');
   return {jpeg: fs.readFileSync(sortie), px: [PXL, PXH], echelle: ech, titre};
 }
+let derniereErreurCartes = '';
 async function cartesSituation(lon, lat, cle) {
   try {
-    const c = await Promise.all([carte(lon, lat, 25000, 'Situation dans la commune', cle), carte(lon, lat, 5000, 'Situation rapprochée', cle)]);
-    return c.every(Boolean) ? c : null;
-  } catch (e) { journal('plan de situation : cartes indisponibles', e.message); return null; }
+    const c = [await carte(lon, lat, 25000, 'Situation dans la commune', cle), await carte(lon, lat, 5000, 'Situation rapprochée', cle)];
+    if (c.every(Boolean)) return c;
+    derniereErreurCartes = 'outil image absent ou carte trop grande'; return null;
+  } catch (e) { derniereErreurCartes = e.message; journal('plan de situation : cartes indisponibles', e.message); return null; }
 }
 
 // ---------- plan de masse : aperçu, paiement, téléchargement ----------
@@ -210,7 +217,7 @@ async function situation(req, res) {
   if (!terrain.parcelle) return repondre(res, 502, {erreur: 'Le cadastre ne répond pas pour cette adresse. Réessayez dans un instant.'});
   const id = B.id(12), commune = terrain.parcelle.commune || '';
   const cartes = await cartesSituation(lon, lat, 's' + id);
-  if (!cartes) return repondre(res, 502, {erreur: 'Les cartes de l\'IGN ne répondent pas pour le moment. Réessayez dans un instant.'});
+  if (!cartes) return repondre(res, 502, {erreur: 'Les cartes de l\'IGN ne répondent pas pour le moment. Réessayez dans un instant.', detail: derniereErreurCartes});
   const r = planSituation(terrain, cartes, {demandeur: texte(d.nom, 60), adresse: commune, projet: '', date: dateFr()});
   fs.mkdirSync(B.chemin('plans'), {recursive: true}); fs.writeFileSync(fichier('s' + id, '.pdf'), r.pdf);
   journal('plan de situation gratuit', id, commune);
