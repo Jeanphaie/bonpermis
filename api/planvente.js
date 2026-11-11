@@ -101,7 +101,7 @@ function constat(terrain) {
 }
 function constatTexte(k) {
   const l = [];
-  if (k.zone) l.push(`- Votre terrain est en zone ${k.zone}${k.zoneNom ? ' (' + k.zoneNom.toLowerCase() + ')' : ''} du plan local d'urbanisme${k.plui ? ' intercommunal' : ''}${k.dateReglement ? ', règlement du ' + k.dateReglement : ''}.${k.page ? ' Les règles de cette zone commencent à la page ' + k.page + ' du règlement.' : ''}`);
+  if (k.zone) l.push(`- Votre terrain est en zone ${k.zone}${k.zoneNom ? ' (' + k.zoneNom.toLowerCase() + ')' : ''} du plan local d'urbanisme${k.plui ? ' intercommunal' : ''}${k.dateReglement ? ', règlement du ' + k.dateReglement : ''}. Chaque zone a ses propres règles.`);
   else if (k.rnu) l.push('- Votre commune n\'a pas de plan local d\'urbanisme : c\'est le règlement national d\'urbanisme qui s\'applique, avec ses propres règles de distance et de constructibilité.');
   if (k.protege) l.push(`- Votre terrain est dans un secteur protégé (${k.protections.map(p => p.libelle.toLowerCase()).join(', ')}) : l'architecte des Bâtiments de France donnera son avis, et la mairie met un mois de plus à répondre.`);
   if (k.littoral) l.push('- Votre commune est une commune littorale : la loi Littoral s\'ajoute au règlement de la commune.');
@@ -248,8 +248,8 @@ async function situation(req, res) {
   const k = constat(terrain), faits = constatTexte(k);
   await envoyerMail(email, 'Votre plan de situation, et ce que dit déjà votre adresse',
     `Bonjour,\n\nVoici votre plan de situation (${commune}) :\n${CONF.site}/api/plan-situation?id=${id}\n\n` +
-    (faits ? `En préparant ce plan, voici ce que les données publiques disent de votre terrain :\n${faits}\n\n` : '') +
-    `Pourquoi on vous le dit : la mairie ne juge pas la qualité de vos plans, elle vérifie que votre projet respecte ce règlement. Distance aux voisins, hauteur, emprise au sol, forme du toit, couleurs : chaque commune a ses propres règles, et un projet qui en oublie une seule est refusé. C'est le premier motif de refus, et c'est notre métier de lire ces règlements en entier.\n\n` +
+    (faits ? `En préparant ce plan, voici ce qu'on a vu sur votre terrain :\n${faits}\n\n` : '') +
+    `Pourquoi on vous le dit : votre projet doit respecter le PLU, le plan local d'urbanisme, c'est-à-dire le règlement de votre commune. Il fixe la distance aux voisins, la hauteur, la part du terrain qui peut être bâtie, les toits, les couleurs, les clôtures. La mairie compare votre dossier à ce règlement : une seule règle oubliée, et le projet est refusé. Lire les PLU en entier, c'est notre métier.\n\n` +
     `La pièce suivante de votre dossier est le plan de masse. Vous pouvez en voir l'aperçu gratuitement, puis nous faire vérifier votre projet :\n${CONF.site}/plan-de-masse/` + B.signature);
   repondre(res, 200, {id, commune, parcelle: k.parcelle, constat: k});
 }

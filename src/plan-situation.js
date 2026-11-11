@@ -12,16 +12,20 @@
   };
   let lieu = null, k = null, mail = '', accord = false;
 
+  // Ce que l'adresse apprend sur le terrain, dit simplement. Pas de numéro de page, pas de nom de base de données.
   function faits() {
     const f = [];
-    if (k.zone) f.push([`Zone ${k.zone}`, `${k.zoneNom ? k.zoneNom + '. ' : ''}C'est son règlement qui dit ce que vous pouvez construire.`]);
-    else if (k.rnu) f.push(['Pas de PLU', 'Votre commune applique le règlement national d\'urbanisme.']);
-    if (k.page) f.push([`Page ${k.page}`, `Les règles de votre zone commencent à la page ${k.page} du règlement${k.dateReglement ? ' du ' + k.dateReglement : ''}.`]);
-    if (k.protege) f.push(['Secteur protégé', `${(k.protections || []).map(p => p.libelle).join(', ')}. L'architecte des Bâtiments de France donne son avis : un mois de plus.`]);
-    if (k.littoral) f.push(['Commune littorale', 'La loi Littoral s\'ajoute au règlement.']);
-    for (const x of (k.risques || [])) f.push([x.libelle, `Risque recensé à votre adresse${x.niveau ? ' : ' + x.niveau : ''}.`]);
+    if (k.zone) f.push([`Votre terrain est en zone ${k.zone}`, `${k.zoneNom ? k.zoneNom + '. ' : ''}Chaque zone du PLU a ses propres règles : ce qui est permis chez un voisin ne l'est pas forcément chez vous.`]);
+    else if (k.rnu) f.push(['Votre commune n\'a pas de PLU', 'C\'est le règlement national d\'urbanisme qui s\'applique, avec ses propres règles de distance et de constructibilité.']);
+    if (k.dateReglement) f.push([`Règlement du ${k.dateReglement}`, 'Si vous vous fiez à d\'anciennes règles, ou à ce qu\'un voisin a pu construire avant, elles ont peut-être changé.']);
+    if (k.plui) f.push(['Un PLU commun à plusieurs communes', 'Le règlement est plus long, et certaines règles changent d\'une commune à l\'autre à l\'intérieur du même document.']);
+    if (k.protege) f.push(['Secteur protégé', 'L\'architecte des Bâtiments de France donne son avis sur les matériaux, les couleurs, les toitures. La mairie met un mois de plus à répondre.']);
+    if (k.littoral) f.push(['Commune littorale', 'La loi Littoral s\'ajoute au PLU et limite ce qu\'on peut construire.']);
+    for (const x of (k.risques || [])) f.push([`Risque : ${x.libelle.toLowerCase()}`, `${x.niveau ? x.niveau[0].toUpperCase() + x.niveau.slice(1) + '. ' : ''}Il peut imposer des règles de construction en plus.`]);
     return f;
   }
+  // Les questions auxquelles le règlement de la zone répond : c'est ce qu'on lit pour le client.
+  const QUESTIONS = ['À quelle distance des voisins et de la rue pouvez-vous construire ?', 'Quelle hauteur maximum ?', 'Quelle part du terrain peut être bâtie ?', 'Quels toits, quels matériaux, quelles couleurs ?', 'Quelle clôture, quelle hauteur ?'];
 
   function resultat(message, pret) {
     const f = faits();
@@ -45,10 +49,12 @@
           </div>
         </div>
         <div>
-          ${f.length ? `<h2>Ce que votre adresse dit déjà</h2><ul class="pm-constat">${f.map(([t, d]) => `<li><b>${esc(t)}</b><span>${esc(d)}</span></li>`).join('')}</ul>
-          <p class="pm-note">Données publiques (Géoportail de l'urbanisme, Géorisques), parfois incomplètes.</p>` : ''}
-          <div class="pm-zone pm-alerte"><b>La mairie ne juge pas vos plans. Elle vérifie ce règlement.</b>
-            <p>Distance aux voisins, hauteur, emprise, toit, couleurs : chaque commune a ses règles. Un projet qui en oublie une est refusé, et il faut tout redéposer.</p></div>
+          ${f.length ? `<h2>Ce que votre adresse dit déjà</h2><ul class="pm-constat">${f.map(([t, d]) => `<li><b>${esc(t)}</b><span>${esc(d)}</span></li>`).join('')}</ul>` : ''}
+          <div class="pm-zone pm-alerte"><b>Votre projet doit respecter le PLU${k.commune ? ' de ' + esc(k.commune) : ''}</b>
+            <p>Le PLU, le plan local d'urbanisme, c'est le règlement de votre commune. La mairie compare votre dossier à ce règlement, ligne par ligne. Une seule règle oubliée, et le projet est refusé.</p>
+            <p><b>Ce que le PLU décide pour votre terrain${k.zone ? ', en zone ' + esc(k.zone) : ''}</b></p>
+            <ul class="ps-q">${QUESTIONS.map(q => `<li>${esc(q)}</li>`).join('')}</ul>
+            <p>Les réponses sont différentes dans chaque commune. On lit le PLU en entier pour vous, avant de dessiner.</p></div>
           <h2 class="ps-h">On s'en occupe</h2>
           <div class="pm-offre reco"><div><i>Recommandé</i><b>Le dossier complet</b><span>On lit le règlement, on fait tous les plans, on remplit le formulaire. Prêt en 48 h.</span></div><a class="btn blue-btn" href="../#projets">Dès ${DOSSIER} €</a></div>
           <div class="pm-offre"><div><b>Le plan vérifié</b><span>Votre plan de masse, et on vous dit si votre projet passe.</span></div><a class="btn ghost" href="../plan-de-masse/">${ETUDE} €</a></div>
