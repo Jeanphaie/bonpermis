@@ -75,12 +75,31 @@
       enregistrer: async plan => {
         try {
           const r = await api('POST', '/api/plan-situation', {lieu: plan.lieu, nom: etat.nom, email: etat.mail, accord: !!etat.accord});
-          zone.innerHTML = `<div class="pm-pret"><h3>Votre plan de situation est prêt</h3>
-            <p class="pm-note">${esc(r.commune)}, parcelle ${esc(r.parcelle)}. Deux cartes de l'IGN, votre terrain repéré, au format A3. Le lien vous a aussi été envoyé par e-mail.</p>
-            <a class="btn blue-btn" href="/api/plan-situation?id=${encodeURIComponent(r.id)}">Télécharger mon plan de situation (PDF, gratuit)</a>
-            <div class="pm-zone"><b>Il vous faut aussi le plan de masse</b><p>C'est la pièce suivante du dossier : votre terrain vu du dessus, avec votre projet coté. L'aperçu est gratuit.</p>
-            <button class="btn ghost" type="button" data-suite>Faire mon plan de masse</button></div></div>`;
-          zone.querySelector('[data-suite]').onclick = () => formulaire();
+          const k = r.constat || {}, faits = [];
+          if (k.zone) faits.push([`Zone ${k.zone}`, `${k.zoneNom ? k.zoneNom + '. ' : ''}C'est le règlement de cette zone qui dit ce que vous avez le droit de construire${k.plui ? ', dans un plan local d\'urbanisme commun à plusieurs communes' : ''}.`]);
+          else if (k.rnu) faits.push(['Pas de plan local d\'urbanisme', 'Votre commune applique le règlement national d\'urbanisme, avec ses propres règles de distance et de constructibilité.']);
+          if (k.page) faits.push([`Page ${k.page}`, `Les règles de votre zone commencent à la page ${k.page} du règlement${k.dateReglement ? ' du ' + k.dateReglement : ''}. Elles renvoient à des chapitres communs et à un lexique qu'il faut lire aussi.`]);
+          if (k.protege) faits.push(['Secteur protégé', `${(k.protections || []).map(p => p.libelle).join(', ')}. L'architecte des Bâtiments de France donnera son avis sur votre projet, et la mairie met un mois de plus à répondre.`]);
+          if (k.littoral) faits.push(['Commune littorale', 'La loi Littoral s\'ajoute au règlement de la commune.']);
+          for (const x of (k.risques || [])) faits.push([x.libelle, `Risque recensé à votre adresse${x.niveau ? ' : ' + x.niveau : ''}. Il peut entraîner des règles de construction en plus.`]);
+          zone.innerHTML = `<div class="pm-ap">
+            <div class="pm-pret"><h3>Votre plan de situation est prêt</h3>
+              <p class="pm-note">${esc(r.commune)}, parcelle ${esc(r.parcelle)}${k.surface ? ', ' + fr(k.surface, 0) + ' m²' : ''}. Deux cartes de l'IGN, votre terrain repéré, au format A3. Le lien vous a aussi été envoyé par e-mail.</p>
+              <a class="btn blue-btn" href="/api/plan-situation?id=${encodeURIComponent(r.id)}">Télécharger mon plan de situation (PDF, gratuit)</a>
+              ${faits.length ? `<h3 style="margin-top:28px">Ce que votre adresse dit déjà de votre projet</h3>
+              <ul class="pm-constat">${faits.map(([t, d]) => `<li><b>${esc(t)}</b><span>${esc(d)}</span></li>`).join('')}</ul>
+              <p class="pm-note">Données publiques : Géoportail de l'urbanisme, Géorisques. Elles ne sont pas toujours complètes.</p>` : ''}
+            </div>
+            <div class="pm-cote">
+              <div class="pm-zone pm-alerte" style="margin-top:0"><b>La mairie ne juge pas vos plans. Elle vérifie le règlement.</b>
+                <p>Distance aux voisins, hauteur et façon de la mesurer, emprise au sol, forme du toit, matériaux, couleurs, clôtures, stationnement : chaque commune a ses propres règles, différentes de celles de la commune d'à côté. Un projet qui en oublie une seule est refusé, même avec des plans parfaits. Vous perdez alors le mois d'instruction et il faut tout redéposer.</p>
+                <p><b>C'est notre métier</b>On lit le règlement de votre terrain en entier, article par article, avec ses renvois et son lexique, et on confronte votre projet à chaque règle. Aucun logiciel ne le fait.</p></div>
+              <div class="pm-offre" style="margin-top:14px"><div><b>Le plan vérifié</b><span>Votre plan de masse, et on vous dit si votre projet passe, règle par règle. Réponse sous 48 h.</span></div><button class="btn ghost" type="button" data-suite>${ETUDE} €</button></div>
+              <div class="pm-offre reco"><div><i>Recommandé</i><b>Le dossier complet</b><span>On étudie le règlement, on trace tous les plans, on remplit le formulaire. Prêt en 48 h.</span></div><a class="btn blue-btn" href="../#projets">Dès ${DOSSIER} €</a></div>
+              <p class="pm-note"><button class="lien" type="button" data-suite>Ou faites d'abord votre plan de masse : l'aperçu est gratuit.</button></p>
+            </div></div>`;
+          zone.querySelectorAll('[data-suite]').forEach(b => b.onclick = () => formulaire('Placez votre projet sur votre terrain : vous choisirez ensuite votre formule.'));
+          zone.scrollIntoView({behavior: 'smooth', block: 'start'});
         } catch (e) { demanderMail(e.message); }
         return true;
       }});

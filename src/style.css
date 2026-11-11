@@ -575,3 +575,8 @@ nav.links a,.espace-lien{white-space:nowrap}
 @media(max-width:900px){.pm-ap .pm-faits{grid-template-columns:1fr 1fr}}
 .pm-accord{display:flex;gap:10px;align-items:flex-start;font-size:14px;margin:4px 0 16px;max-width:460px}
 .pm-accord input{margin-top:3px;width:18px;height:18px;flex:none}
+.pm-constat{list-style:none;padding:0;margin:12px 0 0;display:grid;gap:10px}
+.pm-constat li{border-left:3px solid var(--accent);background:var(--warm);border-radius:0 10px 10px 0;padding:10px 14px}
+.pm-constat b{display:block;font-size:16px}
+.pm-constat span{display:block;font-size:14px;color:var(--muted);line-height:1.5;margin-top:2px}
+.pm-ap .pm-pret{max-width:none}

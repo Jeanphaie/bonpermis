@@ -88,6 +88,27 @@ async function cartesSituation(lon, lat, cle) {
   } catch (e) { derniereErreurCartes = e.message; journal('plan de situation : cartes indisponibles', e.message); return null; }
 }
 
+// Ce que les données publiques disent déjà du terrain : de quoi montrer au visiteur que son projet dépend d'un règlement précis.
+function constat(terrain) {
+  const z = terrain.zone, c = terrain.commune || {};
+  const page = z && z.reglement && (String(z.reglement).match(/#page=(\d+)/) || [])[1];
+  return {commune: terrain.parcelle.commune || c.nom || '', parcelle: terrain.parcelle.section + ' ' + String(terrain.parcelle.numero).replace(/^0+/, ''),
+    surface: terrain.parcelle.contenance || terrain.parcelle.surfaceCalculee || null,
+    zone: z ? z.libelle : null, zoneNom: z ? z.libelleLong : null, zoneType: z ? z.type : null, page: page ? +page : null,
+    plui: !!(z && /PLUi/i.test(z.document || '')), dateReglement: z && /^\d{8}$/.test(z.dateValidite || '') ? z.dateValidite.slice(6) + '/' + z.dateValidite.slice(4, 6) + '/' + z.dateValidite.slice(0, 4) : null,
+    rnu: !!c.rnu, littoral: !!c.littoral, protege: terrain.secteurProtege, protections: (terrain.protections || []).slice(0, 3).map(p => ({libelle: p.libelle, nom: p.nom})),
+    risques: (terrain.risques || []).slice(0, 4).map(r => ({libelle: r.libelle, niveau: r.niveau}))};
+}
+function constatTexte(k) {
+  const l = [];
+  if (k.zone) l.push(`- Votre terrain est en zone ${k.zone}${k.zoneNom ? ' (' + k.zoneNom.toLowerCase() + ')' : ''} du plan local d'urbanisme${k.plui ? ' intercommunal' : ''}${k.dateReglement ? ', règlement du ' + k.dateReglement : ''}.${k.page ? ' Les règles de cette zone commencent à la page ' + k.page + ' du règlement.' : ''}`);
+  else if (k.rnu) l.push('- Votre commune n\'a pas de plan local d\'urbanisme : c\'est le règlement national d\'urbanisme qui s\'applique, avec ses propres règles de distance et de constructibilité.');
+  if (k.protege) l.push(`- Votre terrain est dans un secteur protégé (${k.protections.map(p => p.libelle.toLowerCase()).join(', ')}) : l'architecte des Bâtiments de France donnera son avis, et la mairie met un mois de plus à répondre.`);
+  if (k.littoral) l.push('- Votre commune est une commune littorale : la loi Littoral s\'ajoute au règlement de la commune.');
+  for (const r of k.risques) l.push(`- Risque recensé à votre adresse : ${r.libelle.toLowerCase()}${r.niveau ? ' (' + r.niveau + ')' : ''}.`);
+  return l.join('\n');
+}
+
 // ---------- plan de masse : aperçu, paiement, téléchargement ----------
 async function apercu(req, res) {
   if (B.trop('plan-apercu:' + B.ip(req), 40)) return repondre(res, 429, {erreur: 'Trop de demandes. Réessayez dans quelques minutes.'});
@@ -224,10 +245,13 @@ async function situation(req, res) {
   // Contact gardé dans DATA_DIR/prospects. « accord » : la personne a coché qu'elle veut recevoir nos conseils ; sans lui, aucune relance.
   B.creer({date: new Date().toISOString(), email, accord, origine: 'plan de situation', commune, parcelle: terrain.parcelle.section + ' ' + terrain.parcelle.numero, lieu: {lon, lat}, zone: terrain.zone ? terrain.zone.libelle : null}, 'prospects', id + '.json');
   journal('plan de situation gratuit', id, commune, accord ? 'accord' : 'sans accord');
-  await envoyerMail(email, 'Votre plan de situation',
+  const k = constat(terrain), faits = constatTexte(k);
+  await envoyerMail(email, 'Votre plan de situation, et ce que dit déjà votre adresse',
     `Bonjour,\n\nVoici votre plan de situation (${commune}) :\n${CONF.site}/api/plan-situation?id=${id}\n\n` +
-    `C'est la pièce n° 1 de votre dossier. La suivante est le plan de masse : votre terrain vu du dessus, avec votre projet coté. Vous pouvez en voir l'aperçu gratuitement ici :\n${CONF.site}/plan-de-masse/` + B.signature);
-  repondre(res, 200, {id, commune, parcelle: terrain.parcelle.section + ' ' + String(terrain.parcelle.numero).replace(/^0+/, '')});
+    (faits ? `En préparant ce plan, voici ce que les données publiques disent de votre terrain :\n${faits}\n\n` : '') +
+    `Pourquoi on vous le dit : la mairie ne juge pas la qualité de vos plans, elle vérifie que votre projet respecte ce règlement. Distance aux voisins, hauteur, emprise au sol, forme du toit, couleurs : chaque commune a ses propres règles, et un projet qui en oublie une seule est refusé. C'est le premier motif de refus, et c'est notre métier de lire ces règlements en entier.\n\n` +
+    `La pièce suivante de votre dossier est le plan de masse. Vous pouvez en voir l'aperçu gratuitement, puis nous faire vérifier votre projet :\n${CONF.site}/plan-de-masse/` + B.signature);
+  repondre(res, 200, {id, commune, parcelle: k.parcelle, constat: k});
 }
 function situationPdf(req, res, url) {
   const id = url.searchParams.get('id') || '';
