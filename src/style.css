@@ -683,3 +683,8 @@ h1,h2,h3{text-wrap:balance}
 .plu-illu figcaption{padding:0 20px 0 0;font-weight:600;font-size:16px;line-height:1.45}
 .plu-illu + .lead{margin-top:20px}
 @media (max-width:560px){.plu-illu{grid-template-columns:110px 1fr;gap:14px}.plu-illu figcaption{font-size:14px}}
+/* Pages outils : illustration à côté du titre */
+.outil-tete{grid-template-columns:1.5fr .5fr;gap:40px}
+.outil-tete .page-art{max-width:300px;justify-self:end;width:100%}
+@media (max-width:900px){.outil-tete{grid-template-columns:1fr auto;gap:16px;align-items:start}.outil-tete .page-art{order:0;max-width:110px;aspect-ratio:1}}
+@media (max-width:560px){.outil-tete{grid-template-columns:1fr}.outil-tete .page-art{display:none}}

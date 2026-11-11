@@ -474,10 +474,13 @@ def page_plan_masse():
     ]
     corps = f"""<main id="top">
 <section class="page-hero">
-  <div class="wrap narrow">
-    <nav class="crumbs" aria-label="Fil d'Ariane"><a href="../">Accueil</a> › <span>Plan de masse</span></nav>
-    <h1>Votre plan de masse en 2&nbsp;minutes</h1>
-    <p class="answer">Tapez votre adresse. Posez votre projet. Les distances se calculent toutes seules.</p>
+  <div class="wrap page-grid outil-tete">
+    <div>
+      <nav class="crumbs" aria-label="Fil d'Ariane"><a href="../">Accueil</a> › <span>Plan de masse</span></nav>
+      <h1>Votre plan de masse en 2&nbsp;minutes</h1>
+      <p class="answer">Tapez votre adresse. Posez votre projet. Les distances se calculent toutes seules.</p>
+    </div>
+    <div class="page-art"><img src="../img/28-plan-masse.webp" alt="Un plan de masse : le terrain vu du dessus, la maison et le projet" width="480" height="480" fetchpriority="high"></div>
   </div>
   <div class="wrap">
     <div id="pm-outil" class="outil-carte" data-prix="{PRIX_PLAN}" data-etude="{PRIX_ETUDE}" data-dossier="149" aria-live="polite"><p class="pm-note">Chargement…</p></div>
@@ -598,19 +601,22 @@ def page_plan_situation():
     ]
     corps = f"""<main id="top">
 <section class="page-hero">
-  <div class="wrap narrow" id="ps-hero">
+  <div class="wrap page-grid outil-tete" id="ps-hero">
+    <div>
     <nav class="crumbs" aria-label="Fil d'Ariane"><a href="../">Accueil</a> › <span>Plan de situation</span></nav>
     <h1>Votre plan de situation, gratuit</h1>
     <p class="answer">Tapez votre adresse. On vous montre votre terrain et la zone où il se trouve.</p>
     <div class="outil-carte"><div class="adr" data-id="ps" data-bouton="Voir mon terrain"></div></div>
     <p class="outil-sous">Gratuit · Sans compte · PDF prêt à déposer (DP1, PCMI1)</p>
+    </div>
+    <div class="page-art"><img src="../img/45-plan-situation-carte.webp" alt="Un terrain entouré sur le plan d'un quartier" width="960" height="960" fetchpriority="high"></div>
   </div>
   <div class="wrap"><div id="ps-res" class="outil-carte" data-plan="{PRIX_PLAN}" data-etude="{PRIX_ETUDE}" data-dossier="149" aria-live="polite" hidden></div></div>
 </section>
 
 <section class="page-sec">
   <div class="wrap pm-recu">
-    <figure class="pm-ex ps-illu"><img src="../img/45-plan-situation-carte.webp" alt="Un terrain entouré sur le plan d'un quartier" loading="lazy" width="960" height="960"></figure>
+    <figure class="pm-ex ps-illu"><img src="../img/27-plan-situation.webp" alt="Un plan de situation : le terrain repéré dans son quartier" loading="lazy" width="480" height="480"></figure>
     <div>
     <h2>Trois choses à savoir</h2>
     <ul class="need-list">
