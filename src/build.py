@@ -171,11 +171,17 @@ def tuile(k, base, simu=True):
 
 
 def tuiles_accueil():
-    regul = ''  # les travaux déjà faits ont leur propre bloc sur l'accueil
     out = []
     for i, g in enumerate(GROUPS):
         out.append(f'<div class="group"><div class="group-h"><h3>{e(g["t"])}</h3><small>{e(g["s"])}</small></div>'
-                   f'<div class="tiles">{"".join(tuile(k, "", False) for k in g["k"])}{regul if i == len(GROUPS) - 1 else ""}</div></div>')
+                   f'<div class="tiles">{"".join(tuile(k, "", False) for k in g["k"])}</div></div>')
+    # Les travaux déjà faits : un groupe à part entière, avec les autres projets.
+    def t_regul(k, titre, sous, image):
+        return (f'<a class="tile" href="{URL[k]}/"><img src="img/{image}.webp" alt="" loading="lazy" width="480" height="480">'
+                f'<span>{titre}<small>{sous}</small></span></a>')
+    out.append('<div class="group"><div class="group-h"><h3>Travaux déjà faits, à régulariser</h3><small>Même prix que le projet</small></div><div class="tiles">'
+               + t_regul('regul', 'Travaux jamais déclarés', 'Abri, véranda, extension…', REGUL_IMG)
+               + t_regul('vente', 'Avant une vente', 'À régler avant de signer', '10-accorde') + '</div></div>')
     autres = ''.join(tuile(s['k'], '', False) for s in SVCS if s['k'] in P)
     out.append(f'<div class="group"><div class="group-h"><h3>Les autres démarches</h3><small>Avant ou après les travaux</small></div><div class="tiles">{autres}</div></div>')
     return ''.join(out)

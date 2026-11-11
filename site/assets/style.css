@@ -645,11 +645,3 @@ nav.links a,.espace-lien{white-space:nowrap}
 .confiance-tel small{color:var(--muted);font-size:13px}
 .fin-adr{max-width:780px;margin-top:36px}
 @media (max-width:900px){.steps.trois .step:has(.step-dessin){display:flex}.steps.trois .step-dessin{aspect-ratio:4/3;height:auto;min-height:0}}
-.regul-bande{background:var(--ink);color:#fff}
-.regul-bande .eyebrow{color:#9DB0FF}
-.regul-bande .lead{color:#C9D1E4;margin-top:16px}
-.regul-bande .btn{background:#fff;color:var(--ink);border-color:#fff}
-.regul-bande .btn.ghost{background:transparent;color:#fff;border-color:rgba(255,255,255,.5)}
-.regul-bande .art{border-radius:var(--r);overflow:hidden;max-width:420px;justify-self:end;background:#fff}
-.regul-bande .art img{width:100%;display:block}
-@media (max-width:900px){.regul-bande .art{justify-self:start;max-width:320px}}
