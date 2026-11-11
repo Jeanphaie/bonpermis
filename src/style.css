@@ -650,4 +650,5 @@ nav.links a,.espace-lien{white-space:nowrap}
 .logo img{width:auto;max-width:none}
 @media (max-width:1320px){nav.links a[href$="#faq"],nav.links a[href$="#comment"]{display:none}}
 @media (max-width:1000px){nav.links a[href$="regularisation-avant-vente/"]{display:none}}
-@media (max-width:560px){header.top .top-act > .btn{display:none}.logo img{height:20px}}
+@media (max-width:560px){header.top .top-act > a.btn{display:none}.logo{flex:0 1 180px;min-width:0}.logo img{flex:0 1 auto;width:100%;max-width:180px;height:auto}}
+@media (max-width:560px){.top-act{gap:10px}.top-act .espace-lien{display:none}.top-act button.btn{padding:12px 14px}}
