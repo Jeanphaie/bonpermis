@@ -105,8 +105,8 @@ def entete(base, accueil, simu=None):
       <a href="{base}comment-ca-marche/">Comment ça marche</a>
       <a href="{base}questions/">Questions</a>'''
     # Sur une page projet, « Commencer » ouvre directement le simulateur de ce projet.
-    cta = (f'<button class="btn" type="button" data-p="{simu}">Mon prix</button>' if simu
-           else f'<a class="btn{" js-start" if accueil else ""}" href="{"#projets" if accueil else base + "projets/"}">Commencer</a>')
+    # Le bouton du haut ne reste que là où il sert : sur une page projet, il ouvre le prix de ce projet.
+    cta = f'<button class="btn" type="button" data-p="{simu}">Mon prix</button>' if simu else ''
     return f'''<header class="top">
   <div class="wrap">
     <a class="logo" href="{logo}" aria-label="Le Bon Permis, accueil">

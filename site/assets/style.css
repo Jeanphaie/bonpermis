@@ -740,6 +740,9 @@ nav.links a{display:inline-flex;align-items:center;gap:6px}
 .tile small.gratuit{display:inline-block;margin-top:4px;color:#3F6B36}
 /* Menu à sept entrées : on resserre, et on allège selon la largeur */
 nav.links{gap:18px}
-.top-act .espace-lien span{display:none}
 @media (max-width:960px){.tel-lien span{display:none}}
-nav.links a[href$="questions/"]{display:none}
+/* En-tête sans bouton « Commencer » : la place va au menu et à « Mon espace » */
+header.top:has(.top-act > button.btn) nav.links a[href$="questions/"]{display:none}
+@media (max-width:1320px){header.top:has(.top-act > button.btn) .espace-lien span{display:none}}
+@media (max-width:1420px){nav.links a[href$="questions/"],nav.links a[href$="comment-ca-marche/"]{display:none}.top-act .espace-lien span{display:none}}
+@media (max-width:1500px){header.top:has(.top-act > button.btn) nav.links a[href$="comment-ca-marche/"]{display:none}}
