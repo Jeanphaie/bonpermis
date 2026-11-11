@@ -529,3 +529,6 @@ nav.links a,.espace-lien{white-space:nowrap}
 .role li{position:relative;padding-left:22px;font-size:15px;color:var(--muted);line-height:1.5}
 .role li::before{content:'';position:absolute;left:2px;top:8px;width:9px;height:5px;border-left:2px solid var(--accent);border-bottom:2px solid var(--accent);transform:rotate(-45deg)}
 @media(max-width:900px){.roles{grid-template-columns:1fr}}
+.plu-etude{counter-reset:pe;list-style:none;padding:0;margin:18px 0 0;display:grid;gap:10px}
+.plu-etude li{counter-increment:pe;position:relative;padding-left:38px;line-height:1.5}
+.plu-etude li::before{content:counter(pe);position:absolute;left:0;top:0;width:26px;height:26px;border-radius:50%;background:var(--accent);color:#fff;font-weight:600;font-size:14px;display:grid;place-items:center}

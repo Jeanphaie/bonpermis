@@ -301,7 +301,7 @@ def page(k):
     <p class="lead">Votre projet, sous la forme que vous avez : un croquis à main levée suffit. Vous l'envoyez après le paiement, depuis votre téléphone, avec un guide pas à pas.</p>
     {need_html}
     <h2 class="mt">Ce qu'on fait pour vous</h2>
-    <p class="lead">D'abord, on lit le plan local d'urbanisme de votre commune : distances aux voisins, hauteur, emprise, clôtures, couleurs. Si votre projet ne passe pas tel quel, on vous le dit avant de commencer, avec la règle qui bloque : vous décidez de ce que vous changez. Ensuite on trace à l'échelle, d'après votre croquis et vos mesures, tous les plans demandés par la mairie, et on remplit le formulaire officiel. Une deuxième personne relit tout. Vous n'avez plus qu'à déposer, ou on dépose pour vous.</p>
+    <p class="lead">D'abord, on étudie en entier le plan local d'urbanisme qui s'applique à votre terrain : le règlement de votre zone, les chapitres communs, le lexique, les protections. Distances aux voisins, hauteur, emprise, clôtures, couleurs : votre projet est confronté à chaque règle. Si votre projet ne passe pas tel quel, on vous le dit avant de commencer, avec la règle qui bloque : vous décidez de ce que vous changez. Ensuite on trace à l'échelle, d'après votre croquis et vos mesures, tous les plans demandés par la mairie, et on remplit le formulaire officiel. Une deuxième personne relit tout. Vous n'avez plus qu'à déposer, ou on dépose pour vous.</p>
     <div class="cta-box">
       <div><b>{e(cta_prix)}</b>{cta_lignes}<span>{e(cta_txt)}</span></div>
       <button class="btn blue-btn" type="button" data-p="{simu}">Voir mon prix exact</button>
