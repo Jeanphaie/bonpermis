@@ -126,6 +126,7 @@ def pied(base):
     blocs = ''.join(
         f'<div><b>{e(t)}</b><ul>' + ''.join(f'<li><a href="{base}{URL[k]}/">{e(nom(k))}</a></li>' for k in ks if k in URL) + '</ul></div>'
         for t, ks in cols)
+    blocs += f'<div><b>Outils</b><ul><li><a href="{base}plan-de-situation/">Plan de situation gratuit</a></li><li><a href="{base}plan-de-masse/">Plan de masse en ligne</a></li></ul></div>'
     return f'''<footer>
   <div class="wrap">
     <nav class="plan" aria-label="Tous les projets">{blocs}</nav>
@@ -199,7 +200,7 @@ def accueil():
     titre = 'Le Bon Permis : déclaration préalable et permis de construire en ligne'
     desc = ("Abri, piscine, extension, véranda : envoyez votre projet, même en croquis. On vérifie qu'il respecte le PLU de votre commune, "
             "puis on trace les plans et on remplit le dossier de mairie. Prix connu en une minute, prêt en 48 h.")
-    return head(titre, desc, '', '', ld) + '<body>\n\n' + entete('', True) + '\n' + corps + '\n' + pied('') + OVERLAY + scripts('')
+    return head(titre, desc, '', '', ld) + '<body>\n\n' + entete('', True) + '\n' + corps + '\n' + pied('') + OVERLAY + '<script src="assets/adresse.js"></script>\n' + scripts('')
 
 
 def page(k):
@@ -426,7 +427,7 @@ PM_FAQ = [
     ("Ce plan suffit-il pour déposer ma déclaration préalable ?",
      "Non. Vous avez deux pièces sur huit : le plan de masse et le plan de situation. Il faut aussi le formulaire officiel, le plan en coupe, les façades, l'insertion du projet et deux photos. Et il faut que le projet respecte le règlement de votre commune, ce que ce plan ne vérifie pas."),
     ("Le plan de situation est-il vraiment gratuit ?",
-     "Oui, sans compte et sans paiement. Vous donnez votre e-mail pour le recevoir, vous tapez votre adresse, vous vérifiez que c'est bien votre terrain, et vous téléchargez le PDF : deux cartes de l'IGN à deux échelles, avec votre terrain repéré."),
+     "Oui. Il a sa propre page : vous tapez votre adresse, vous donnez votre e-mail, vous recevez le PDF. Il est aussi inclus en deuxième page du plan de masse."),
     ("Que contient l'étude du règlement, dans le plan vérifié ?",
      "Une personne de notre équipe lit le règlement de la zone où se trouve votre terrain, les chapitres auxquels il renvoie et son lexique, puis confronte votre projet à chaque règle : distances, hauteur, emprise, aspect. Vous recevez la réponse par e-mail sous 48 h ouvrées, avec la page du règlement pour chaque point. C'est la mairie qui décide en dernier."),
     ("D'où viennent les limites de mon terrain ?",
@@ -452,15 +453,12 @@ def page_plan_masse():
 <section class="page-hero">
   <div class="wrap narrow">
     <nav class="crumbs" aria-label="Fil d'Ariane"><a href="../">Accueil</a> › <span>Plan de masse</span></nav>
-    <h1>Votre plan de masse en ligne, coté et à l'échelle</h1>
-    <p class="answer">Tapez votre adresse, posez votre projet sur votre terrain : les distances aux limites se calculent toutes seules. L'aperçu et le plan de situation sont gratuits. Le plan de masse prêt à déposer coûte {PRIX_PLAN} €.</p>
-    <div class="facts"><span><b>Gratuit</b>L'aperçu et le plan de situation</span><span><b>{PRIX_PLAN} €</b>Le plan de masse prêt à déposer</span><span><b>2 minutes</b>Sans logiciel ni compte</span></div>
+    <h1>Votre plan de masse en 2 minutes</h1>
+    <p class="answer">Tapez votre adresse. Posez votre projet. Les distances se calculent toutes seules.</p>
   </div>
-</section>
-
-<section class="page-sec alt" id="outil">
   <div class="wrap">
-    <div id="pm-outil" data-prix="{PRIX_PLAN}" data-etude="{PRIX_ETUDE}" data-dossier="149" aria-live="polite"><p class="pm-note">Chargement…</p></div>
+    <div id="pm-outil" class="outil-carte" data-prix="{PRIX_PLAN}" data-etude="{PRIX_ETUDE}" data-dossier="149" aria-live="polite"><p class="pm-note">Chargement…</p></div>
+    <p class="outil-sous">Aperçu gratuit · PDF prêt à déposer {PRIX_PLAN} € · <a href="../plan-de-situation/">Plan de situation gratuit</a></p>
   </div>
 </section>
 
@@ -526,7 +524,70 @@ def page_plan_masse():
              'plan-de-masse/', base, ld)
     h = h.replace('</head>', f'<link rel="stylesheet" href="{base}assets/espace.css">\n</head>')
     return (h + '<body data-page="legal">\n\n' + entete(base, False) + '\n' + corps + '\n' + pied(base) + OVERLAY
-            + f'<script src="{base}assets/plan.js"></script>\n<script src="{base}assets/plan-masse.js"></script>\n' + scripts(base))
+            + f'<script src="{base}assets/plan.js"></script>\n<script src="{base}assets/adresse.js"></script>\n<script src="{base}assets/plan-masse.js"></script>\n' + scripts(base))
+
+
+PS_FAQ = [
+    ("C'est quoi, un plan de situation ?",
+     "Une carte qui montre où se trouve votre terrain dans la commune. C'est la pièce n° 1 du dossier : DP1 pour une déclaration préalable, PCMI1 pour un permis de construire."),
+    ("Qu'est-ce que je reçois ?",
+     "Un PDF au format A3 avec deux cartes de l'IGN, une large et une rapprochée, votre terrain entouré en rouge, le nord et l'échelle. Prêt à joindre à votre dossier."),
+    ("C'est vraiment gratuit ?",
+     "Oui. On vous demande seulement votre e-mail pour vous l'envoyer. Pas de compte, pas de carte bancaire."),
+    ("Et après ?",
+     "Il vous faut le plan de masse, les façades, la coupe, le formulaire. Et surtout un projet qui respecte le règlement de votre commune. On peut tout faire pour vous."),
+]
+
+
+def page_plan_situation():
+    base = '../'
+    faq = ''.join(f'<details><summary>{e(q)}</summary><p>{e(r)}</p></details>' for q, r in PS_FAQ)
+    ld = [
+        {"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [
+            {"@type": "ListItem", "position": 1, "name": "Le Bon Permis", "item": DOMAINE + "/"},
+            {"@type": "ListItem", "position": 2, "name": "Plan de situation", "item": DOMAINE + "/plan-de-situation/"}]},
+        {"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [
+            {"@type": "Question", "name": q, "acceptedAnswer": {"@type": "Answer", "text": r}} for q, r in PS_FAQ]},
+    ]
+    corps = f"""<main id="top">
+<section class="page-hero">
+  <div class="wrap narrow" id="ps-hero">
+    <nav class="crumbs" aria-label="Fil d'Ariane"><a href="../">Accueil</a> › <span>Plan de situation</span></nav>
+    <h1>Votre plan de situation, gratuit</h1>
+    <p class="answer">Tapez votre adresse. On vous montre votre terrain et ce que dit le règlement de votre commune.</p>
+    <div class="outil-carte"><div class="adr" data-id="ps" data-bouton="Voir mon terrain"></div></div>
+    <p class="outil-sous">Gratuit · Sans compte · PDF prêt à déposer (DP1, PCMI1)</p>
+  </div>
+  <div class="wrap"><div id="ps-res" class="outil-carte" data-plan="{PRIX_PLAN}" data-etude="{PRIX_ETUDE}" data-dossier="149" aria-live="polite" hidden></div></div>
+</section>
+
+<section class="page-sec">
+  <div class="wrap narrow">
+    <h2>Trois choses à savoir</h2>
+    <ul class="need-list">
+      <li><i>La pièce n° 1</i>La mairie la demande dans tous les dossiers, pour savoir où est votre terrain.</li>
+      <li><i>Deux cartes</i>Une vue large de la commune, une vue rapprochée du quartier. Votre terrain est entouré.</li>
+      <li><i>Ce n'est que le début</i>Ce qui fait accepter un dossier, c'est le respect du règlement de la commune. C'est ce qu'on vérifie pour vous.</li>
+    </ul>
+    <div class="cta-box">
+      <div><b>On fait tout le dossier, dès 149 €</b><span>Règlement lu en entier, tous les plans, le formulaire. Prêt en 48 h.</span></div>
+      <a class="btn blue-btn" href="../#projets">Voir mon prix</a>
+    </div>
+  </div>
+</section>
+
+<section id="faq" class="page-sec alt">
+  <div class="wrap narrow"><h2>Questions fréquentes</h2><div class="faq">{faq}</div>
+  <p class="rules-src">Pièce prévue par l'article R. 431-36 a du code de l'urbanisme. Fond de carte : Plan IGN. Mis à jour le {date_txt('2026-11-11')}.</p></div>
+</section>
+</main>
+"""
+    h = head('Plan de situation gratuit en ligne (DP1, PCMI1) | Le Bon Permis',
+             "Plan de situation gratuit pour déclaration préalable ou permis de construire. Tapez votre adresse : deux cartes IGN, votre terrain repéré, PDF prêt à déposer.",
+             'plan-de-situation/', base, ld)
+    h = h.replace('</head>', f'<link rel="stylesheet" href="{base}assets/espace.css">\n</head>')
+    return (h + '<body data-page="legal">\n\n' + entete(base, False) + '\n' + corps + '\n' + pied(base) + OVERLAY
+            + f'<script src="{base}assets/plan.js"></script>\n<script src="{base}assets/adresse.js"></script>\n<script src="{base}assets/plan-situation.js"></script>\n' + scripts(base))
 
 
 def sitemap(chemins):
@@ -555,7 +616,7 @@ def main():
     (SITE / 'assets').mkdir(exist_ok=True)
     data = {'P': P, 'GROUPS': GROUPS, 'SVCS': SVCS, 'NEED': NEED, 'URL': URL}
     (SITE / 'assets' / 'data.js').write_text('window.OP = ' + json.dumps(data, ensure_ascii=False) + ';\n', encoding='utf-8')
-    for f in ('app.js', 'prix.js', 'consentement.js', 'merci.js', 'dossier.js', 'espace.js', 'espace-dossier.js', 'admin.js', 'espace.css', 'plan.js', 'carte.js', 'plan-masse.js', 'cerfa.js', 'pdf-lib.min.js'):
+    for f in ('app.js', 'prix.js', 'consentement.js', 'merci.js', 'dossier.js', 'espace.js', 'espace-dossier.js', 'admin.js', 'espace.css', 'plan.js', 'carte.js', 'plan-masse.js', 'plan-situation.js', 'adresse.js', 'cerfa.js', 'pdf-lib.min.js'):
         shutil.copy(SRC / f, SITE / 'assets' / f)
     shutil.copy(SRC / 'style.css', SITE / 'assets' / 'style.css')
     shutil.copytree(SRC / 'cerfa', SITE / 'assets' / 'cerfa', dirs_exist_ok=True)
@@ -577,6 +638,9 @@ def main():
     (SITE / 'plan-de-masse').mkdir(exist_ok=True)
     (SITE / 'plan-de-masse' / 'index.html').write_text(page_plan_masse(), encoding='utf-8')
     chemins.append('plan-de-masse/')
+    (SITE / 'plan-de-situation').mkdir(exist_ok=True)
+    (SITE / 'plan-de-situation' / 'index.html').write_text(page_plan_situation(), encoding='utf-8')
+    chemins.append('plan-de-situation/')
     (SITE / '404.html').write_text(page_404(), encoding='utf-8')
     (SITE / (INDEXNOW + '.txt')).write_text(INDEXNOW, encoding='utf-8')
     # Preuve de propriété pour Google Search Console (propriété https://bonpermis.fr/) : ne pas supprimer.

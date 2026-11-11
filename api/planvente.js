@@ -253,10 +253,19 @@ async function situation(req, res) {
     `La pièce suivante de votre dossier est le plan de masse. Vous pouvez en voir l'aperçu gratuitement, puis nous faire vérifier votre projet :\n${CONF.site}/plan-de-masse/` + B.signature);
   repondre(res, 200, {id, commune, parcelle: k.parcelle, constat: k});
 }
+// GET /api/plan-situation/terrain?lon=&lat= : l'écran de résultat après la saisie de l'adresse (rien n'est gardé).
+async function terrainConstat(req, res, url) {
+  if (B.trop('plan-terrain:' + B.ip(req), 60)) return repondre(res, 429, {erreur: 'Trop de demandes. Réessayez dans quelques minutes.'});
+  const lon = +url.searchParams.get('lon'), lat = +url.searchParams.get('lat');
+  if (!Number.isFinite(lon) || !Number.isFinite(lat) || Math.abs(lat) > 90 || Math.abs(lon) > 180) return repondre(res, 400, {erreur: 'Adresse introuvable.'});
+  const terrain = await T.analyserTerrain(+lon.toFixed(6), +lat.toFixed(6));
+  if (!terrain.parcelle) return repondre(res, 502, {erreur: 'On ne trouve pas de parcelle à cette adresse. Vérifiez le numéro et la rue, ou réessayez dans un instant.'});
+  repondre(res, 200, constat(terrain));
+}
 function situationPdf(req, res, url) {
   const id = url.searchParams.get('id') || '';
   if (!ID_RE.test(id)) return repondre(res, 400, {erreur: 'Plan inconnu.'});
   B.envoyerFichier(res, fichier('s' + id, '.pdf'), 'application/pdf', 'plan-de-situation-DP1.pdf');
 }
 
-module.exports = {apercu, image, payer, etat, telecharger, paiementRecu, situation, situationPdf, PRIX_PLAN, FORMULES, PROJETS, _test: {planPropre, jeton, carte}};
+module.exports = {apercu, image, payer, etat, telecharger, paiementRecu, situation, situationPdf, terrainConstat, PRIX_PLAN, FORMULES, PROJETS, _test: {planPropre, jeton, carte}};

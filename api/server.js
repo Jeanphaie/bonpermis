@@ -99,6 +99,7 @@ const ROUTES = {
   'GET /api/plan-masse/telecharger': PV.telecharger,
   'POST /api/plan-situation': PV.situation,
   'GET /api/plan-situation': PV.situationPdf,
+  'GET /api/plan-situation/terrain': PV.terrainConstat,
   // comptes
   'POST /api/compte/inscription': C.inscription,
   'POST /api/compte/connexion': C.connexion,

@@ -261,7 +261,7 @@ footer a{color:var(--muted)}
 
 /* pied de page : plan du site */
 footer .wrap{display:block}
-footer .plan{display:grid;grid-template-columns:repeat(5,1fr);gap:24px;padding-bottom:28px;margin-bottom:24px;border-bottom:1px solid var(--line)}
+footer .plan{display:grid;grid-template-columns:repeat(6,1fr);gap:24px;padding-bottom:28px;margin-bottom:24px;border-bottom:1px solid var(--line)}
 footer .plan b{display:block;color:var(--ink);font-weight:600;font-size:13px;margin-bottom:8px}
 footer .plan ul{list-style:none;padding:0;margin:0;display:grid;gap:4px}
 footer .plan a{text-decoration:none}
@@ -580,3 +580,32 @@ nav.links a,.espace-lien{white-space:nowrap}
 .pm-constat b{display:block;font-size:16px}
 .pm-constat span{display:block;font-size:14px;color:var(--muted);line-height:1.5;margin-top:2px}
 .pm-ap .pm-pret{max-width:none}
+.outil-carte{background:var(--paper);border:1px solid var(--line);border-radius:var(--r);padding:24px;box-shadow:0 18px 40px -28px rgba(15,23,51,.35);margin-top:28px}
+#pm-outil.outil-carte,#ps-res.outil-carte{max-width:1100px;margin:28px auto 0}
+.outil-sous{font-size:14px;color:var(--muted);margin:14px 0 0}
+#pm-outil + .outil-sous{max-width:1100px;margin:14px auto 0}
+.hero-adr{margin-top:28px;padding:20px}
+.hero-adr .pm-note{margin:10px 0 0}
+.adr-l{display:block;font-weight:600;font-size:15px;margin-bottom:8px}
+.adr-c{display:flex;gap:10px}
+.adr-c input{flex:1;min-width:0;font:inherit;font-size:17px;padding:14px 16px;border:1px solid var(--line-2);border-radius:12px;background:#fff}
+.adr-c input:focus{outline:2px solid var(--accent);outline-offset:1px;border-color:var(--accent)}
+.adr-c .btn{white-space:nowrap}
+.adr-s{display:flex;flex-direction:column;gap:2px;margin-top:6px}
+.adr-s:empty{display:none}
+.adr-s .sug{font:inherit;font-size:15px;text-align:left;padding:11px 14px;border:1px solid var(--line);border-radius:10px;background:#fff;cursor:pointer}
+.adr-s .sug:hover,.adr-s .sug:focus{border-color:var(--accent);outline:none}
+.adr-rien{font-size:14px;color:var(--muted);margin:6px 2px}
+.ps-adr{font-weight:600;margin:0 0 18px}
+.ps-adr .lien{font-weight:400;margin-left:10px}
+.ps-grille{display:grid;grid-template-columns:1fr 1fr;gap:32px;align-items:start}
+.ps-grille h2{font-size:22px;margin:0 0 12px}
+.ps-grille h2.ps-h{margin-top:22px}
+.ps-carte .plan-apercu{height:300px;margin-top:0}
+.pm-faits.ps-faits{grid-template-columns:repeat(4,1fr);margin:12px 0 0}
+.ps-don{margin-top:20px;border-top:1px solid var(--line);padding-top:18px}
+.ps-don h3{margin:0 0 12px}
+.ps-mail{display:flex;gap:10px;margin-bottom:10px}
+.ps-mail input{flex:1;min-width:0;font:inherit;font-size:16px;padding:12px 14px;border:1px solid var(--line-2);border-radius:10px}
+.pm-form.deux{grid-template-columns:2fr 1fr;max-width:640px}
+@media(max-width:900px){.ps-grille{grid-template-columns:1fr}.adr-c,.ps-mail{flex-direction:column}.pm-faits.ps-faits{grid-template-columns:1fr 1fr}.pm-form.deux{grid-template-columns:1fr}}

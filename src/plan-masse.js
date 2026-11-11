@@ -7,7 +7,7 @@
   const fr = (n, d = 2) => Number(n).toLocaleString('fr-FR', {minimumFractionDigits: d, maximumFractionDigits: d});
   const zone = $('#pm-outil'); if (!zone) return;
   const PRIX = +zone.dataset.prix || 29, ETUDE = +zone.dataset.etude || 79, DOSSIER = +zone.dataset.dossier || 149;
-  const etat = {projet: 'abri', hauteur: 2.4, nom: '', plan: null, ap: null, mail: ''};
+  const etat = {projet: 'abri', hauteur: 2.4, plan: null, ap: null, mail: '', lieu: window.BPLieu ? window.BPLieu.lire() : null};
   // Chaque projet : son nom, sa hauteur courante, et la façon de le poser sur le plan (modes de l'éditeur).
   const PROJETS = [['abri', 'Abri de jardin', 2.4, 'rect'], ['piscine', 'Piscine', 0.6, 'rect'], ['carport', 'Carport', 2.6, 'rect'], ['garage', 'Garage', 3, 'rect'],
     ['annexe', 'Annexe, studio de jardin', 3, 'rect'], ['pergola', 'Pergola', 2.6, 'rect'], ['extension', 'Extension de la maison', 3.2, 'accole'], ['veranda', 'Véranda', 2.8, 'accole'],
@@ -19,89 +19,44 @@
   };
 
   function formulaire(message) {
+    // 1. L'adresse, et rien d'autre.
+    if (!etat.lieu) {
+      zone.innerHTML = `${message ? `<p class="pm-msg">${esc(message)}</p>` : ''}<div class="adr" data-id="pm" data-bouton="Voir mon terrain"></div>
+        <p class="pm-note">Aperçu gratuit, sans compte.</p>`;
+      window.BPLieu.brancher(zone.querySelector('.adr'));
+      return;
+    }
+    // 2. Le projet et sa hauteur.
     zone.innerHTML = `
       ${message ? `<p class="pm-msg">${esc(message)}</p>` : ''}
-      <div class="pm-form">
+      <p class="ps-adr">${esc(etat.lieu.label || '')} <button class="lien" type="button" data-autre>Changer d'adresse</button></p>
+      <div class="pm-form deux">
         <label><span>Votre projet</span><select data-projet>${PROJETS.map(([k, n]) => `<option value="${k}"${k === etat.projet ? ' selected' : ''}>${n}</option>`).join('')}</select></label>
-        <label><span>Hauteur au point le plus haut, en mètres</span><input data-hauteur type="number" inputmode="decimal" min="0.1" max="20" step="0.05" value="${etat.hauteur}"></label>
-        <label><span>Nom à faire figurer sur le plan (facultatif)</span><input data-nom maxlength="60" autocomplete="name" value="${esc(etat.nom)}"></label>
+        <label><span>Sa hauteur, en mètres</span><input data-hauteur type="number" inputmode="decimal" min="0.1" max="20" step="0.05" value="${etat.hauteur}"></label>
       </div>
       <button class="btn blue-btn" type="button" data-go>Placer mon projet sur mon terrain</button>
-      <p class="pm-note">Aperçu gratuit, sans compte. Vous ne payez que si le plan vous convient.</p>
-      <p class="pm-note"><button class="lien" type="button" data-situ>Vous voulez seulement le plan de situation ? Il est gratuit.</button></p>`;
+      <p class="pm-note">Aperçu gratuit. Vous ne payez que si le plan vous convient.</p>`;
     const sel = zone.querySelector('[data-projet]'), h = zone.querySelector('[data-hauteur]');
     sel.onchange = () => { etat.projet = sel.value; etat.plan = null; h.value = P(sel.value)[2]; };
+    zone.querySelector('[data-autre]').onclick = () => { window.BPLieu.garder(null); etat.lieu = null; etat.plan = null; formulaire(); };
     zone.querySelector('[data-go]').onclick = () => {
       if (sel.value !== etat.projet) etat.plan = null;
-      etat.projet = sel.value; etat.hauteur = +String(h.value).replace(',', '.'); etat.nom = zone.querySelector('[data-nom]').value.trim();
-      if (!(etat.hauteur >= 0.1 && etat.hauteur <= 20)) { h.focus(); return formulaire('Indiquez la hauteur de la construction, en mètres.'); }
+      etat.projet = sel.value; etat.hauteur = +String(h.value).replace(',', '.');
+      if (!(etat.hauteur >= 0.1 && etat.hauteur <= 20)) { h.focus(); return formulaire('Indiquez la hauteur, en mètres.'); }
       ouvrirPlan();
     };
-    zone.querySelector('[data-situ]').onclick = () => { etat.nom = zone.querySelector('[data-nom]').value.trim(); demanderMail(); };
   }
+  document.addEventListener('bp-lieu', e => { etat.lieu = e.detail; etat.plan = null; formulaire(); });
 
   function ouvrirPlan() {
     const [k, , , mode] = P(etat.projet), type = ['abri', 'piscine', 'carport', 'annexe', 'pergola', 'garage', 'extension', 'veranda', 'maison', 'terrasse'].includes(k) ? k : 'annexe';
-    window.BPPlan.ouvrir({mode, projet: type, plan: etat.plan, titre: 'Placez votre projet sur votre terrain', sansAutre: true,
+    window.BPPlan.ouvrir({mode, projet: type, plan: etat.plan, lieu: {lon: etat.lieu.lon, lat: etat.lieu.lat}, adresse: etat.lieu.label, titre: 'Placez votre projet sur votre terrain', sansAutre: true,
       libelleOk: 'Voir mon plan de masse', libelleAttente: 'Préparation du plan…',
       enregistrer: async plan => {
         etat.plan = plan;
-        try { etat.ap = await api('POST', '/api/plan-masse/apercu', {lieu: plan.lieu, plan: {formes: plan.formes}, projet: etat.projet, hauteur: etat.hauteur, nom: etat.nom}); }
+        try { etat.ap = await api('POST', '/api/plan-masse/apercu', {lieu: plan.lieu, plan: {formes: plan.formes}, projet: etat.projet, hauteur: etat.hauteur, adresse: (etat.lieu.label || '').slice(0, 120)}); }
         catch (e) { formulaire(e.message); return true; }
         apercu(); return true;
-      }});
-  }
-
-  // Plan de situation gratuit : on demande l'e-mail avant, le plan y est envoyé.
-  function demanderMail(message) {
-    zone.innerHTML = `
-      <h3>Votre plan de situation, gratuit</h3>
-      ${message ? `<p class="pm-msg">${esc(message)}</p>` : ''}
-      <label class="pm-mail" style="max-width:460px"><span>Votre e-mail, pour recevoir le plan</span><input data-mail type="email" autocomplete="email" inputmode="email" value="${esc(etat.mail)}"></label>
-      <label class="pm-accord"><input type="checkbox" data-accord${etat.accord ? ' checked' : ''}><span>Je veux bien recevoir vos conseils pour la suite de mon dossier</span></label>
-      <button class="btn blue-btn" type="button" data-ok>Choisir mon terrain</button>
-      <p class="pm-note">Votre e-mail sert à vous envoyer le plan. Sans la case cochée, vous ne recevrez rien d'autre. <button class="lien" type="button" data-retour>Retour</button></p>`;
-    zone.querySelector('[data-retour]').onclick = () => formulaire();
-    zone.querySelector('[data-ok]').onclick = () => {
-      etat.mail = zone.querySelector('[data-mail]').value.trim(); etat.accord = zone.querySelector('[data-accord]').checked;
-      if (!/^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(etat.mail)) return demanderMail('Indiquez votre adresse e-mail.');
-      situation();
-    };
-  }
-
-  // L'éditeur sert seulement à choisir l'adresse et à vérifier le terrain.
-  function situation() {
-    window.BPPlan.ouvrir({mode: 'parcelle', projet: 'annexe', titre: 'Votre terrain', sansAutre: true, libelleOk: 'Créer mon plan de situation', libelleAttente: 'Préparation des cartes…',
-      enregistrer: async plan => {
-        try {
-          const r = await api('POST', '/api/plan-situation', {lieu: plan.lieu, nom: etat.nom, email: etat.mail, accord: !!etat.accord});
-          const k = r.constat || {}, faits = [];
-          if (k.zone) faits.push([`Zone ${k.zone}`, `${k.zoneNom ? k.zoneNom + '. ' : ''}C'est le règlement de cette zone qui dit ce que vous avez le droit de construire${k.plui ? ', dans un plan local d\'urbanisme commun à plusieurs communes' : ''}.`]);
-          else if (k.rnu) faits.push(['Pas de plan local d\'urbanisme', 'Votre commune applique le règlement national d\'urbanisme, avec ses propres règles de distance et de constructibilité.']);
-          if (k.page) faits.push([`Page ${k.page}`, `Les règles de votre zone commencent à la page ${k.page} du règlement${k.dateReglement ? ' du ' + k.dateReglement : ''}. Elles renvoient à des chapitres communs et à un lexique qu'il faut lire aussi.`]);
-          if (k.protege) faits.push(['Secteur protégé', `${(k.protections || []).map(p => p.libelle).join(', ')}. L'architecte des Bâtiments de France donnera son avis sur votre projet, et la mairie met un mois de plus à répondre.`]);
-          if (k.littoral) faits.push(['Commune littorale', 'La loi Littoral s\'ajoute au règlement de la commune.']);
-          for (const x of (k.risques || [])) faits.push([x.libelle, `Risque recensé à votre adresse${x.niveau ? ' : ' + x.niveau : ''}. Il peut entraîner des règles de construction en plus.`]);
-          zone.innerHTML = `<div class="pm-ap">
-            <div class="pm-pret"><h3>Votre plan de situation est prêt</h3>
-              <p class="pm-note">${esc(r.commune)}, parcelle ${esc(r.parcelle)}${k.surface ? ', ' + fr(k.surface, 0) + ' m²' : ''}. Deux cartes de l'IGN, votre terrain repéré, au format A3. Le lien vous a aussi été envoyé par e-mail.</p>
-              <a class="btn blue-btn" href="/api/plan-situation?id=${encodeURIComponent(r.id)}">Télécharger mon plan de situation (PDF, gratuit)</a>
-              ${faits.length ? `<h3 style="margin-top:28px">Ce que votre adresse dit déjà de votre projet</h3>
-              <ul class="pm-constat">${faits.map(([t, d]) => `<li><b>${esc(t)}</b><span>${esc(d)}</span></li>`).join('')}</ul>
-              <p class="pm-note">Données publiques : Géoportail de l'urbanisme, Géorisques. Elles ne sont pas toujours complètes.</p>` : ''}
-            </div>
-            <div class="pm-cote">
-              <div class="pm-zone pm-alerte" style="margin-top:0"><b>La mairie ne juge pas vos plans. Elle vérifie le règlement.</b>
-                <p>Distance aux voisins, hauteur et façon de la mesurer, emprise au sol, forme du toit, matériaux, couleurs, clôtures, stationnement : chaque commune a ses propres règles, différentes de celles de la commune d'à côté. Un projet qui en oublie une seule est refusé, même avec des plans parfaits. Vous perdez alors le mois d'instruction et il faut tout redéposer.</p>
-                <p><b>C'est notre métier</b>On lit le règlement de votre terrain en entier, article par article, avec ses renvois et son lexique, et on confronte votre projet à chaque règle. Aucun logiciel ne le fait.</p></div>
-              <div class="pm-offre" style="margin-top:14px"><div><b>Le plan vérifié</b><span>Votre plan de masse, et on vous dit si votre projet passe, règle par règle. Réponse sous 48 h.</span></div><button class="btn ghost" type="button" data-suite>${ETUDE} €</button></div>
-              <div class="pm-offre reco"><div><i>Recommandé</i><b>Le dossier complet</b><span>On étudie le règlement, on trace tous les plans, on remplit le formulaire. Prêt en 48 h.</span></div><a class="btn blue-btn" href="../#projets">Dès ${DOSSIER} €</a></div>
-              <p class="pm-note"><button class="lien" type="button" data-suite>Ou faites d'abord votre plan de masse : l'aperçu est gratuit.</button></p>
-            </div></div>`;
-          zone.querySelectorAll('[data-suite]').forEach(b => b.onclick = () => formulaire('Placez votre projet sur votre terrain : vous choisirez ensuite votre formule.'));
-          zone.scrollIntoView({behavior: 'smooth', block: 'start'});
-        } catch (e) { demanderMail(e.message); }
-        return true;
       }});
   }
 

@@ -1,0 +1,36 @@
+/* Champ d'adresse du site (accueil, plan de situation, plan de masse) : suggestions de la Base Adresse Nationale via /api/terrain/adresses.
+   <div class="adr" data-vers="plan-de-situation/"> : après le choix, l'adresse est gardée pour la session (window.BPLieu) et la page indiquée s'ouvre.
+   Sans data-vers, l'événement « bp-lieu » est envoyé sur le document. L'adresse n'est jamais mise dans l'URL. */
+(() => {
+  const CLE = 'bp-lieu';
+  const lire = () => { try { const l = JSON.parse(sessionStorage.getItem(CLE)); return l && Number.isFinite(l.lon) && Number.isFinite(l.lat) ? l : null; } catch (e) { return null; } };
+  const garder = l => { try { if (l) sessionStorage.setItem(CLE, JSON.stringify(l)); else sessionStorage.removeItem(CLE); } catch (e) {} };
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[c]));
+  function brancher(boite) {
+    if (boite.dataset.pret) return; boite.dataset.pret = '1';
+    boite.innerHTML = `<label class="adr-l" for="adr-${boite.dataset.id || 'a'}">${esc(boite.dataset.label || 'Adresse de votre terrain')}</label>
+      <div class="adr-c"><input id="adr-${boite.dataset.id || 'a'}" type="text" autocomplete="off" inputmode="search" placeholder="${esc(boite.dataset.exemple || '12 rue des Lilas, 44000 Nantes')}">
+      <button class="btn blue-btn" type="button">${esc(boite.dataset.bouton || 'Voir mon terrain')}</button></div><div class="adr-s" role="listbox"></div>`;
+    const inp = boite.querySelector('input'), sug = boite.querySelector('.adr-s'), btn = boite.querySelector('button');
+    let tm, n = 0, liste = [];
+    const choisir = a => {
+      const l = {lon: a.lon, lat: a.lat, label: a.label}; garder(l); inp.value = a.label; sug.innerHTML = '';
+      if (boite.dataset.vers) location.href = boite.dataset.vers; else document.dispatchEvent(new CustomEvent('bp-lieu', {detail: l}));
+    };
+    const chercher = () => { clearTimeout(tm); tm = setTimeout(async () => {
+      const k = ++n, q = inp.value.trim(); if (q.length < 4) { sug.innerHTML = ''; liste = []; return; }
+      try {
+        const j = await (await fetch('/api/terrain/adresses?q=' + encodeURIComponent(q))).json(); if (k !== n) return;
+        liste = j.adresses || [];
+        sug.innerHTML = liste.length ? liste.map((a, i) => `<button type="button" class="sug" role="option" data-i="${i}">${esc(a.label)}</button>`).join('') : '<p class="adr-rien">Adresse introuvable. Essayez avec le nom de la rue et la commune.</p>';
+        sug.querySelectorAll('[data-i]').forEach(b => b.onclick = () => choisir(liste[+b.dataset.i]));
+      } catch (e) {}
+    }, 220); };
+    inp.addEventListener('input', chercher);
+    inp.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); if (liste[0]) choisir(liste[0]); } });
+    btn.onclick = () => { if (liste[0]) choisir(liste[0]); else { inp.focus(); chercher(); } };
+  }
+  window.BPLieu = {lire, garder, brancher};
+  const tout = () => document.querySelectorAll('.adr').forEach(brancher);
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', tout); else tout();
+})();
