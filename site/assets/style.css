@@ -663,3 +663,5 @@ nav.links a,.espace-lien{white-space:nowrap}
 .pm-puces li::before{content:'';position:absolute;left:3px;top:8px;width:11px;height:6px;border-left:2px solid var(--accent);border-bottom:2px solid var(--accent);transform:rotate(-45deg)}
 @media (max-width:900px){.pm-recu,.pm-recu:has(.ps-illu){grid-template-columns:1fr;gap:24px}.ps-illu{max-width:260px}}
 .faq details p + p{margin-top:8px}
+/* Titres : pas de mot seul sur la dernière ligne */
+h1,h2,h3{text-wrap:balance}
