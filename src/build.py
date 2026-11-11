@@ -426,7 +426,7 @@ PM_FAQ = [
     ("Ce plan suffit-il pour déposer ma déclaration préalable ?",
      "Non. Vous avez deux pièces sur huit : le plan de masse et le plan de situation. Il faut aussi le formulaire officiel, le plan en coupe, les façades, l'insertion du projet et deux photos. Et il faut que le projet respecte le règlement de votre commune, ce que ce plan ne vérifie pas."),
     ("Le plan de situation est-il vraiment gratuit ?",
-     "Oui, sans compte et sans paiement. Vous tapez votre adresse, vous vérifiez que c'est bien votre terrain, vous téléchargez le PDF : deux cartes de l'IGN à deux échelles, avec votre terrain repéré."),
+     "Oui, sans compte et sans paiement. Vous donnez votre e-mail pour le recevoir, vous tapez votre adresse, vous vérifiez que c'est bien votre terrain, et vous téléchargez le PDF : deux cartes de l'IGN à deux échelles, avec votre terrain repéré."),
     ("Que contient l'étude du règlement, dans le plan vérifié ?",
      "Une personne de notre équipe lit le règlement de la zone où se trouve votre terrain, les chapitres auxquels il renvoie et son lexique, puis confronte votre projet à chaque règle : distances, hauteur, emprise, aspect. Vous recevez la réponse par e-mail sous 48 h ouvrées, avec la page du règlement pour chaque point. C'est la mairie qui décide en dernier."),
     ("D'où viennent les limites de mon terrain ?",

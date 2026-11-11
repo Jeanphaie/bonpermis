@@ -37,7 +37,7 @@
       if (!(etat.hauteur >= 0.1 && etat.hauteur <= 20)) { h.focus(); return formulaire('Indiquez la hauteur de la construction, en mètres.'); }
       ouvrirPlan();
     };
-    zone.querySelector('[data-situ]').onclick = () => { etat.nom = zone.querySelector('[data-nom]').value.trim(); situation(); };
+    zone.querySelector('[data-situ]').onclick = () => { etat.nom = zone.querySelector('[data-nom]').value.trim(); demanderMail(); };
   }
 
   function ouvrirPlan() {
@@ -52,19 +52,36 @@
       }});
   }
 
-  // Plan de situation seul : l'éditeur sert seulement à choisir l'adresse et à vérifier le terrain.
+  // Plan de situation gratuit : on demande l'e-mail avant, le plan y est envoyé.
+  function demanderMail(message) {
+    zone.innerHTML = `
+      <h3>Votre plan de situation, gratuit</h3>
+      ${message ? `<p class="pm-msg">${esc(message)}</p>` : ''}
+      <label class="pm-mail" style="max-width:460px"><span>Votre e-mail, pour recevoir le plan</span><input data-mail type="email" autocomplete="email" inputmode="email" value="${esc(etat.mail)}"></label>
+      <label class="pm-accord"><input type="checkbox" data-accord${etat.accord ? ' checked' : ''}><span>Je veux bien recevoir vos conseils pour la suite de mon dossier</span></label>
+      <button class="btn blue-btn" type="button" data-ok>Choisir mon terrain</button>
+      <p class="pm-note">Votre e-mail sert à vous envoyer le plan. Sans la case cochée, vous ne recevrez rien d'autre. <button class="lien" type="button" data-retour>Retour</button></p>`;
+    zone.querySelector('[data-retour]').onclick = () => formulaire();
+    zone.querySelector('[data-ok]').onclick = () => {
+      etat.mail = zone.querySelector('[data-mail]').value.trim(); etat.accord = zone.querySelector('[data-accord]').checked;
+      if (!/^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(etat.mail)) return demanderMail('Indiquez votre adresse e-mail.');
+      situation();
+    };
+  }
+
+  // L'éditeur sert seulement à choisir l'adresse et à vérifier le terrain.
   function situation() {
     window.BPPlan.ouvrir({mode: 'parcelle', projet: 'annexe', titre: 'Votre terrain', sansAutre: true, libelleOk: 'Créer mon plan de situation', libelleAttente: 'Préparation des cartes…',
       enregistrer: async plan => {
         try {
-          const r = await api('POST', '/api/plan-situation', {lieu: plan.lieu, nom: etat.nom});
+          const r = await api('POST', '/api/plan-situation', {lieu: plan.lieu, nom: etat.nom, email: etat.mail, accord: !!etat.accord});
           zone.innerHTML = `<div class="pm-pret"><h3>Votre plan de situation est prêt</h3>
-            <p class="pm-note">${esc(r.commune)}, parcelle ${esc(r.parcelle)}. Deux cartes de l'IGN, votre terrain repéré, au format A3.</p>
+            <p class="pm-note">${esc(r.commune)}, parcelle ${esc(r.parcelle)}. Deux cartes de l'IGN, votre terrain repéré, au format A3. Le lien vous a aussi été envoyé par e-mail.</p>
             <a class="btn blue-btn" href="/api/plan-situation?id=${encodeURIComponent(r.id)}">Télécharger mon plan de situation (PDF, gratuit)</a>
             <div class="pm-zone"><b>Il vous faut aussi le plan de masse</b><p>C'est la pièce suivante du dossier : votre terrain vu du dessus, avec votre projet coté. L'aperçu est gratuit.</p>
             <button class="btn ghost" type="button" data-suite>Faire mon plan de masse</button></div></div>`;
           zone.querySelector('[data-suite]').onclick = () => formulaire();
-        } catch (e) { formulaire(e.message); }
+        } catch (e) { demanderMail(e.message); }
         return true;
       }});
   }

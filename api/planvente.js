@@ -211,7 +211,8 @@ async function telecharger(req, res, url) {
 // ---------- plan de situation seul, gratuit ----------
 async function situation(req, res) {
   if (B.trop('plan-situation:' + B.ip(req), 15)) return repondre(res, 429, {erreur: 'Trop de demandes. Réessayez dans quelques minutes.'});
-  const d = await lireJson(req) || {}, lon = +(d.lieu && d.lieu.lon), lat = +(d.lieu && d.lieu.lat);
+  const d = await lireJson(req) || {}, lon = +(d.lieu && d.lieu.lon), lat = +(d.lieu && d.lieu.lat), email = texte(d.email, 254).toLowerCase(), accord = d.accord === true;
+  if (!MAIL_RE.test(email)) return repondre(res, 400, {erreur: 'Indiquez votre adresse e-mail pour recevoir le plan.'});
   if (!Number.isFinite(lon) || !Number.isFinite(lat) || Math.abs(lat) > 90 || Math.abs(lon) > 180) return repondre(res, 400, {erreur: 'Adresse introuvable.'});
   const terrain = await T.analyserTerrain(+lon.toFixed(6), +lat.toFixed(6));
   if (!terrain.parcelle) return repondre(res, 502, {erreur: 'Le cadastre ne répond pas pour cette adresse. Réessayez dans un instant.'});
@@ -220,7 +221,12 @@ async function situation(req, res) {
   if (!cartes) return repondre(res, 502, {erreur: 'Les cartes de l\'IGN ne répondent pas pour le moment. Réessayez dans un instant.', detail: derniereErreurCartes});
   const r = planSituation(terrain, cartes, {demandeur: texte(d.nom, 60), adresse: commune, projet: '', date: dateFr()});
   fs.mkdirSync(B.chemin('plans'), {recursive: true}); fs.writeFileSync(fichier('s' + id, '.pdf'), r.pdf);
-  journal('plan de situation gratuit', id, commune);
+  // Contact gardé dans DATA_DIR/prospects. « accord » : la personne a coché qu'elle veut recevoir nos conseils ; sans lui, aucune relance.
+  B.creer({date: new Date().toISOString(), email, accord, origine: 'plan de situation', commune, parcelle: terrain.parcelle.section + ' ' + terrain.parcelle.numero, lieu: {lon, lat}, zone: terrain.zone ? terrain.zone.libelle : null}, 'prospects', id + '.json');
+  journal('plan de situation gratuit', id, commune, accord ? 'accord' : 'sans accord');
+  await envoyerMail(email, 'Votre plan de situation',
+    `Bonjour,\n\nVoici votre plan de situation (${commune}) :\n${CONF.site}/api/plan-situation?id=${id}\n\n` +
+    `C'est la pièce n° 1 de votre dossier. La suivante est le plan de masse : votre terrain vu du dessus, avec votre projet coté. Vous pouvez en voir l'aperçu gratuitement ici :\n${CONF.site}/plan-de-masse/` + B.signature);
   repondre(res, 200, {id, commune, parcelle: terrain.parcelle.section + ' ' + String(terrain.parcelle.numero).replace(/^0+/, '')});
 }
 function situationPdf(req, res, url) {

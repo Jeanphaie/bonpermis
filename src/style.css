@@ -573,3 +573,5 @@ nav.links a,.espace-lien{white-space:nowrap}
 .pm-offre i{font-style:normal;font:600 11px/1 var(--f-body);letter-spacing:.1em;text-transform:uppercase;color:var(--accent);display:block;margin-bottom:6px}
 .pm-cote h3{font-size:20px;line-height:1.25}
 @media(max-width:900px){.pm-ap .pm-faits{grid-template-columns:1fr 1fr}}
+.pm-accord{display:flex;gap:10px;align-items:flex-start;font-size:14px;margin:4px 0 16px;max-width:460px}
+.pm-accord input{margin-top:3px;width:18px;height:18px;flex:none}
