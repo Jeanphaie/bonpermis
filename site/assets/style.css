@@ -665,3 +665,15 @@ nav.links a,.espace-lien{white-space:nowrap}
 .faq details p + p{margin-top:8px}
 /* Titres : pas de mot seul sur la dernière ligne */
 h1,h2,h3{text-wrap:balance}
+/* Bloc PLU simple : une idée, un exemple */
+.plu-simple{max-width:860px;text-align:center}
+.plu-simple .lead{margin:16px auto 0;max-width:680px}
+.plu-duo{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:32px 0 24px}
+.plu-cas{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:22px 20px;display:flex;flex-direction:column;gap:6px;align-items:center}
+.plu-cas span{font-size:13px;color:var(--muted)}
+.plu-cas b{font-size:18px}
+.plu-cas i{font-style:normal;font-weight:700;font-size:15px;padding:6px 14px;border-radius:999px;margin-top:6px}
+.plu-cas.non i{background:#FDECEC;color:#B42318}
+.plu-cas.oui i{background:var(--good-soft);color:#3F6B36}
+.plu-fin{font-size:17px;font-weight:600;max-width:640px;margin:0 auto}
+@media (max-width:560px){.plu-duo{grid-template-columns:1fr}}
