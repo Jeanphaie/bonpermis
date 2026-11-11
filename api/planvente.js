@@ -189,7 +189,7 @@ async function paiementRecu(s) {
   if (email) await envoyerMail(email, formule === 'etude' ? 'Votre plan de masse est prêt, l\'étude du PLU arrive' : 'Votre plan de masse est prêt',
     `Bonjour,\n\nVotre plan de masse et votre plan de situation sont prêts. Vous pouvez les télécharger ici, autant de fois que vous voulez :\n${lien}\n\n` +
     (formule === 'etude'
-      ? `Nous étudions maintenant le règlement d'urbanisme de votre terrain pour ce projet. Vous recevrez notre réponse par e-mail sous 48 h ouvrées : le projet passe ou non, règle par règle, avec la page du règlement. Ne déposez rien avant de l'avoir reçue.\n\n` +
+      ? `Nous vérifions maintenant les règles de votre mairie pour ce projet. Vous recevrez notre réponse par e-mail sous 48 h ouvrées : le projet passe ou non, règle par règle. Ne déposez rien avant de l'avoir reçue.\n\n` +
         `Si vous voulez ensuite qu'on prépare tout le dossier (tous les plans, le formulaire, prêt à déposer en 48 h), vos ${total} € sont déduits avec le code ${code}, valable jusqu'au ${finFr}.\n${CONF.site}/#projets`
       : `Avant de déposer, un point important : ce plan ne vérifie pas que votre projet respecte le règlement d'urbanisme de votre commune. ` +
         `Chaque commune a ses propres règles de distance, de hauteur et d'emprise, et un projet qui en oublie une peut être refusé, même avec un plan parfait. ` +

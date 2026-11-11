@@ -84,11 +84,11 @@
             <button class="btn ghost" type="button" data-payer="plan">${PRIX} €</button>
           </div>
           <div class="pm-offre">
-            <div><b>Le plan vérifié</b><span>Le plan, et on étudie le règlement de votre terrain${t.zone ? ` (zone ${esc(t.zone)})` : ''} : votre projet passe ou non, règle par règle. Réponse sous 48 h.</span></div>
+            <div><b>Le plan vérifié</b><span>Le plan, et on vérifie les règles de votre mairie${t.zone ? ` (zone ${esc(t.zone)})` : ''} : votre projet passe ou non. Réponse sous 48 h.</span></div>
             <button class="btn ghost" type="button" data-payer="etude">${ETUDE} €</button>
           </div>
           <div class="pm-offre reco">
-            <div><i>Recommandé</i><b>Le dossier complet</b><span>On étudie le règlement, on trace tous les plans, on remplit le formulaire. Vous n'avez plus qu'à déposer. Prêt en 48 h.</span></div>
+            <div><i>Recommandé</i><b>Le dossier complet</b><span>On vérifie les règles de votre mairie, on trace tous les plans, on remplit le formulaire. Vous n'avez plus qu'à déposer. Prêt en 48 h.</span></div>
             <a class="btn blue-btn" href="../#projets">Dès ${DOSSIER} €</a>
           </div>
           <p class="pm-note">Chaque formule contient la précédente. Ce que vous payez aujourd'hui est déduit si vous passez à la formule du dessus dans les 30 jours.</p>
@@ -116,11 +116,11 @@
         <h3>Merci. Votre plan de masse est prêt.</h3>
         <a class="btn blue-btn" href="/api/plan-masse/telecharger?id=${encodeURIComponent(id)}&t=${encodeURIComponent(t)}">Télécharger mon plan de masse et mon plan de situation (PDF)</a>
         <p class="pm-note">Le lien vous a aussi été envoyé par e-mail. Vous pouvez télécharger le fichier autant de fois que vous voulez.</p>
-        ${etude ? `<div class="pm-zone"><b>L'étude du règlement est lancée</b><p>Vous recevrez notre réponse par e-mail sous 48 h ouvrées : le projet passe ou non, règle par règle, avec la page du règlement. Ne déposez rien avant de l'avoir reçue.</p>
+        ${etude ? `<div class="pm-zone"><b>La vérification est lancée</b><p>Vous recevrez notre réponse par e-mail sous 48 h ouvrées : le projet passe ou non, règle par règle. Ne déposez rien avant de l'avoir reçue.</p>
             <p>Pour qu'on prépare ensuite tout le dossier, vos ${r.total} € sont déduits${r.code ? ` avec le code <b>${esc(r.code)}</b>` : ''}${fin ? `, jusqu'au ${esc(fin)}` : ''}.</p><a class="btn ghost" href="../#projets">Voir le dossier complet</a></div>`
         : `<div class="pm-zone pm-alerte"><b>Avant de déposer : votre projet respecte-t-il le règlement de votre commune ?</b>
           <p>Ce plan ne le vérifie pas. Chaque commune a ses propres règles de distance, de hauteur et d'emprise, et un projet qui en oublie une peut être refusé, même avec un plan parfait. Il vous reste aussi le formulaire officiel, le plan en coupe, les façades, l'insertion et les photos.</p>
-          <p>On étudie le règlement et on prépare tout en 48 h.${r.code ? ` Vos ${r.total || PRIX} € sont déduits avec le code <b>${esc(r.code)}</b>${fin ? `, jusqu'au ${esc(fin)}` : ''}.` : ''}</p>
+          <p>On vérifie les règles de votre mairie et on prépare tout en 48 h.${r.code ? ` Vos ${r.total || PRIX} € sont déduits avec le code <b>${esc(r.code)}</b>${fin ? `, jusqu'au ${esc(fin)}` : ''}.` : ''}</p>
           <a class="btn ghost" href="../#projets">Voir le prix de mon dossier complet</a></div>`}
       </div>`;
   }
