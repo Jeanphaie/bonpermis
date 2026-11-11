@@ -665,15 +665,27 @@ nav.links a,.espace-lien{white-space:nowrap}
 .faq details p + p{margin-top:8px}
 /* Titres : pas de mot seul sur la dernière ligne */
 h1,h2,h3{text-wrap:balance}
-/* Bloc PLU simple : une idée, un exemple */
-.plu-simple{max-width:860px;text-align:center}
-.plu-simple .lead{margin:16px auto 0;max-width:680px}
-.plu-duo{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:32px 0 24px}
-.plu-cas{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:22px 20px;display:flex;flex-direction:column;gap:6px;align-items:center}
-.plu-cas span{font-size:13px;color:var(--muted)}
-.plu-cas b{font-size:18px}
-.plu-cas i{font-style:normal;font-weight:700;font-size:15px;padding:6px 14px;border-radius:999px;margin-top:6px}
-.plu-cas.non i{background:#FDECEC;color:#B42318}
-.plu-cas.oui i{background:var(--good-soft);color:#3F6B36}
-.plu-fin{font-size:17px;font-weight:600;max-width:640px;margin:0 auto}
-@media (max-width:560px){.plu-duo{grid-template-columns:1fr}}
+/* Bloc « refus » : le risque, la comparaison, l'action */
+.refus{background:var(--ink);color:#fff}
+.refus-tete{max-width:760px}
+.refus .lead{color:#C9D1E4;margin-top:14px;max-width:none}
+.refus-ex{list-style:none;padding:0;margin:22px 0 0;display:flex;flex-wrap:wrap;gap:10px}
+.refus-ex li{display:flex;align-items:center;gap:8px;padding:9px 14px;border-radius:999px;background:rgba(255,255,255,.08);font-size:15px}
+.refus-ex svg{width:14px;height:14px;color:#FF8A80;flex:none}
+.refus-duo{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:40px}
+.refus-col{border-radius:var(--r);padding:26px 26px 28px}
+.refus-col.seul{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14)}
+.refus-col.nous{background:#fff;color:var(--ink)}
+.refus-t{display:block;font:700 12px/1 var(--f-body);letter-spacing:.12em;text-transform:uppercase;margin-bottom:16px;color:#FF8A80}
+.refus-col.nous .refus-t{color:var(--accent)}
+.refus-col ol{list-style:none;counter-reset:r;padding:0;margin:0;display:grid;gap:12px}
+.refus-col li{counter-increment:r;position:relative;padding-left:40px;font-size:17px;line-height:1.4}
+.refus-col li::before{content:counter(r);position:absolute;left:0;top:-2px;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:700;background:rgba(255,255,255,.12)}
+.refus-col.nous li::before{background:var(--accent-soft);color:var(--accent)}
+.refus-col.seul li:nth-child(3),.refus-col.seul li:nth-child(4){color:#FF8A80;font-weight:600}
+.refus-col.nous li:last-child{font-weight:700}
+.refus-fin{display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;margin-top:36px}
+.refus-fin b{font-size:clamp(20px,2.2vw,26px);letter-spacing:-.02em;max-width:640px;line-height:1.2}
+.refus-fin .btn{background:#fff;color:var(--ink);border-color:#fff}
+.refus-fin .btn:hover{background:var(--accent);border-color:var(--accent);color:#fff}
+@media (max-width:760px){.refus-duo{grid-template-columns:1fr}}

@@ -472,15 +472,28 @@ def page_plan_masse():
   </div>
 </section>
 
-<section id="plu" class="page-sec">
-  <div class="wrap plu-simple">
-    <h2>Chaque mairie a ses propres règles.</h2>
-    <p class="lead">Hauteur, distance aux voisins, couleurs, clôtures : tout est écrit dans le règlement de votre commune, le PLU. Si votre projet oublie une règle, la mairie peut le refuser.</p>
-    <div class="plu-duo" role="group" aria-label="Exemple : la même clôture dans deux communes">
-      <div class="plu-cas non"><span>À Tarnos (Landes)</span><b>Mur plein en clôture</b><i>Interdit</i></div>
-      <div class="plu-cas oui"><span>Dans les communes voisines</span><b>Mur plein en clôture</b><i>Autorisé</i></div>
+<section id="plu" class="page-sec refus">
+  <div class="wrap">
+    <div class="refus-tete">
+      <h2>Un seul détail peut faire refuser votre dossier.</h2>
+      <p class="lead">Chaque mairie a son règlement, et il est différent partout. Un oubli suffit.</p>
+      <ul class="refus-ex">
+        <li><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>Clôture trop haute</li>
+        <li><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>Abri trop près du voisin</li>
+        <li><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>Couleur de tuiles interdite</li>
+      </ul>
     </div>
-    <p class="plu-fin">L'outil dessine votre plan, il ne lit pas ce règlement. Nous, si : c'est le plan vérifié à {PRIX_ETUDE} € et le dossier complet.</p>
+    <div class="refus-duo">
+      <div class="refus-col seul">
+        <span class="refus-t">Seul, avec une règle oubliée</span>
+        <ol><li>Vous déposez votre dossier</li><li>Vous attendez un mois</li><li>La mairie refuse</li><li>Vous recommencez</li></ol>
+      </div>
+      <div class="refus-col nous">
+        <span class="refus-t">Avec Le Bon Permis</span>
+        <ol><li>On lit le règlement de votre mairie</li><li>Si une règle bloque, on vous le dit avant</li><li>Vous ajustez votre projet</li><li>Vous déposez un dossier conforme</li></ol>
+      </div>
+    </div>
+    <div class="refus-fin"><b>L'outil dessine votre plan. Il ne lit pas le règlement de votre mairie. Nous, si.</b><a class="btn" href="../#projets">Faire vérifier mon projet</a></div>
   </div>
 </section>
 

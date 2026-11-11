@@ -31,6 +31,7 @@
     btn.onclick = () => { if (liste[0]) choisir(liste[0]); else { inp.focus(); chercher(); } };
   }
   window.BPLieu = {lire, garder, brancher};
+  document.addEventListener('click', e => { const a = e.target.closest('[data-adresse]'); if (!a) return; const i = document.querySelector('.adr input'); if (!i) return; e.preventDefault(); i.scrollIntoView({behavior: 'smooth', block: 'center'}); setTimeout(() => i.focus({preventScroll: true}), 450); });
   const tout = () => document.querySelectorAll('.adr').forEach(brancher);
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', tout); else tout();
 })();
