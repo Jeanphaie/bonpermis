@@ -119,7 +119,7 @@
         ${etude ? `<div class="pm-zone"><b>L'étude du règlement est lancée</b><p>Vous recevrez notre réponse par e-mail sous 48 h ouvrées : le projet passe ou non, règle par règle, avec la page du règlement. Ne déposez rien avant de l'avoir reçue.</p>
             <p>Pour qu'on prépare ensuite tout le dossier, vos ${r.total} € sont déduits${r.code ? ` avec le code <b>${esc(r.code)}</b>` : ''}${fin ? `, jusqu'au ${esc(fin)}` : ''}.</p><a class="btn ghost" href="../#projets">Voir le dossier complet</a></div>`
         : `<div class="pm-zone pm-alerte"><b>Avant de déposer : votre projet respecte-t-il le règlement de votre commune ?</b>
-          <p>Ce plan ne le vérifie pas. Chaque commune a ses propres règles de distance, de hauteur et d'emprise, et un projet qui en oublie une est refusé, même avec un plan parfait. Il vous reste aussi le formulaire officiel, le plan en coupe, les façades, l'insertion et les photos.</p>
+          <p>Ce plan ne le vérifie pas. Chaque commune a ses propres règles de distance, de hauteur et d'emprise, et un projet qui en oublie une peut être refusé, même avec un plan parfait. Il vous reste aussi le formulaire officiel, le plan en coupe, les façades, l'insertion et les photos.</p>
           <p>On étudie le règlement et on prépare tout en 48 h.${r.code ? ` Vos ${r.total || PRIX} € sont déduits avec le code <b>${esc(r.code)}</b>${fin ? `, jusqu'au ${esc(fin)}` : ''}.` : ''}</p>
           <a class="btn ghost" href="../#projets">Voir le prix de mon dossier complet</a></div>`}
       </div>`;

@@ -192,7 +192,7 @@ async function paiementRecu(s) {
       ? `Nous étudions maintenant le règlement d'urbanisme de votre terrain pour ce projet. Vous recevrez notre réponse par e-mail sous 48 h ouvrées : le projet passe ou non, règle par règle, avec la page du règlement. Ne déposez rien avant de l'avoir reçue.\n\n` +
         `Si vous voulez ensuite qu'on prépare tout le dossier (tous les plans, le formulaire, prêt à déposer en 48 h), vos ${total} € sont déduits avec le code ${code}, valable jusqu'au ${finFr}.\n${CONF.site}/#projets`
       : `Avant de déposer, un point important : ce plan ne vérifie pas que votre projet respecte le règlement d'urbanisme de votre commune. ` +
-        `Chaque commune a ses propres règles de distance, de hauteur et d'emprise, et un projet qui en oublie une est refusé, même avec un plan parfait. ` +
+        `Chaque commune a ses propres règles de distance, de hauteur et d'emprise, et un projet qui en oublie une peut être refusé, même avec un plan parfait. ` +
         `Il vous reste aussi le formulaire officiel, le plan en coupe, les façades, l'insertion et les photos.\n\n` +
         `On peut s'en charger : dossier complet, règlement étudié, prêt à déposer en 48 h. Vos ${total} € sont déduits avec le code ${code}, valable jusqu'au ${finFr}.\n${CONF.site}/#projets`) + B.signature);
   await envoyerMail(CONF.mailA, formule === 'etude' ? `ÉTUDE PLU À FAIRE sous 48 h (${euro(total)}) : ${b.adresse}` : `Plan de masse vendu (${euro(total)}) : ${b.adresse}`,
@@ -249,7 +249,7 @@ async function situation(req, res) {
   await envoyerMail(email, 'Votre plan de situation, et ce que dit déjà votre adresse',
     `Bonjour,\n\nVoici votre plan de situation (${commune}) :\n${CONF.site}/api/plan-situation?id=${id}\n\n` +
     (faits ? `En préparant ce plan, voici ce qu'on a vu sur votre terrain :\n${faits}\n\n` : '') +
-    `Pourquoi on vous le dit : votre projet doit respecter le PLU, le plan local d'urbanisme, c'est-à-dire le règlement de votre commune. Il fixe la distance aux voisins, la hauteur, la part du terrain qui peut être bâtie, les toits, les couleurs, les clôtures. La mairie compare votre dossier à ce règlement : une seule règle oubliée, et le projet est refusé. Lire les PLU en entier, c'est notre métier.\n\n` +
+    `Pourquoi on vous le dit : votre projet doit respecter le PLU, le plan local d'urbanisme, c'est-à-dire le règlement de votre commune. Il fixe la distance aux voisins, la hauteur, la part du terrain qui peut être bâtie, les toits, les couleurs, les clôtures. La mairie compare votre dossier à ce règlement : une seule règle oubliée, et le projet peut être refusé. Lire les PLU en entier, c'est notre métier.\n\n` +
     `La pièce suivante de votre dossier est le plan de masse. Vous pouvez en voir l'aperçu gratuitement, puis nous faire vérifier votre projet :\n${CONF.site}/plan-de-masse/` + B.signature);
   repondre(res, 200, {id, commune, parcelle: k.parcelle, constat: k});
 }

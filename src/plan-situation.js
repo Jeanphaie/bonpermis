@@ -21,7 +21,6 @@
     if (k.plui) f.push(['Un PLU commun à plusieurs communes', 'Le règlement est plus long, et certaines règles changent d\'une commune à l\'autre à l\'intérieur du même document.']);
     if (k.protege) f.push(['Secteur protégé', 'L\'architecte des Bâtiments de France donne son avis sur les matériaux, les couleurs, les toitures. La mairie met un mois de plus à répondre.']);
     if (k.littoral) f.push(['Commune littorale', 'La loi Littoral s\'ajoute au PLU et limite ce qu\'on peut construire.']);
-    for (const x of (k.risques || [])) f.push([`Risque : ${x.libelle.toLowerCase()}`, `${x.niveau ? x.niveau[0].toUpperCase() + x.niveau.slice(1) + '. ' : ''}Il peut imposer des règles de construction en plus.`]);
     return f;
   }
   // Les questions auxquelles le règlement de la zone répond : c'est ce qu'on lit pour le client.
@@ -51,7 +50,7 @@
         <div>
           ${f.length ? `<h2>Ce que votre adresse dit déjà</h2><ul class="pm-constat">${f.map(([t, d]) => `<li><b>${esc(t)}</b><span>${esc(d)}</span></li>`).join('')}</ul>` : ''}
           <div class="pm-zone pm-alerte"><b>Votre projet doit respecter le PLU${k.commune ? ' de ' + esc(k.commune) : ''}</b>
-            <p>Le PLU, le plan local d'urbanisme, c'est le règlement de votre commune. La mairie compare votre dossier à ce règlement, ligne par ligne. Une seule règle oubliée, et le projet est refusé.</p>
+            <p>Le PLU, le plan local d'urbanisme, c'est le règlement de votre commune. La mairie compare votre dossier à ce règlement, ligne par ligne. Une seule règle oubliée, et le projet peut être refusé.</p>
             <p><b>Ce que le PLU décide pour votre terrain${k.zone ? ', en zone ' + esc(k.zone) : ''}</b></p>
             <ul class="ps-q">${QUESTIONS.map(q => `<li>${esc(q)}</li>`).join('')}</ul>
             <p>Les réponses sont différentes dans chaque commune. On lit le PLU en entier pour vous, avant de dessiner.</p></div>
