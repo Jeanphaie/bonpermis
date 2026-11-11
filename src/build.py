@@ -179,7 +179,7 @@ def tuiles_accueil():
     def t_regul(k, titre, sous, image):
         return (f'<a class="tile" href="{URL[k]}/"><img src="img/{image}.webp" alt="" loading="lazy" width="480" height="480">'
                 f'<span>{titre}<small>{sous}</small></span></a>')
-    out.append('<div class="group"><div class="group-h"><h3>Travaux déjà faits, à régulariser</h3><small>Même prix que le projet</small></div><div class="tiles">'
+    out.append('<div class="group"><div class="group-h"><h3>Travaux déjà faits, à régulariser</h3><small>Dès 149 €</small></div><div class="tiles">'
                + t_regul('regul', 'Travaux jamais déclarés', 'Abri, véranda, extension…', REGUL_IMG)
                + t_regul('vente', 'Avant une vente', 'À régler avant de signer', '10-accorde') + '</div></div>')
     autres = ''.join(tuile(s['k'], '', False) for s in SVCS if s['k'] in P)
