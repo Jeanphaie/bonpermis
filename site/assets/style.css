@@ -478,7 +478,7 @@ section.sell-band{padding:0}
 .barre-mobile .bm-tel{font-size:16px}
 nav.links a,.espace-lien{white-space:nowrap}
 @media (max-width:1320px){nav.links{gap:18px}.top-act .espace-lien span{display:none}}
-@media (max-width:1180px){nav.links a[href$="#faq"],nav.links a[href$="#comment"]{display:none}}
+@media (max-width:1180px){nav.links a[href$="questions/"],nav.links a[href$="comment-ca-marche/"]{display:none}}
 @media (max-width:860px){.barre-mobile .bm-tel{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);font-weight:700}.hero-tel{display:flex}}
 /* Téléphone : version plus sobre (09/11 soir) */
 .tel-lien{padding:0;border:0;background:none;color:var(--ink);gap:9px}
@@ -647,8 +647,9 @@ nav.links a,.espace-lien{white-space:nowrap}
 /* Logo : ne s'écrase plus quand le menu manque de place */
 .logo,.logo img{flex:none}
 .logo img{width:auto;max-width:none}
-@media (max-width:1320px){nav.links a[href$="#faq"],nav.links a[href$="#comment"]{display:none}}
-@media (max-width:1000px){nav.links a[href$="regularisation-avant-vente/"]{display:none}}
+@media (max-width:1320px){nav.links a[href$="questions/"],nav.links a[href$="comment-ca-marche/"]{display:none}}
+@media (max-width:1100px){nav.links a[href$="regularisation-avant-vente/"]{display:none}}
+@media (max-width:960px){nav.links a[href$="tarifs/"]{display:none}}
 @media (max-width:560px){header.top .top-act > a.btn{display:none}.logo{flex:0 1 180px;min-width:0}.logo img{flex:0 1 auto;width:100%;max-width:180px;height:auto}}
 @media (max-width:560px){.top-act{gap:10px}.top-act .espace-lien{display:none}.top-act button.btn{padding:12px 14px}}
 /* Pages outils épurées */
@@ -728,3 +729,17 @@ h1,h2,h3{text-wrap:balance}
 /* Téléphone : chaque groupe de projets défile sur une ligne, la page reste courte */
 @media (max-width:560px){.chooser .tiles{display:flex;overflow-x:auto;gap:10px;scroll-snap-type:x proximity;padding-bottom:6px;margin-right:-20px;padding-right:20px;scrollbar-width:none}.chooser .tiles::-webkit-scrollbar{display:none}.chooser .tile{flex:0 0 36%;scroll-snap-align:start;font-size:13px}}
 @media (max-width:560px){.regles-img{max-width:220px}}
+/* Pages Projets, Comment ça marche, Questions */
+h2.h3{font-size:clamp(19px,2vw,22px);letter-spacing:-.02em;line-height:1.2}
+.step h2.h3{margin:8px 0 6px;font-size:20px}
+.role h2.h3{margin:10px 0 12px}
+.page-hero + .page-sec.chooser .group:first-child{margin-top:0}
+/* Gratuit : pastille dans le menu et sur les tuiles */
+nav.links a{display:inline-flex;align-items:center;gap:6px}
+.gratuit{font-style:normal;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;background:var(--good-soft);color:#3F6B36;padding:3px 7px;border-radius:999px;line-height:1}
+.tile small.gratuit{display:inline-block;margin-top:4px;color:#3F6B36}
+/* Menu à sept entrées : on resserre, et on allège selon la largeur */
+nav.links{gap:18px}
+.top-act .espace-lien span{display:none}
+@media (max-width:960px){.tel-lien span{display:none}}
+nav.links a[href$="questions/"]{display:none}

@@ -55,7 +55,7 @@
             <ul class="ps-q">${QUESTIONS.map(q => `<li>${esc(q)}</li>`).join('')}</ul>
             <p>Les réponses sont différentes dans chaque commune. On lit le PLU en entier pour vous, avant de dessiner.</p></div>
           <h2 class="ps-h">On s'en occupe</h2>
-          <div class="pm-offre reco"><div><i>Recommandé</i><b>Le dossier complet</b><span>On lit le règlement, on fait tous les plans, on remplit le formulaire. Prêt en 48 h.</span></div><a class="btn blue-btn" href="../#projets">Dès ${DOSSIER} €</a></div>
+          <div class="pm-offre reco"><div><i>Recommandé</i><b>Le dossier complet</b><span>On lit le règlement, on fait tous les plans, on remplit le formulaire. Prêt en 48 h.</span></div><a class="btn blue-btn" href="../projets/">Dès ${DOSSIER} €</a></div>
           <div class="pm-offre"><div><b>Le plan vérifié</b><span>Votre plan de masse, et on vous dit si votre projet passe.</span></div><a class="btn ghost" href="../plan-de-masse/">${ETUDE} €</a></div>
           <div class="pm-offre"><div><b>Le plan de masse</b><span>Vous placez votre projet, le plan sort tout seul. Aperçu gratuit.</span></div><a class="btn ghost" href="../plan-de-masse/">${PLAN} €</a></div>
         </div>

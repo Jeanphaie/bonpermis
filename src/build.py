@@ -97,15 +97,16 @@ def head(titre, desc, chemin, base, jsonld):
 def entete(base, accueil, simu=None):
     a = '' if accueil else base
     logo = '#top' if accueil else (base or './')
-    liens = f'''<a href="{a}#projets">Projets</a>
+    liens = f'''<a href="{base}projets/">Projets</a>
+      <a href="{base}plan-de-situation/">Plan de situation <i class="gratuit">gratuit</i></a>
       <a href="{base}plan-de-masse/">Plan de masse</a>
       <a href="{base}regularisation-avant-vente/">Avant une vente</a>
-      <a href="{a}#comment">Comment ça marche</a>
       <a href="{base}tarifs/">Tarifs</a>
-      <a href="{a}#faq">Questions</a>'''
+      <a href="{base}comment-ca-marche/">Comment ça marche</a>
+      <a href="{base}questions/">Questions</a>'''
     # Sur une page projet, « Commencer » ouvre directement le simulateur de ce projet.
     cta = (f'<button class="btn" type="button" data-p="{simu}">Mon prix</button>' if simu
-           else f'<a class="btn{" js-start" if accueil else ""}" href="{a}#projets">Commencer</a>')
+           else f'<a class="btn{" js-start" if accueil else ""}" href="{"#projets" if accueil else base + "projets/"}">Commencer</a>')
     return f'''<header class="top">
   <div class="wrap">
     <a class="logo" href="{logo}" aria-label="Le Bon Permis, accueil">
@@ -130,7 +131,7 @@ def pied(base):
     blocs = ''.join(
         f'<div><b>{e(t)}</b><ul>' + ''.join(f'<li><a href="{base}{URL[k]}/">{e(nom(k))}</a></li>' for k in ks if k in URL) + '</ul></div>'
         for t, ks in cols)
-    blocs += f'<div><b>Outils</b><ul><li><a href="{base}plan-de-situation/">Plan de situation gratuit</a></li><li><a href="{base}plan-de-masse/">Plan de masse en ligne</a></li><li><a href="{base}tarifs/">Tarifs</a></li></ul></div>'
+    blocs += f'<div><b>Outils</b><ul><li><a href="{base}plan-de-situation/">Plan de situation gratuit</a></li><li><a href="{base}plan-de-masse/">Plan de masse en ligne</a></li><li><a href="{base}tarifs/">Tarifs</a></li><li><a href="{base}comment-ca-marche/">Comment ça marche</a></li><li><a href="{base}questions/">Questions fréquentes</a></li><li><a href="{base}projets/">Tous les projets</a></li></ul></div>'
     return f'''<footer>
   <div class="wrap">
     <nav class="plan" aria-label="Tous les projets">{blocs}</nav>
@@ -174,14 +175,14 @@ def tuile(k, base, simu=True):
             f'<span>{e(p["n"])}{sub}</span></a>')
 
 
-def tuiles_accueil():
+def tuiles_accueil(base=''):
     out = []
     for i, g in enumerate(GROUPS):
         out.append(f'<div class="group"><div class="group-h"><h3>{e(g["t"])}</h3><small>{e(g["s"])}</small></div>'
-                   f'<div class="tiles">{"".join(tuile(k, "", False) for k in g["k"])}</div></div>')
+                   f'<div class="tiles">{"".join(tuile(k, base, False) for k in g["k"])}</div></div>')
     # Les travaux déjà faits : un groupe à part entière, avec les autres projets.
     def t_regul(k, titre, sous, image):
-        return (f'<a class="tile" href="{URL[k]}/"><img src="img/{image}.webp" alt="" loading="lazy" width="480" height="480">'
+        return (f'<a class="tile" href="{base}{URL[k]}/"><img src="{base}img/{image}.webp" alt="" loading="lazy" width="480" height="480">'
                 f'<span>{titre}<small>{sous}</small></span></a>')
     out.append('<div class="group"><div class="group-h"><h3>Travaux déjà faits, à régulariser</h3><small>Dès 149 €</small></div><div class="tiles">'
                + t_regul('regul', 'Véranda déjà posée', 'Jamais déclarée', REGUL_IMG)
@@ -189,7 +190,10 @@ def tuiles_accueil():
                + t_regul('regul', 'Garage déjà transformé', 'Jamais déclaré', '47-regul-garage')
                + t_regul('regul', 'Extension déjà faite', 'Jamais déclarée', '48-regul-extension')
                + t_regul('vente', 'Avant une vente', 'À régler avant de signer', '40-avant-vente') + '</div></div>')
-    autres = ''.join(tuile(s['k'], '', False) for s in SVCS if s['k'] in P)
+    outils = (f'<a class="tile" href="{base}plan-de-situation/"><img src="{base}img/45-plan-situation-carte.webp" alt="" loading="lazy" width="640" height="640"><span>Plan de situation<small class="gratuit">Gratuit</small></span></a>'
+              f'<a class="tile" href="{base}plan-de-masse/"><img src="{base}img/28-plan-masse.webp" alt="" loading="lazy" width="480" height="480"><span>Plan de masse<small>29 €, aperçu gratuit</small></span></a>')
+    out.append(f'<div class="group"><div class="group-h"><h3>Un plan seul</h3><small>Fait en ligne, en 2 minutes</small></div><div class="tiles">{outils}</div></div>')
+    autres = ''.join(tuile(s['k'], base, False) for s in SVCS if s['k'] in P)
     out.append(f'<div class="group"><div class="group-h"><h3>Les autres démarches</h3><small>Avant ou après les travaux</small></div><div class="tiles">{autres}</div></div>')
     return ''.join(out)
 
@@ -321,7 +325,7 @@ def page(k):
 <section class="page-hero">
   <div class="wrap page-grid">
     <div>
-      <nav class="crumbs" aria-label="Fil d'Ariane"><a href="../">Accueil</a> › <a href="../#projets">Projets</a> › <span>{e(n)}</span></nav>
+      <nav class="crumbs" aria-label="Fil d'Ariane"><a href="../">Accueil</a> › <a href="../projets/">Projets</a> › <span>{e(n)}</span></nav>
       <h1>{e(c['h1'])}</h1>
       <p class="answer">{e(c['chapo'])}</p>
       <div class="outil-carte hero-adr"><div class="adr" data-id="pp" data-reprend data-label="Votre prix exact : commencez par votre adresse" data-bouton="Voir mon prix"></div>
@@ -445,7 +449,7 @@ def page_404():
   <div class="wrap narrow">
     <h1>Cette page n'existe pas</h1>
     <p class="answer">L'adresse a changé ou contient une erreur. Voici où aller.</p>
-    <div class="hero-cta"><a class="btn blue-btn" href="/">Retour à l'accueil</a><a class="btn ghost" href="/#projets">Tous les projets</a></div>
+    <div class="hero-cta"><a class="btn blue-btn" href="/">Retour à l'accueil</a><a class="btn ghost" href="/projets/">Tous les projets</a></div>
     <h2 class="mt">Quelques pages utiles</h2>
     <ul class="need-list">{liens}</ul>
   </div>
@@ -519,7 +523,7 @@ def page_plan_masse():
         <li><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>Une couleur de tuiles interdite</li>
       </ul>
       <p class="regles-oui"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span>L'outil dessine votre plan. Il ne lit pas le règlement de votre mairie. Nous, si : c'est le plan vérifié à {PRIX_ETUDE} € et le dossier complet.</span></p>
-      <a class="btn blue-btn" href="../#projets">Faire vérifier mon projet</a>
+      <a class="btn blue-btn" href="../projets/">Faire vérifier mon projet</a>
     </div>
   </div>
 </section>
@@ -530,7 +534,7 @@ def page_plan_masse():
     <div class="prices formules" style="margin-top:24px">
       <div class="price"><h3>Le plan de masse</h3><div class="amount">{PRIX_PLAN} €</div><p>Plan de masse coté et plan de situation, en PDF, tout de suite. Ne dit pas si votre projet est autorisé.</p></div>
       <div class="price"><h3>Le plan vérifié</h3><div class="amount">{PRIX_ETUDE} €</div><p>Le plan, et on vérifie les règles de votre mairie : votre projet passe ou non. Réponse sous 48 h ouvrées.</p></div>
-      <div class="price star"><span class="badge">RECOMMANDÉ</span><h3>Le dossier complet</h3><div class="amount"><small>dès</small> 149 €</div><p>Règles de votre mairie vérifiées, tous les plans d'après votre croquis, le formulaire. Prêt en 48 h.</p><a class="btn blue-btn" href="../#projets">Voir mon prix</a></div>
+      <div class="price star"><span class="badge">RECOMMANDÉ</span><h3>Le dossier complet</h3><div class="amount"><small>dès</small> 149 €</div><p>Règles de votre mairie vérifiées, tous les plans d'après votre croquis, le formulaire. Prêt en 48 h.</p><a class="btn blue-btn" href="../projets/">Voir mon prix</a></div>
     </div>
     <p class="formules-note">Ce que vous avez payé est déduit de la formule au-dessus pendant 30 jours. Le <a href="../plan-de-situation/">plan de situation</a> seul est gratuit.</p>
   </div>
@@ -582,6 +586,110 @@ PS_FAQ = [
 ]
 
 
+def _page_simple(chemin, titre_page, desc, h1, chapo, corps_sections, ld_sup=None, scripts_sup=''):
+    base = '../'
+    ld = [{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [
+        {"@type": "ListItem", "position": 1, "name": "Le Bon Permis", "item": DOMAINE + "/"},
+        {"@type": "ListItem", "position": 2, "name": h1, "item": DOMAINE + "/" + chemin}]}] + (ld_sup or [])
+    corps = f"""<main id="top">
+<section class="page-hero">
+  <div class="wrap narrow">
+    <nav class="crumbs" aria-label="Fil d'Ariane"><a href="../">Accueil</a> › <span>{e(h1)}</span></nav>
+    <h1>{e(h1)}</h1>
+    <p class="answer">{e(chapo)}</p>
+  </div>
+</section>
+{corps_sections}
+</main>
+"""
+    return (head(titre_page, desc, chemin, base, ld) + '<body data-page="legal">\n\n' + entete(base, False) + '\n' + corps + '\n' + pied(base) + OVERLAY
+            + scripts_sup + scripts(base))
+
+
+def page_projets():
+    sections = f'''<section class="page-sec chooser" style="padding-top:0">
+  <div class="wrap"><div id="groups">{tuiles_accueil('../')}</div></div>
+</section>
+<section class="page-sec alt">
+  <div class="wrap narrow">
+    <div class="cta-box"><div><b>Vous ne trouvez pas votre projet ?</b><span>Appelez-nous au {TEL}, du lundi au vendredi. On vous dit quelle démarche il faut.</span></div><a class="btn blue-btn" href="{TEL_HREF}">Appeler</a></div>
+  </div>
+</section>'''
+    return _page_simple('projets/', 'Tous les projets : déclaration ou permis ? | Le Bon Permis',
+                        "Abri, piscine, extension, véranda, clôture, toiture, maison neuve, travaux déjà faits : choisissez votre projet et voyez la démarche, le prix et le délai.",
+                        'Quel est votre projet ?', "Choisissez votre projet. Vous voyez la démarche, le prix et ce qu'il faut nous envoyer.", sections)
+
+
+def page_comment():
+    sections = f'''<section class="page-sec" style="padding-top:0">
+  <div class="wrap">
+    <div class="steps trois">
+      <article class="step"><img src="../img/41-etape-croquis.webp" alt="Un plan dessiné à la main, photographié avec un téléphone" width="640" height="640"><div class="body"><span class="n">1</span><h2 class="h3">Vous envoyez un croquis</h2><p>Avec vos mesures et quelques photos. Depuis votre téléphone, après le paiement.</p></div></article>
+      <article class="step"><img src="../img/42-etape-plu.webp" alt="Un terrain vu du dessus, avec la maison, le projet en bleu et les limites" width="640" height="640"><div class="body"><span class="n">2</span><h2 class="h3">On vérifie les règles de votre mairie</h2><p>Si une règle bloque votre projet, on vous le dit avant de dessiner.</p></div></article>
+      <article class="step"><img src="../img/43-etape-dossier.webp" alt="Un dossier de plans imprimés : plan de masse, façades, coupe" width="640" height="640"><div class="body"><span class="n">3</span><h2 class="h3">Vous recevez le dossier prêt à déposer</h2><p>Tous les plans, le formulaire rempli. En 48 h, 5 jours pour un permis.</p></div></article>
+    </div>
+  </div>
+</section>
+
+<section class="page-sec alt">
+  <div class="wrap">
+    <div class="roles">
+      <div class="role"><span class="n">VOUS ENVOYEZ</span><h2 class="h3">Votre projet, tel qu'il est</h2><ul>
+        <li>Un croquis à main levée, pris en photo</li>
+        <li>Ou le devis, la fiche, le plan de votre artisan</li>
+        <li>Les mesures : longueur, largeur, hauteur, distance aux limites</li>
+        <li>Quelques photos de la maison et du terrain</li></ul></div>
+      <div class="role us"><span class="n">ON S'OCCUPE DE</span><h2 class="h3">Tout ce que la mairie attend</h2><ul>
+        <li>Lire le règlement de votre mairie et vérifier que votre projet le respecte</li>
+        <li>Vous prévenir avant de commencer si une règle bloque</li>
+        <li>Tracer tous les plans à l'échelle, d'après votre croquis</li>
+        <li>Remplir le formulaire officiel. Une deuxième personne relit tout</li></ul></div>
+      <div class="role"><span class="n">CE QUI RESTE À VOUS</span><h2 class="h3">Les choix du projet</h2><ul>
+        <li>La forme, la taille, l'emplacement, les matériaux</li>
+        <li>Des mesures justes</li>
+        <li>La solidité et la technique : c'est le métier de votre artisan</li>
+        <li>Vous n'avez qu'une idée ? La conception se fait sur devis</li></ul></div>
+    </div>
+  </div>
+</section>
+
+<section class="page-sec">
+  <div class="wrap narrow">
+    <h2>Et après ?</h2>
+    <ul class="need-list">
+      <li><i>Vous déposez en mairie</i>En ligne, avec notre guide. Ou on dépose pour vous et on suit le dossier jusqu'à la réponse (option).</li>
+      <li><i>La mairie répond</i>Un mois pour une déclaration préalable, deux mois pour un permis de maison, un mois de plus près d'un monument historique.</li>
+      <li><i>Si la mairie refuse à cause de nous</i>On corrige et on redépose, gratuitement. <a href="../tarifs/#garantie">Voir les conditions</a></li>
+    </ul>
+    <div class="cta-box"><div><b>Votre dossier, dès 149 €</b><span>Choisissez votre projet : deux ou trois questions, puis votre prix.</span></div><a class="btn blue-btn" href="../projets/">Choisir mon projet</a></div>
+  </div>
+</section>'''
+    return _page_simple('comment-ca-marche/', 'Comment ça marche : du croquis au dossier de mairie | Le Bon Permis',
+                        "Vous envoyez un croquis et des photos, on vérifie les règles de votre mairie, vous recevez le dossier prêt à déposer en 48 h. Les étapes en détail.",
+                        'Comment ça marche', "Vous envoyez un croquis. On vérifie les règles de votre mairie. Vous recevez le dossier prêt à déposer.", sections)
+
+
+def page_questions():
+    import re as _re
+    faq = []
+    for f in ('accueil.html', 'tarifs.html'):
+        faq += _re.findall(r'<details><summary>.*?</summary><p>.*?</p></details>', (SRC / f).read_text(encoding='utf-8'), _re.S)
+    # les liens de l'accueil sont relatifs à la racine : on les ramène d'un niveau
+    bloc = '\n      '.join(faq)
+    bloc = _re.sub(r'href="(?!https?:|tel:|mailto:|#|\.\./|/)([^"]+)"', r'href="../\1"', bloc)
+    sections = f'''<section id="faq" class="page-sec" style="padding-top:0">
+  <div class="wrap narrow">
+    <div class="faq">
+      {bloc}
+    </div>
+    <div class="cta-box"><div><b>Une autre question ?</b><span>{TEL}, du lundi au vendredi, 9 h à 18 h. Ou {EMAIL}.</span></div><a class="btn blue-btn" href="{TEL_HREF}">Appeler</a></div>
+  </div>
+</section>'''
+    return _page_simple('questions/', 'Questions fréquentes : déclaration préalable, permis | Le Bon Permis',
+                        "Déclaration ou permis, pièces à fournir, délais de la mairie, architecte, paiement, garantie : les réponses aux questions qu'on nous pose le plus.",
+                        'Questions fréquentes', "Les réponses aux questions qu'on nous pose le plus.", sections, [faq_ld(bloc)])
+
+
 def page_tarifs():
     base = '../'
     corps_src = (SRC / 'tarifs.html').read_text(encoding='utf-8')
@@ -595,7 +703,7 @@ def page_tarifs():
     <nav class="crumbs" aria-label="Fil d'Ariane"><a href="../">Accueil</a> › <span>Tarifs</span></nav>
     <h1>Tarifs</h1>
     <p class="answer">Un prix clair, que vous connaissez avant de payer. Le plan de masse seul à {PRIX_PLAN} €, le plan vérifié à {PRIX_ETUDE} €, le dossier complet dès 149 €.</p>
-    <div class="hero-cta"><a class="btn blue-btn" href="../#projets">Voir mon prix en une minute</a><a class="btn ghost" href="../plan-de-masse/">Plan de masse à {PRIX_PLAN} €</a></div>
+    <div class="hero-cta"><a class="btn blue-btn" href="../projets/">Voir mon prix en une minute</a><a class="btn ghost" href="../plan-de-masse/">Plan de masse à {PRIX_PLAN} €</a></div>
   </div>
 </section>
 
@@ -648,7 +756,7 @@ def page_plan_situation():
   <div class="wrap narrow">
     <div class="cta-box">
       <div><b>On fait tout le dossier, dès 149 €</b><span>Règles de votre mairie vérifiées, tous les plans, le formulaire. Prêt en 48 h.</span></div>
-      <a class="btn blue-btn" href="../#projets">Voir mon prix</a>
+      <a class="btn blue-btn" href="../projets/">Voir mon prix</a>
     </div>
   </div>
 </section>
@@ -718,6 +826,10 @@ def main():
     (SITE / 'plan-de-situation').mkdir(exist_ok=True)
     (SITE / 'plan-de-situation' / 'index.html').write_text(page_plan_situation(), encoding='utf-8')
     chemins.append('plan-de-situation/')
+    for chemin, fabrique in (('projets', page_projets), ('comment-ca-marche', page_comment), ('questions', page_questions)):
+        (SITE / chemin).mkdir(exist_ok=True)
+        (SITE / chemin / 'index.html').write_text(fabrique(), encoding='utf-8')
+        chemins.append(chemin + '/')
     (SITE / 'tarifs').mkdir(exist_ok=True)
     (SITE / 'tarifs' / 'index.html').write_text(page_tarifs(), encoding='utf-8')
     chemins.append('tarifs/')
