@@ -189,6 +189,7 @@
             <label class="ajout" style="width:100%;box-sizing:border-box">Ajouter un fichier reçu par e-mail<input type="file" multiple id="upeq" accept="image/*,application/pdf"></label><div id="progeq"></div></section>
           <section class="carte"><h3>Pièces à livrer · ${d.livrables.length}</h3>
             ${d.livrables.map(l => `<div class="pl"><button class="nm" type="button" data-s="l:${l.id}"><b>${esc(l.code)}</b> ${esc(l.nom)}</button><small class="note">${l.pages ? l.pages + ' p.' : 'sans aperçu'}</small></div>`).join('') || '<p class="note" style="margin:0">Aucun PDF déposé.</p>'}
+            ${d.statut !== 'livre' && window.BPCerfa ? '<button class="btn petit ghost" type="button" id="bcerfa" style="margin-top:10px;width:100%">Pré-remplir le formulaire Cerfa</button>' : ''}
             ${d.statut !== 'livre' ? `<form id="flivr" class="pile" style="margin-top:10px">
               <div class="rang"><label class="field" style="margin:0;flex:1;min-width:110px"><span>Pièce</span><select name="code">${CODES.map(c => `<option>${c}</option>`).join('')}</select></label>
               <label class="field" style="margin:0;flex:2"><span>Intitulé</span><input name="nom" value="${esc(NOMS.CERFA)}"></label></div>
@@ -252,6 +253,11 @@
         const nouveau = r.j.livrables[r.j.livrables.length - 1]; d = Object.assign(d, r.j); sel = {k: 'l', id: (r.j.livrables.find(l => !items.some(x => x.id === l.id)) || nouveau).id, n: 1}; dessinerDossier();
       });
     }
+    const bc = $('#bcerfa'); if (bc) bc.addEventListener('click', () => window.BPCerfa.ouvrir({dossier: d, terrain: terr.ref === d.ref ? terr.v : null, deposer: async f => {
+      const r = await envoyer(`/api/admin/livrable?ref=${R()}&code=CERFA&nom=${encodeURIComponent(NOMS.CERFA)}`, f, null);
+      if (!r.ok) return false;
+      d = Object.assign(d, r.j); const l = r.j.livrables[r.j.livrables.length - 1]; sel = {k: 'l', id: l.id, n: 1}; dessinerDossier(); return true;
+    }}));
     const ue = $('#upeq'); if (ue) ue.addEventListener('change', async () => {
       const z = $('#progeq');
       for (const f of [...ue.files]) { const lg = document.createElement('div'); lg.className = 'up'; lg.innerHTML = `<span>${esc(f.name)}</span><i><b></b></i>`; z.appendChild(lg);

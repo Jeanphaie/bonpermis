@@ -601,3 +601,11 @@ body[data-page=dossier] .esp{padding-top:20px}
   .dz-act .btn{width:100%}
   .dz-act .lien{margin:0 auto}
 }
+
+/* Fenêtre Cerfa (espace équipe) */
+.cf .cf-g{border:1px solid var(--line);border-radius:12px;padding:12px 14px 4px;margin:0 0 14px;display:flex;flex-wrap:wrap;gap:0 12px}
+.cf .cf-g legend{font-weight:700;font-size:14px;padding:0 6px}
+.cf .cf-c{flex:1 1 180px;margin-bottom:10px}
+.cf .cf-c input,.cf select{width:100%;box-sizing:border-box;font:inherit;font-size:15px;padding:9px 11px;border:1px solid var(--line-2);border-radius:9px;background:var(--surface);color:var(--ink)}
+.cf .cf-coche{flex:1 1 100%;display:flex;gap:8px;align-items:center;font-size:14px;margin:0 0 12px}
+.cf-brut{margin:0 0 14px;font-size:14px}.cf-brut summary{cursor:pointer;color:var(--accent)}
