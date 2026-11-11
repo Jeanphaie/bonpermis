@@ -16,7 +16,7 @@
     showPanel('Travaux déjà faits', '38-regularisation');
     bar.style.width = '0%';
     const ks = GROUPS.flatMap(g => g.k).filter(k => k!=='demolition');
-    body.innerHTML = `<div class="qtitle" tabindex="-1">Qu'avez-vous construit ?</div><p class="qhelp">On prépare le dossier comme si les travaux étaient à venir, au même prix, à partir de photos de ce qui existe.</p><div class="choices">${ks.map(k => `<button class="choice" type="button" data-k="${k}">${P[k].n}<span aria-hidden="true">→</span></button>`).join('')}</div>`;
+    body.innerHTML = `<div class="qtitle" tabindex="-1">Qu'avez-vous construit ?</div><p class="qhelp">On prépare le dossier comme si les travaux étaient à venir, dès 149 €, à partir de photos de ce qui existe.</p><div class="choices">${ks.map(k => `<button class="choice" type="button" data-k="${k}">${P[k].n}<span aria-hidden="true">→</span></button>`).join('')}</div>`;
     body.querySelectorAll('[data-k]').forEach(b => b.addEventListener('click', () => open(b.dataset.k, null, true)));
     body.querySelector('.qtitle').focus();
   }

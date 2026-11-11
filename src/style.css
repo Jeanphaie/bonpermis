@@ -645,3 +645,9 @@ nav.links a,.espace-lien{white-space:nowrap}
 .confiance-tel small{color:var(--muted);font-size:13px}
 .fin-adr{max-width:780px;margin-top:36px}
 @media (max-width:900px){.steps.trois .step:has(.step-dessin){display:flex}.steps.trois .step-dessin{aspect-ratio:4/3;height:auto;min-height:0}}
+/* Logo : ne s'écrase plus quand le menu manque de place */
+.logo,.logo img{flex:none}
+.logo img{width:auto;max-width:none}
+@media (max-width:1320px){nav.links a[href$="#faq"],nav.links a[href$="#comment"]{display:none}}
+@media (max-width:1000px){nav.links a[href$="regularisation-avant-vente/"]{display:none}}
+@media (max-width:560px){header.top .top-act > .btn{display:none}.logo img{height:20px}}

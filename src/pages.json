@@ -1334,8 +1334,8 @@
   },
   "regul": {
    "slug": "regularisation-travaux",
-   "titre": "Régulariser des travaux faits sans autorisation : même prix",
-   "desc": "Abri, extension ou véranda construits sans autorisation : on prépare le dossier de régularisation à partir de photos de l'existant, au même prix.",
+   "titre": "Régulariser des travaux faits sans autorisation : dès 149 €",
+   "desc": "Abri, extension ou véranda construits sans autorisation : on prépare le dossier de régularisation à partir de photos de l'existant, dès 149 €.",
    "h1": "Travaux déjà faits : peut-on les déclarer après coup ?",
    "chapo": "Oui, dans la plupart des cas. Un abri, une véranda ou une extension construits sans autorisation se régularisent en déposant le dossier qui aurait dû l'être, dessiné à partir de ce qui existe.",
    "regles": [
@@ -1361,7 +1361,7 @@
     ]
    ],
    "note": "La mairie juge le dossier avec les règles d'aujourd'hui, pas celles de l'époque des travaux. On lit donc le PLU, le règlement de votre commune, avant de dessiner, et si ce qui existe ne passe pas, on vous le dit avant de commencer.",
-   "prix": "Même prix que le projet (dès 149 €)",
+   "prix": "Dès 149 €",
    "delai": "48 h",
    "sources": [
     "DP",
@@ -1408,7 +1408,7 @@
     ]
    ],
    "note": "La mairie juge le dossier avec les règles d'aujourd'hui, celles du PLU, le règlement de votre commune, pas celles de l'époque des travaux. Tant qu'elle n'a pas accordé la régularisation, les travaux restent sans autorisation.",
-   "prix": "Même prix que le projet (dès 149 €)",
+   "prix": "Dès 149 €",
    "delai": "48 h",
    "cta_txt": "Dossier prêt en 48 h après réception de vos photos et de vos mesures. Plusieurs constructions à régulariser : un seul dossier. Près d'un monument : + 149 €. En copropriété : + 99 €.",
    "etapes_titre": "Comment ça se passe",
