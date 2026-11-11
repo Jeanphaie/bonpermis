@@ -97,7 +97,7 @@ def entete(base, accueil, simu=None):
       <a href="{base}plan-de-masse/">Plan de masse</a>
       <a href="{base}regularisation-avant-vente/">Avant une vente</a>
       <a href="{a}#comment">Comment ça marche</a>
-      <a href="{a}#tarifs">Tarifs</a>
+      <a href="{base}tarifs/">Tarifs</a>
       <a href="{a}#faq">Questions</a>'''
     # Sur une page projet, « Commencer » ouvre directement le simulateur de ce projet.
     cta = (f'<button class="btn" type="button" data-p="{simu}">Mon prix</button>' if simu
@@ -126,7 +126,7 @@ def pied(base):
     blocs = ''.join(
         f'<div><b>{e(t)}</b><ul>' + ''.join(f'<li><a href="{base}{URL[k]}/">{e(nom(k))}</a></li>' for k in ks if k in URL) + '</ul></div>'
         for t, ks in cols)
-    blocs += f'<div><b>Outils</b><ul><li><a href="{base}plan-de-situation/">Plan de situation gratuit</a></li><li><a href="{base}plan-de-masse/">Plan de masse en ligne</a></li></ul></div>'
+    blocs += f'<div><b>Outils</b><ul><li><a href="{base}plan-de-situation/">Plan de situation gratuit</a></li><li><a href="{base}plan-de-masse/">Plan de masse en ligne</a></li><li><a href="{base}tarifs/">Tarifs</a></li></ul></div>'
     return f'''<footer>
   <div class="wrap">
     <nav class="plan" aria-label="Tous les projets">{blocs}</nav>
@@ -171,12 +171,15 @@ def tuile(k, base, simu=True):
 
 
 def tuiles_accueil():
+    # Les travaux déjà faits ont leur tuile, au même rang que les autres projets.
+    regul = (f'<a class="tile" href="{URL["regul"]}/"><img src="img/{REGUL_IMG}.webp" alt="" loading="lazy" width="480" height="480">'
+             '<span>Travaux déjà faits<small>À déclarer après coup</small></span></a>')
     out = []
-    for g in GROUPS:
+    for i, g in enumerate(GROUPS):
         out.append(f'<div class="group"><div class="group-h"><h3>{e(g["t"])}</h3><small>{e(g["s"])}</small></div>'
-                   f'<div class="tiles">{"".join(tuile(k, "", False) for k in g["k"])}</div></div>')
-    svc = ''.join(f'<a class="svc" href="{URL[s["k"]]}/"><b>{e(s["n"])}</b><span>{e(s["d"])}</span><em>{e(s["p"])}</em></a>' for s in SVCS)
-    out.append(f'<div class="group"><div class="group-h"><h3>Les autres démarches</h3><small>Avant, pendant ou après les travaux</small></div><div class="svcs">{svc}</div></div>')
+                   f'<div class="tiles">{"".join(tuile(k, "", False) for k in g["k"])}{regul if i == len(GROUPS) - 1 else ""}</div></div>')
+    autres = ''.join(tuile(s['k'], '', False) for s in SVCS if s['k'] in P)
+    out.append(f'<div class="group"><div class="group-h"><h3>Les autres démarches</h3><small>Avant ou après les travaux</small></div><div class="tiles">{autres}</div></div>')
     return ''.join(out)
 
 
@@ -539,6 +542,32 @@ PS_FAQ = [
 ]
 
 
+def page_tarifs():
+    base = '../'
+    corps_src = (SRC / 'tarifs.html').read_text(encoding='utf-8')
+    ld = [{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [
+              {"@type": "ListItem", "position": 1, "name": "Le Bon Permis", "item": DOMAINE + "/"},
+              {"@type": "ListItem", "position": 2, "name": "Tarifs", "item": DOMAINE + "/tarifs/"}]},
+          faq_ld(corps_src)]
+    corps = f"""<main id="top">
+<section class="page-hero">
+  <div class="wrap narrow">
+    <nav class="crumbs" aria-label="Fil d'Ariane"><a href="../">Accueil</a> › <span>Tarifs</span></nav>
+    <h1>Tarifs</h1>
+    <p class="answer">Un prix clair, que vous connaissez avant de payer. Le plan de masse seul à {PRIX_PLAN} €, le plan vérifié à {PRIX_ETUDE} €, le dossier complet dès 149 €.</p>
+    <div class="hero-cta"><a class="btn blue-btn" href="../#projets">Voir mon prix en une minute</a><a class="btn ghost" href="../plan-de-masse/">Plan de masse à {PRIX_PLAN} €</a></div>
+  </div>
+</section>
+
+{corps_src}
+</main>
+"""
+    h = head('Tarifs : déclaration préalable dès 149 €, permis de construire dès 490 € | Le Bon Permis',
+             f"Tous les prix du Bon Permis : plan de masse {PRIX_PLAN} €, plan vérifié {PRIX_ETUDE} €, déclaration préalable dès 149 €, permis de construire dès 490 €. Options et garantie.",
+             'tarifs/', base, ld)
+    return h + '<body data-page="legal">\n\n' + entete(base, False) + '\n' + corps + '\n' + pied(base) + OVERLAY + scripts(base)
+
+
 def page_plan_situation():
     base = '../'
     faq = ''.join(f'<details><summary>{e(q)}</summary><p>{e(r)}</p></details>' for q, r in PS_FAQ)
@@ -641,6 +670,9 @@ def main():
     (SITE / 'plan-de-situation').mkdir(exist_ok=True)
     (SITE / 'plan-de-situation' / 'index.html').write_text(page_plan_situation(), encoding='utf-8')
     chemins.append('plan-de-situation/')
+    (SITE / 'tarifs').mkdir(exist_ok=True)
+    (SITE / 'tarifs' / 'index.html').write_text(page_tarifs(), encoding='utf-8')
+    chemins.append('tarifs/')
     (SITE / '404.html').write_text(page_404(), encoding='utf-8')
     (SITE / (INDEXNOW + '.txt')).write_text(INDEXNOW, encoding='utf-8')
     # Preuve de propriété pour Google Search Console (propriété https://bonpermis.fr/) : ne pas supprimer.

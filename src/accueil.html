@@ -1,247 +1,125 @@
 <main id="top">
 
-<!-- HAUT DE PAGE -->
+<!-- 1. HAUT DE PAGE : une seule action, l'adresse -->
 <section class="hero">
   <div class="wrap hero-grid">
     <div>
       <span class="eyebrow">Déclaration de travaux et permis de construire</span>
       <h1>Votre projet, même en croquis. <span class="blue">On en fait un dossier de mairie conforme.</span></h1>
-      <p class="lead">Abri, piscine, extension : envoyez un croquis. On lit le règlement de votre commune, on vérifie que votre projet passe, et on prépare tout le dossier.</p>
-
       <div class="outil-carte hero-adr"><div class="adr" data-id="acc" data-vers="plan-de-situation/" data-label="Commencez par votre adresse" data-bouton="Voir mon terrain"></div>
-        <p class="pm-note">Gratuit : votre terrain, la zone de votre commune, votre plan de situation.</p></div>
-      <div class="hero-cta">
-        <a class="btn ghost js-start" href="#projets">Voir mon prix en une minute</a>
-        <a class="btn ghost" href="#comment">Comment ça marche</a>
-      </div>
-
+        <p class="pm-note">Gratuit : votre terrain, la zone du PLU, votre plan de situation.</p></div>
       <div class="proof">
-        <span><svg viewBox="0 0 16 16"><path d="M3 8.5l3 3 7-7" fill="none" stroke="var(--accent)" stroke-width="2"/></svg>Un croquis à main levée suffit</span>
-        <span><svg viewBox="0 0 16 16"><path d="M3 8.5l3 3 7-7" fill="none" stroke="var(--accent)" stroke-width="2"/></svg>Le PLU de votre commune lu en entier</span>
-        <span><svg viewBox="0 0 16 16"><path d="M3 8.5l3 3 7-7" fill="none" stroke="var(--accent)" stroke-width="2"/></svg>Dossier prêt en 48 h</span>
-        <span><svg viewBox="0 0 16 16"><path d="M3 8.5l3 3 7-7" fill="none" stroke="var(--accent)" stroke-width="2"/></svg>Une erreur de notre part ? On corrige gratuitement</span>
+        <span><svg viewBox="0 0 16 16"><path d="M3 8.5l3 3 7-7" fill="none" stroke="var(--accent)" stroke-width="2"/></svg>Un croquis suffit</span>
+        <span><svg viewBox="0 0 16 16"><path d="M3 8.5l3 3 7-7" fill="none" stroke="var(--accent)" stroke-width="2"/></svg>PLU de votre commune vérifié</span>
+        <span><svg viewBox="0 0 16 16"><path d="M3 8.5l3 3 7-7" fill="none" stroke="var(--accent)" stroke-width="2"/></svg>Prêt en 48 h</span>
       </div>
     </div>
-    <div class="hero-art"><img src="img/01-atelier.webp" alt="Un atelier lumineux où plusieurs personnes dessinent et vérifient des plans de maisons" width="1000" height="1250" fetchpriority="high"></div>
+    <figure class="avap">
+      <div class="avap-c"><span>Vous envoyez</span><svg viewBox="0 0 320 230" role="img" aria-label="Croquis à main levée d'une maison et de son extension, avec les mesures" style="font-family:'Bradley Hand','Segoe Print','Comic Sans MS',cursive">
+  <g fill="none" stroke="#1F2A44" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M22 18 C90 14 210 20 300 16 C303 80 298 150 302 212 C220 216 100 210 20 214 C17 150 24 80 22 18"/>
+    <path d="M70 62 C110 59 150 63 188 60 C190 90 187 120 189 150 C150 152 110 149 69 152 C71 120 68 92 70 62"/>
+    <path d="M189 84 C210 82 232 85 252 83 C254 104 251 128 253 150 C232 152 210 149 189 151" stroke="#0127B1"/>
+    <path d="M196 92 L246 142 M196 112 L226 142 M216 92 L246 122 M196 132 L206 142 M236 92 L246 102" stroke="#0127B1" stroke-width="1.2"/>
+    <path d="M189 170 L252 171 M189 165 L189 176 M252 166 L252 177" stroke-width="1.3"/>
+    <path d="M268 84 L269 150 M263 84 L274 84 M263 150 L274 150" stroke-width="1.3"/>
+    <path d="M206 82 L205 19" stroke-width="1.2" stroke-dasharray="4 4"/>
+    <path d="M128 213 L128 190 M122 197 L128 189 L134 197" stroke-width="1.5"/>
+  </g>
+  <g fill="#1F2A44" font-size="15">
+    <text x="104" y="112">maison</text>
+    <text x="214" y="76" fill="#0127B1">extension</text>
+    <text x="208" y="190">6 m</text>
+    <text x="276" y="124" font-size="14">5 m</text>
+    <text x="172" y="50" font-size="13">4 m</text>
+    <text x="138" y="204" font-size="13">rue</text>
+    <text x="30" y="40" font-size="13">voisin</text>
+  </g>
+</svg></div>
+      <div class="avap-p"><span>Vous recevez</span><img src="img/exemple-extension/pcmi2-plan-de-masse-p.webp" alt="Plan de masse d'un dossier d'extension de maison, tracé à l'échelle" width="720" height="509" fetchpriority="high"></div>
+      <figcaption>Croquis d'illustration. Plan tiré d'un dossier réel.</figcaption>
+    </figure>
   </div>
 </section>
 
-<!-- PROJETS -->
+<!-- 2. PROJETS -->
 <section id="projets" class="chooser">
   <div class="wrap">
-    <div class="head">
-      <span class="eyebrow">Par où on commence</span>
-      <h2>Qu'est-ce que vous voulez faire ?</h2>
-      <p class="lead">Choisissez votre projet. Vous voyez la règle, le prix, et ce qu'il faut nous envoyer.</p>
-    </div>
+    <div class="head"><h2>Quel est votre projet ?</h2></div>
     <div id="groups">{{TUILES}}</div>
   </div>
 </section>
 
-<!-- LA RÈGLE AVANT LE DESSIN -->
-<section id="plu">
-  <div class="wrap split">
-    <div>
-      <span class="eyebrow">Notre vrai travail : le PLU</span>
-      <h2>Votre projet doit respecter le PLU de votre commune.</h2>
-      <p class="lead" style="margin-top:16px">Le PLU, le plan local d'urbanisme, c'est le règlement de votre commune. La mairie compare votre dossier à ce règlement, ligne par ligne. Une seule règle oubliée, et le projet peut être refusé.</p>
-      <p class="lead" style="margin-top:16px"><b>Ce que le PLU décide pour votre terrain :</b></p>
-      <ul class="plu-liste">
-        <li>À quelle <b>distance</b> des voisins et de la rue vous pouvez construire</li>
-        <li>La <b>hauteur</b> maximum</li>
-        <li>La <b>part du terrain</b> qui peut être bâtie</li>
-        <li>Les <b>toits</b>, les matériaux, les couleurs</li>
-        <li>Les <b>clôtures</b> : hauteur, mur plein ou pas</li>
-        <li>Le <b>stationnement</b> et les espaces verts</li>
-      </ul>
-      <p style="margin-top:18px">Les réponses changent d'une commune à l'autre. On lit le PLU de la vôtre en entier, avant de dessiner : votre zone, les chapitres communs, les définitions, les secteurs protégés. Si une règle bloque, on vous le dit avant de commencer. Vous décidez de ce que vous changez.</p>
-    </div>
-    <aside class="plu-ex" aria-label="Exemple de règles lues dans un PLU">
-      <span class="plu-ex-t">Exemple, lu pour un client</span>
-      <b>Tarnos (Landes), zone U40.9</b>
-      <ul>
-        <li>Clôture : <b>1,60 m maximum</b>, haie ou grille ajourée. <b>Pas de mur plein</b> dans cette commune, alors qu'il est admis dans les communes voisines.</li>
-        <li>Emprise au sol : <b>40 % du terrain</b> au plus, bâti existant compris.</li>
-        <li>Hauteur : <b>9 m</b>. Recul de <b>5 m</b> depuis la rue.</li>
-        <li>Toit plat autorisé ici, interdit dans d'autres communes du même PLU.</li>
-      </ul>
-      <small>PLU du Seignanx, règlement du 18 décembre 2025. Un dossier qui oublie une de ces lignes risque le refus.</small>
-    </aside>
-  </div>
-</section>
-
-<!-- COMMENT ÇA MARCHE -->
-<section id="comment" style="background:var(--surface);border-top:1px solid var(--line);border-bottom:1px solid var(--line)">
+<!-- 3. TROIS ÉTAPES -->
+<section id="comment" class="bande">
   <div class="wrap">
-    <div class="head">
-      <span class="eyebrow">Comment ça marche</span>
-      <h2>Vous apportez le projet. On en fait le dossier.</h2>
-      <p class="lead">Pas besoin de savoir dessiner. Un croquis, quelques mesures, quelques photos.</p>
-    </div>
-    <div class="roles">
-      <div class="role">
-        <span class="n">VOUS APPORTEZ</span>
-        <h3>Le projet, tel qu'il est dans votre tête</h3>
-        <ul>
-          <li>Un croquis à main levée, pris en photo</li>
-          <li>Ou le devis, la fiche, le plan de votre artisan</li>
-          <li>Les mesures : longueur, largeur, hauteur, distance aux limites</li>
-          <li>Quelques photos de la maison et du terrain</li>
-        </ul>
-      </div>
-      <div class="role us">
-        <span class="n">ON S'OCCUPE DE</span>
-        <h3>Tout ce que la mairie attend</h3>
-        <ul>
-          <li>Lire le PLU de votre commune en entier, et vérifier que votre projet le respecte</li>
-          <li>Vous prévenir avant de commencer si une règle bloque</li>
-          <li>Tracer tous les plans à l'échelle, d'après votre croquis</li>
-          <li>Remplir le formulaire officiel. Une deuxième personne relit tout</li>
-        </ul>
-      </div>
-      <div class="role">
-        <span class="n">CE QUI RESTE À VOUS</span>
-        <h3>Les choix du projet</h3>
-        <ul>
-          <li>La forme, la taille, l'emplacement, les matériaux : c'est votre projet</li>
-          <li>Des mesures justes</li>
-          <li>La solidité et la technique : c'est le métier de votre artisan</li>
-          <li>Vous n'avez qu'une idée ? La conception se fait sur devis</li>
-        </ul>
-      </div>
-    </div>
-    <div class="steps">
-      <article class="step"><img src="img/03-commandez.webp" alt="Un couple sur son canapé commande depuis son téléphone" loading="lazy" width="760" height="760"><div class="body"><span class="n">1 · UNE MINUTE</span><h3>Vous choisissez votre projet</h3><p>Deux ou trois questions, votre prix, le paiement. Pas de devis à attendre.</p></div></article>
-      <article class="step"><img src="img/04-envoyez.webp" alt="Une personne photographie la façade de sa maison depuis le jardin" loading="lazy" width="760" height="760"><div class="body"><span class="n">2 · DIX MINUTES</span><h3>Vous nous envoyez votre projet</h3><p>Croquis, mesures, photos. Depuis votre téléphone, avec un guide pas à pas.</p></div></article>
-      <article class="step"><img src="img/05-dessinons.webp" alt="Trois personnes travaillent sur des plans autour d'une table d'atelier" loading="lazy" width="760" height="760"><div class="body"><span class="n">3 · 48 HEURES</span><h3>On lit le PLU, puis on dessine</h3><p>Si une règle bloque, on vous le dit et vous ajustez. Ensuite on trace tous les plans que la mairie demande et on remplit le formulaire.</p></div></article>
-      <article class="step"><img src="img/06-deposez.webp" alt="Une personne envoie son dossier depuis son ordinateur, à la table de sa cuisine" loading="lazy" width="760" height="760"><div class="body"><span class="n">4 · DIX MINUTES</span><h3>Vous déposez en mairie</h3><p>En ligne, avec notre guide. Ou on s'en charge pour vous.</p></div></article>
+    <div class="head"><h2>Comment ça marche</h2></div>
+    <div class="steps trois">
+      <article class="step"><img src="img/04-envoyez.webp" alt="Une personne photographie la façade de sa maison depuis le jardin" loading="lazy" width="760" height="760"><div class="body"><span class="n">1</span><h3>Vous envoyez un croquis</h3><p>Avec vos mesures et quelques photos. Depuis votre téléphone.</p></div></article>
+      <article class="step"><div class="step-dessin"><svg viewBox="0 0 400 400" role="img" aria-label="Schéma : ce que le PLU fixe sur un terrain, distances, hauteur, part bâtie, clôture">
+  <defs><pattern id="hz" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="7" stroke="#0127B1" stroke-width="1.6"/></pattern>
+  <marker id="fl" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#0127B1"/></marker></defs>
+  <rect width="400" height="400" fill="#F2F5FC"/>
+  <rect x="0" y="330" width="400" height="70" fill="#E4E8F2"/>
+  <text x="200" y="372" text-anchor="middle" font-size="14" fill="#566079" font-family="inherit">Rue</text>
+  <rect x="70" y="60" width="260" height="270" fill="#fff" stroke="#0F1733" stroke-width="2"/>
+  <rect x="110" y="120" width="110" height="90" fill="#C9D1E4" stroke="#0F1733" stroke-width="1.5"/>
+  <text x="165" y="170" text-anchor="middle" font-size="13" fill="#0F1733" font-family="inherit">Maison</text>
+  <rect x="220" y="140" width="60" height="70" fill="url(#hz)" stroke="#0127B1" stroke-width="2"/>
+  <g stroke="#0127B1" stroke-width="1.6" fill="none">
+    <line x1="284" y1="175" x2="326" y2="175" marker-start="url(#fl)" marker-end="url(#fl)"/>
+    <line x1="165" y1="214" x2="165" y2="326" marker-start="url(#fl)" marker-end="url(#fl)"/>
+    <line x1="250" y1="136" x2="250" y2="100"/>
+  </g>
+  <g font-size="13" font-weight="600" fill="#0127B1" font-family="inherit">
+    <text x="250" y="92" text-anchor="middle">Votre projet</text>
+    <text x="336" y="170" transform="rotate(90 336 170)" text-anchor="middle">Distance au voisin</text>
+    <text x="173" y="275">Distance à la rue</text>
+  </g>
+  <g font-size="12.5" fill="#0F1733" font-family="inherit">
+    <rect x="12" y="14" width="150" height="30" rx="15" fill="#fff" stroke="#C9D1E4"/><text x="87" y="34" text-anchor="middle">Hauteur maximum</text>
+    <rect x="172" y="14" width="150" height="30" rx="15" fill="#fff" stroke="#C9D1E4"/><text x="247" y="34" text-anchor="middle">Part du terrain bâtie</text>
+    <rect x="8" y="286" width="56" height="30" rx="15" fill="#fff" stroke="#C9D1E4"/><text x="36" y="306" text-anchor="middle">Clôture</text>
+  </g>
+  <line x1="64" y1="301" x2="70" y2="301" stroke="#0F1733" stroke-width="1.5"/>
+</svg></div><div class="body"><span class="n">2</span><h3>On lit le PLU de votre commune</h3><p>C'est le règlement que la mairie applique. Si une règle bloque votre projet, on vous le dit avant de dessiner.</p></div></article>
+      <article class="step"><img src="img/06-deposez.webp" alt="Une personne envoie son dossier depuis son ordinateur, à la table de sa cuisine" loading="lazy" width="760" height="760"><div class="body"><span class="n">3</span><h3>Vous recevez le dossier prêt à déposer</h3><p>Tous les plans, le formulaire rempli. En 48 h.</p></div></article>
     </div>
   </div>
 </section>
 
-<!-- TARIFS -->
+<!-- 4. PRIX -->
 <section id="tarifs">
   <div class="wrap">
-    <div class="head">
-      <span class="eyebrow">Tarifs</span>
-      <h2>Un prix clair, que vous connaissez avant de payer.</h2>
-      <p class="lead">Tout compris : PLU vérifié, plans, formulaire, relecture. Prix TTC.</p>
+    <div class="head"><h2>Trois formules</h2></div>
+    <div class="prices formules">
+      <div class="price"><h3>Le plan de masse</h3><div class="amount">29 €</div><p>Vous placez votre projet sur votre terrain. Le plan sort tout seul.</p><a class="btn ghost" href="plan-de-masse/">Essayer gratuitement</a></div>
+      <div class="price"><h3>Le plan vérifié</h3><div class="amount">79 €</div><p>Le plan de masse, et on vous dit si votre projet respecte le PLU.</p><a class="btn ghost" href="plan-de-masse/">Commencer</a></div>
+      <div class="price star"><span class="badge">RECOMMANDÉ</span><h3>Le dossier complet</h3><div class="amount"><small>dès</small> 149 €</div><p>PLU lu en entier, tous les plans, le formulaire. Prêt en 48 h.</p><a class="btn blue-btn js-start" href="#projets">Voir mon prix</a></div>
     </div>
-    <div class="prices">
-      <div class="price star"><span class="badge">LE PLUS DEMANDÉ</span><img src="img/13-abri-jardin.webp" alt="" loading="lazy"><h3>Petits travaux</h3><div class="amount">149 €</div><p>Abri de jardin, piscine, pergola, carport, clôture, portail, fenêtres, fenêtre de toit, lucarne, toiture, façade, panneaux solaires, climatisation, petite démolition.</p><span class="delay">PRÊT EN 48 H</span></div>
-      <div class="price"><img src="img/21-extension.webp" alt="" loading="lazy"><h3>Agrandissement</h3><div class="amount">349 €</div><p>Extension, véranda, combles (avec ou sans lucarne), surélévation, grange ou local transformé en logement, quand une déclaration suffit.</p><span class="delay">PRÊT EN 48 H</span></div>
-      <div class="price"><img src="img/25-garage-amenage.webp" alt="" loading="lazy"><h3>Garage transformé</h3><div class="amount">319 €</div><p>Une chambre, un bureau ou un salon à la place du garage, nouvelle façade comprise.</p><span class="delay">PRÊT EN 48 H</span></div>
-      <div class="price"><img src="img/22-veranda.webp" alt="" loading="lazy"><h3>Permis de construire</h3><div class="amount">490 €</div><p>Grande extension, surélévation ou transformation avec travaux de façade, quand la mairie exige un permis.</p><span class="delay">PRÊT EN 5 JOURS</span></div>
-      <div class="price"><img src="img/26-maison-neuve.webp" alt="" loading="lazy"><h3>Maison neuve</h3><div class="amount">590 €</div><p>Le permis de construire complet, à partir des plans de votre constructeur ou des vôtres, jusqu'à 150 m². Attestation énergétique du constructeur non comprise.</p><span class="delay">PRÊT EN 5 JOURS</span></div>
-      
-    </div>
-    <div class="extras">
-      <div><h3>Ajouté seulement si votre situation le demande</h3><ul>
-        <li><span>Maison près d'un monument ou en secteur protégé<small class="extra-note">L'architecte des Bâtiments de France donne son accord au cas par cas. On précise les matériaux, les couleurs et les menuiseries, on soigne l'insertion dans le paysage et on rédige une notice qui défend votre projet. La mairie met un mois de plus à répondre.</small></span><b>+ 149 €</b></li>
-        <li><span>Logement en copropriété, avec les documents pour le vote</span><b>+ 99 €</b></li>
-      </ul></div>
-      <div><h3>Options</h3><ul>
-        <li><span>Dossier prêt en 24 h au lieu de 48 h</span><b>+ 49 €</b></li>
-        <li><span>On dépose le dossier et on le suit jusqu'à la réponse de la mairie<small class="extra-note">Dépôt en ligne avec votre accord écrit, accusé de réception transmis, réponse aux demandes de pièces de la mairie, nouvelles à chaque étape.</small></span><b>+ 99 €</b></li>
-        <li><span>20 minutes en visio avec la personne qui suit votre dossier</span><b>49 €</b></li>
-        <li><span>Conception du projet ou plan d'aménagement intérieur, quand vous n'avez qu'une idée</span><b>Sur devis</b></li>
-      </ul></div>
-      <div><h3>Les autres démarches</h3><ul>
-        <li><span><a href="plan-de-masse/">Plan de masse automatique, aperçu gratuit</a></span><b>29 €</b></li>
-        <li><span><a href="plan-de-situation/">Plan de situation</a></span><b>Gratuit</b></li>
-        <li><span><a href="plan-de-masse/">Plan de masse vérifié : on étudie le règlement de votre terrain</a></span><b>79 €</b></li>
-        <li><span>Déclarer des travaux déjà faits</span><b>même prix</b></li>
-        <li><span>Savoir ce qu'on peut construire sur un terrain</span><b>89 à 149 €</b></li>
-        <li><span>Modifier un permis déjà accordé</span><b>249 €</b></li>
-        <li><span>Déclarer la fin de vos travaux</span><b>49 €</b></li>
-        <li><span>Répondre à une demande de pièces de la mairie (hors erreur de notre part, compris avec l'option dépôt et suivi)</span><b>69 €</b></li>
-        <li><span>Reprendre les plans pour suivre les demandes de l'ABF ou de la mairie, et redéposer</span><b>149 €</b></li>
-      </ul></div>
+    <p class="formules-note">Ce que vous avez payé est déduit de la formule au-dessus pendant 30 jours. <a href="tarifs/">Tous les tarifs et les options</a></p>
+    <div class="confiance">
+      <div><b>Si la mairie refuse à cause de nous, on reprend tout, gratuitement.</b><a href="tarifs/#garantie">Voir les conditions</a></div>
+      <a class="confiance-tel" href="tel:+33184166553"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/></svg><span><b>01 84 16 65 53</b><small>Lundi au vendredi, 9 h à 18 h</small></span></a>
     </div>
   </div>
 </section>
 
-<!-- COMPARATIF -->
-<section style="background:var(--surface);border-top:1px solid var(--line);border-bottom:1px solid var(--line)">
+<!-- 5. QUESTIONS -->
+<section id="faq" class="bande">
   <div class="wrap">
-    <div class="head">
-      <span class="eyebrow">Pourquoi nous</span>
-      <h2>Le travail d'un vrai bureau d'études, au prix d'un outil en ligne.</h2>
-      <p class="lead">Un outil automatique vous fait dessiner vous-même, et vous laisse seul face au PLU. Chez nous, un croquis suffit, et on lit le PLU pour vous.</p>
-    </div>
-    <div class="compare-scroll">
-      <table class="compare">
-        <thead><tr><th></th><th>Outil automatique</th><th>Bureau d'études classique</th><th class="us">Le Bon Permis</th></tr></thead>
-        <tbody>
-          <tr><td>Le PLU de votre commune</td><td>À vérifier vous-même</td><td>Vérifié</td><td class="us">Lu en entier, avant de dessiner</td></tr>
-          <tr><td>Si votre projet ne respecte pas une règle</td><td>Vous l'apprenez par le refus de la mairie</td><td>On vous prévient</td><td class="us">On vous le dit avant de commencer, avec la règle qui bloque</td></tr>
-          <tr><td>Ce que vous devez fournir</td><td>Un plan fait par vous dans le logiciel</td><td>Un rendez-vous, puis un devis</td><td class="us">Un croquis, des mesures, des photos</td></tr>
-          <tr><td>Qui trace les plans ?</td><td>Vous, avec un logiciel</td><td>Un dessinateur</td><td class="us">Nous, d'après votre croquis et vos photos</td></tr>
-          <tr><td>Extension, véranda, façade : l'existant dessiné</td><td>Sur devis, ou pas du tout</td><td>Oui</td><td class="us">Oui, compris</td></tr>
-          <tr><td>Relu par une deuxième personne</td><td>Non</td><td>Parfois</td><td class="us">Toujours</td></tr>
-          <tr><td>Prix d'une déclaration de travaux</td><td>39 à 89 €</td><td>190 à 590 €</td><td class="us">149 €</td></tr>
-          <tr><td>Dossier prêt en</td><td>Quelques minutes</td><td>5 à 15 jours</td><td class="us">48 h</td></tr>
-          <tr><td>Si la mairie refuse à cause d'une erreur dans le dossier</td><td>Vous recommencez</td><td>Ça dépend</td><td class="us">On corrige et on redépose, gratuitement</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-</section>
-
-<!-- ÉQUIPE -->
-<section>
-  <div class="wrap split">
-    <div class="art"><img src="img/09-equipe.webp" alt="Une équipe réunie dans un atelier lumineux, plans et tasses de café à la main" loading="lazy" width="1400" height="788"></div>
-    <div>
-      <span class="eyebrow">Qui s'occupe de votre dossier</span>
-      <h2>De vraies personnes, joignables au téléphone.</h2>
-      <p class="lead" style="margin-top:16px">Une petite équipe d'urbanistes et de dessinateurs. Chaque dossier passe entre deux paires de mains avant de vous être envoyé.</p>
-      <p class="team-quote">« Une question ? Vous parlez à la personne qui prépare votre dossier. Pas à un robot. »</p>
-      <a class="tel-grand" href="tel:+33184166553"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/></svg><span><b>01 84 16 65 53</b><small>Du lundi au vendredi, 9 h à 18 h. Appel non surtaxé.</small></span></a>
-    </div>
-  </div>
-  <div class="wrap" style="margin-top:40px">
-    <div class="guarantee">
-      <div class="seal"><svg width="30" height="30" viewBox="0 0 30 30"><path d="M8 15.5l4.5 4.5L22 10" fill="none" stroke="var(--accent)" stroke-width="3"/></svg></div>
-      <div>
-        <h3>Si la mairie dit non à cause de nous, on reprend tout, gratuitement.</h3>
-        <p>Un refus ou une pièce manquante à cause d'une erreur dans le dossier ? On corrige et on redépose, sans rien vous facturer. Si la mairie ou l'architecte des Bâtiments de France demande autre chose sans que le dossier soit en cause, on s'en occupe aussi, au tarif affiché : 69&nbsp;€ pour compléter le dossier, 149&nbsp;€ pour redessiner et redéposer.</p>
-        <small>Une reprise par dossier, dans les 6 mois qui suivent la décision. Ne sont pas couverts : un projet modifié après la commande, des photos ou des mesures inexactes, et un refus portant sur le projet lui-même alors qu'on vous avait prévenu avant le dépôt. C'est toujours la mairie qui décide en dernier.</small>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- FAQ -->
-<section id="faq" style="padding-top:0">
-  <div class="wrap">
-    <div class="head"><span class="eyebrow">Vous vous demandez peut-être</span><h2>Questions fréquentes</h2></div>
+    <div class="head"><h2>Questions fréquentes</h2></div>
     <div class="faq">
       <details><summary>Qu'est-ce que vous vérifiez exactement dans le PLU ?</summary><p>Tout ce qui touche votre projet : distance aux voisins et à la rue, hauteur, part du terrain bâtie, toits, couleurs, clôtures, stationnement. Le PLU, c'est le règlement de votre commune, et il est différent partout. On le lit avant de dessiner. Si votre projet ne passe pas, on vous dit quelle règle bloque et ce qu'elle autorise.</p></details>
       <details><summary>Déclaration de travaux ou permis de construire : comment savoir ?</summary><p>Vous n'avez pas à le savoir, c'est notre travail. En général, une déclaration suffit jusqu'à 20 m² créés, ou 40 m² pour une extension en ville. Au-delà, il faut un permis.</p></details>
-            <details><summary>Qu'est-ce que je dois vous fournir exactement ?</summary><p>Votre projet, sous la forme que vous avez : un croquis pris en photo, un devis, la fiche du fabricant, les plans du constructeur. Plus les mesures et quelques photos. Pour un abri ou une pergola du commerce, la fiche du modèle suffit. Vous n'avez qu'une idée ? La conception se fait sur devis.</p></details>
-            <details><summary>Mon croquis est moche et pas à l'échelle. Ça ira ?</summary><p>Oui. Ce qui compte, ce sont les mesures écrites dessus. L'échelle et la mise au propre, c'est nous. S'il manque une mesure, on vous la demande.</p></details>
+      <details><summary>Qu'est-ce que je dois vous fournir exactement ?</summary><p>Votre projet, sous la forme que vous avez : un croquis pris en photo, un devis, la fiche du fabricant, les plans du constructeur. Plus les mesures et quelques photos. Pour un abri ou une pergola du commerce, la fiche du modèle suffit. Vous n'avez qu'une idée ? La conception se fait sur devis.</p></details>
+      <details><summary>Mon croquis est moche et pas à l'échelle. Ça ira ?</summary><p>Oui. Ce qui compte, ce sont les mesures écrites dessus. L'échelle et la mise au propre, c'est nous. S'il manque une mesure, on vous la demande.</p></details>
       <details><summary>Mes travaux sont déjà faits. C'est trop tard ?</summary><p>Non. On les déclare après coup, au même prix, à partir de photos de ce qui existe. Avant une vente, voyez <a href="regularisation-avant-vente/">régulariser avant une vente</a>.</p></details>
       <details><summary>Combien de temps la mairie met-elle à répondre ?</summary><p>Un mois pour une déclaration, deux mois pour un permis de maison, un mois de plus près d'un monument historique. À compter du dépôt du dossier complet.</p></details>
-            <details><summary>Et si la mairie demande des pièces en plus ?</summary><p>Si c'est à cause d'une erreur ou d'un oubli de notre part, on corrige et on redépose gratuitement. Si la demande vient d'ailleurs (un détail que la mairie veut voir, une prescription de l'architecte des Bâtiments de France, un projet que vous changez), on la traite pour 69&nbsp;€ quand il suffit de compléter le dossier (c'est compris si vous avez pris l'option dépôt et suivi), ou 149&nbsp;€ quand il faut redessiner et redéposer. On vous le dit avant, vous décidez.</p></details>
-            <details><summary>Est-ce qu'il me faut un architecte ?</summary><p>Pour une déclaration préalable, jamais. Pour un permis de construire, seulement dans deux cas : si la maison dépasse 150 m² après les travaux, ou si le projet est au nom d'une société (une SCI par exemple). Dans ces cas, on vous met en relation avec un architecte partenaire, qui conçoit le projet avec vous.</p></details>
-            <details><summary>Le paiement est-il sécurisé ?</summary><p>Oui. Vous payez par carte, Apple Pay, Google Pay ou PayPal, sur une page sécurisée. Vos données bancaires ne passent jamais par nous.</p></details>
-      <details><summary>Comment vous joindre ?</summary><p>Par téléphone au <a href="tel:+33184166553">01 84 16 65 53</a>, du lundi au vendredi, ou par e-mail à <a href="mailto:contact@bonpermis.fr">contact@bonpermis.fr</a>. Une fois votre dossier commandé, vous nous écrivez aussi directement depuis votre espace, et on vous répond au même endroit.</p></details>
+      <details><summary>Est-ce qu'il me faut un architecte ?</summary><p>Pour une déclaration préalable, jamais. Pour un permis de construire, seulement dans deux cas : si la maison dépasse 150 m² après les travaux, ou si le projet est au nom d'une société (une SCI par exemple). Dans ces cas, on vous met en relation avec un architecte partenaire, qui conçoit le projet avec vous.</p></details>
       <details><summary>Qui êtes-vous ?</summary><p>Le Bon Permis est un service de LK Invest, société installée à Paris. On met en forme les dossiers de mairie des particuliers, à partir de leur projet, partout en France. Entreprise privée, sans lien avec les administrations.</p></details>
     </div>
-  </div>
-</section>
-
-<!-- FIN -->
-<section class="final">
-  <div class="wrap split">
-    <div>
-      <span class="eyebrow">Et après</span>
-      <h2>Le jour où la mairie dit oui, il ne reste plus qu'à construire.</h2>
-      <p class="lead" style="margin-top:16px">Choisissez votre projet : en une minute, vous saurez ce qu'il vous faut et ce que ça coûte.</p>
-      <a class="btn blue-btn js-start" href="#projets" style="margin-top:28px">Voir mon prix en une minute</a>
-    </div>
-    <div class="art"><img src="img/10-accorde.webp" alt="Une famille devant sa maison agrandie serre la main de la personne qui a suivi son dossier" loading="lazy" width="900" height="1080"></div>
+    <div class="outil-carte fin-adr"><div class="adr" data-id="fin" data-vers="plan-de-situation/" data-label="Commencez par votre adresse" data-bouton="Voir mon terrain"></div></div>
   </div>
 </section>
 
