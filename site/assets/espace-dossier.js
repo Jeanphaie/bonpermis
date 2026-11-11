@@ -79,11 +79,12 @@
     if (/^secte-/.test(id)) return 'abf';
     if (/^(copro|lotis|locat)-/.test(id)) return 'situation';
     if (/^regul-/.test(id)) return 'regul';
+    if (/^cerfa-/.test(id)) return 'formulaire';
     if (['rue', 'endroit', 'loin', 'pente-terrain'].includes(id)) return 'lieu';
     if (['autre', 'documents'].includes(id)) return 'docs';
     return 'projet';
   }
-  const GROUPES = [['projet', 'Votre projet'], ['lieu', 'Le lieu'], ['abf', 'Pour l\'architecte des Bâtiments de France'], ['situation', 'Copropriété, lotissement, location'], ['regul', 'Les travaux déjà faits'], ['docs', 'Documents utiles']];
+  const GROUPES = [['projet', 'Votre projet'], ['lieu', 'Le lieu'], ['abf', 'Pour l\'architecte des Bâtiments de France'], ['situation', 'Copropriété, lotissement, location'], ['regul', 'Les travaux déjà faits'], ['formulaire', 'Pour le formulaire de la mairie'], ['docs', 'Documents utiles']];
 
   function piece(p) {
     const modif = d.statut !== 'livre', fs = d.fichiers.filter(f => f.piece === p.id);
@@ -142,7 +143,7 @@
   }
 
   // ---------- vue guidée (dossier à compléter) : frise fixe des étapes, une chose à la fois ----------
-  const COURT = {projet: 'Votre projet', lieu: 'Photos', abf: 'Matériaux', situation: 'Situation', regul: 'Travaux faits', docs: 'Documents', plan: 'Plan', valider: 'Valider', envoyer: 'Envoyer'};
+  const COURT = {projet: 'Votre projet', lieu: 'Photos', abf: 'Matériaux', situation: 'Situation', regul: 'Travaux faits', formulaire: 'Formulaire', docs: 'Documents', plan: 'Plan', valider: 'Valider', envoyer: 'Envoyer'};
   const guide = () => d.statut === 'brouillon' || d.statut === 'elements';
   let ouv = null, ouvP = 0;
   function lesEtapes() {
@@ -196,7 +197,7 @@
     }
     if (x.id === 'plan') return `<section class="dz-carte dz-et" id="etape">${tete}${carteplan(x.pieces[0])}<div class="dz-act"><button class="lien" type="button" data-suite>${x.fait ? 'Étape suivante →' : 'Passer cette étape →'}</button></div></section>`;
     if (x.pieces.every(p => p.type === 'texte')) return `<section class="dz-carte dz-et" id="etape">${tete}<h2 class="dz-h2">${esc(x.titre)}</h2>
-      <p class="note">Des réponses courtes suffisent. Si vous ne savez pas, écrivez « je ne sais pas » : on vous aidera.</p>${x.pieces.map(piece).join('')}
+      <p class="note">${x.id === 'formulaire' ? 'On remplit le formulaire officiel (Cerfa) à votre place. Il nous faut seulement ces renseignements, que la mairie exige. Vous le relirez et le signerez avant le dépôt.' : 'Des réponses courtes suffisent. Si vous ne savez pas, écrivez « je ne sais pas » : on vous aidera.'}</p>${x.pieces.map(piece).join('')}
       <div class="dz-act"><button class="btn blue-btn" type="button" data-suite data-fin-etape>Enregistrer et continuer →</button></div></section>`;
     if (ouvP >= x.pieces.length) ouvP = 0;
     const p = x.pieces[ouvP], dernier = ouvP === x.pieces.length - 1;

@@ -150,6 +150,11 @@ D = {
  'regul': [T('regul-date', 'Quand les travaux ont-ils été faits ?', "À peu près suffit. Si la mairie vous a écrit, joignez son courrier dans « Autres documents ».", 'Exemple : été 2019'),
            F('regul-factures', 'Les factures', 'Si vous les avez : elles datent les travaux.', fac=True),
            P('regul-photos', "Les travaux tels qu'ils sont aujourd'hui", 'Sous tous les angles, de près et de loin.')],
+ 'formulaire': [T('cerfa-nom', 'Nom et prénom du propriétaire', "La personne qui signera la demande. Plusieurs propriétaires ? Écrivez tous les noms. Pour une société : son nom, son numéro SIRET et le nom de son représentant.", 'Exemple : Jeanne Martin'),
+                T('cerfa-naissance', 'Date et lieu de naissance', "Le formulaire de la mairie les demande pour chaque propriétaire. Inutile pour une société.", 'Exemple : 12/03/1961 à Bayonne (64)'),
+                T('cerfa-adresse', 'Votre adresse postale et votre téléphone', "Là où la mairie doit vous écrire, si ce n'est pas l'adresse des travaux.", 'Exemple : même adresse que les travaux, 06 12 34 56 78'),
+                T('cerfa-residence', 'Résidence principale ou secondaire ?', "La mairie s'en sert pour calculer la taxe.", 'Exemple : résidence principale'),
+                T('cerfa-courriel', 'La mairie peut-elle vous répondre par e-mail ?', "C'est plus rapide que le courrier. Sans réponse de votre part, on cochera non.", 'Exemple : oui', fac=True)],
  'situations': {
   'secteur_protege': [T('secte-references', "Précisions pour l'Architecte des Bâtiments de France", "Il exige les références exactes de ce que vous avez décrit plus haut : RAL, nom du nuancier, fiche du fabricant.",
                         'Exemple : tuiles terre cuite rouge vieilli, volets bois peints RAL 6005'),

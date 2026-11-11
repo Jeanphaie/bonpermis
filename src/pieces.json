@@ -225,7 +225,7 @@
     "id": "forme",
     "nom": "L'extension en quelques mots",
     "type": "texte",
-    "aide": "Hauteur (plain-pied ou étage), toit plat ou en pente, fenêtres et portes voulues. Sa place et sa taille : sur le plan ci-dessus. Joignez un croquis à la main pris en photo, dans « Autres documents » : on le met au propre et à l'échelle, vous validez.",
+    "aide": "Hauteur (plain-pied ou étage), toit plat ou en pente, fenêtres et portes voulues. Sa place et sa taille : sur le plan ci-dessus. Un croquis à la main pris en photo est bienvenu, dans « Autres documents » : on dessine une proposition, vous la validez.",
     "exemple": "Exemple : plain-pied, toit plat, une grande baie vitrée côté jardin"
    },
    {
@@ -342,7 +342,7 @@
     "id": "forme",
     "nom": "L'étage voulu en quelques mots",
     "type": "texte",
-    "aide": "Sur toute la maison ou une partie, forme du toit, fenêtres. Joignez un croquis à la main pris en photo, dans « Autres documents » : on le met au propre et à l'échelle, vous validez.",
+    "aide": "Sur toute la maison ou une partie, forme du toit, fenêtres. Un croquis à la main pris en photo est bienvenu, dans « Autres documents » : on dessine une proposition, vous la validez.",
     "exemple": "Exemple : un étage complet, même toit en tuiles, 3 fenêtres côté rue comme en bas"
    },
    {
@@ -768,6 +768,44 @@
    "nom": "Les travaux tels qu'ils sont aujourd'hui",
    "type": "photo",
    "aide": "Sous tous les angles, de près et de loin."
+  }
+ ],
+ "formulaire": [
+  {
+   "id": "cerfa-nom",
+   "nom": "Nom et prénom du propriétaire",
+   "type": "texte",
+   "aide": "La personne qui signera la demande. Plusieurs propriétaires ? Écrivez tous les noms. Pour une société : son nom, son numéro SIRET et le nom de son représentant.",
+   "exemple": "Exemple : Jeanne Martin"
+  },
+  {
+   "id": "cerfa-naissance",
+   "nom": "Date et lieu de naissance",
+   "type": "texte",
+   "aide": "Le formulaire de la mairie les demande pour chaque propriétaire. Inutile pour une société.",
+   "exemple": "Exemple : 12/03/1961 à Bayonne (64)"
+  },
+  {
+   "id": "cerfa-adresse",
+   "nom": "Votre adresse postale et votre téléphone",
+   "type": "texte",
+   "aide": "Là où la mairie doit vous écrire, si ce n'est pas l'adresse des travaux.",
+   "exemple": "Exemple : même adresse que les travaux, 06 12 34 56 78"
+  },
+  {
+   "id": "cerfa-residence",
+   "nom": "Résidence principale ou secondaire ?",
+   "type": "texte",
+   "aide": "La mairie s'en sert pour calculer la taxe.",
+   "exemple": "Exemple : résidence principale"
+  },
+  {
+   "id": "cerfa-courriel",
+   "nom": "La mairie peut-elle vous répondre par e-mail ?",
+   "type": "texte",
+   "aide": "C'est plus rapide que le courrier. Sans réponse de votre part, on cochera non.",
+   "exemple": "Exemple : oui",
+   "facultatif": true
   }
  ],
  "situations": {

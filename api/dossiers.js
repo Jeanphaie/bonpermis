@@ -42,6 +42,7 @@ function piecesInitiales(kind, p, ctx) {
     if (c.regul === true || c.regul === 'true') for (const x of out) if (x.id === 'endroit') x.aide = "À quelques mètres : l'endroit exact où ont été faits les travaux.";
     if (a.abf === 'oui') out.push(...copie(PIECES.situations.secteur_protege));
     if (a.copro === 'oui') out.push(...copie(PIECES.situations.copropriete));
+    out.push(...copie(PIECES.formulaire).filter(x => x.id !== 'cerfa-residence' || !['cu', 'daact'].includes(p)));
     const vus = new Set();
     return out.filter(x => !vus.has(x.id) && vus.add(x.id)).concat(autre);
   }
