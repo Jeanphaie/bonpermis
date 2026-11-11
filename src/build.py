@@ -171,9 +171,7 @@ def tuile(k, base, simu=True):
 
 
 def tuiles_accueil():
-    # Les travaux déjà faits ont leur tuile, au même rang que les autres projets.
-    regul = (f'<a class="tile" href="{URL["regul"]}/"><img src="img/{REGUL_IMG}.webp" alt="" loading="lazy" width="480" height="480">'
-             '<span>Travaux déjà faits<small>À déclarer après coup</small></span></a>')
+    regul = ''  # les travaux déjà faits ont leur propre bloc sur l'accueil
     out = []
     for i, g in enumerate(GROUPS):
         out.append(f'<div class="group"><div class="group-h"><h3>{e(g["t"])}</h3><small>{e(g["s"])}</small></div>'
