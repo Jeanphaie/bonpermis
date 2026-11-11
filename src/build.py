@@ -83,6 +83,10 @@ def head(titre, desc, chemin, base, jsonld):
 <meta property="og:title" content="{e(titre)}">
 <meta property="og:description" content="{e(desc)}">
 <meta property="og:url" content="{url}">
+<meta property="og:image" content="{DOMAINE}/img/partage.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="preload" href="{base}assets/fonts/geist.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="{base}assets/style.css">
 {ld}
@@ -207,9 +211,9 @@ def accueil():
     ld = [{"@context": "https://schema.org", **ORGA},
           {"@context": "https://schema.org", "@type": "WebSite", "name": "Le Bon Permis", "url": DOMAINE + "/", "inLanguage": "fr-FR"},
           faq_ld(corps)]
-    titre = 'Le Bon Permis : déclaration préalable et permis de construire en ligne'
-    desc = ("Abri, piscine, extension, véranda : envoyez votre projet, même en croquis. On vérifie qu'il respecte le PLU de votre commune, "
-            "puis on trace les plans et on remplit le dossier de mairie. Prix connu en une minute, prêt en 48 h.")
+    titre = 'Déclaration préalable et permis de construire | Le Bon Permis'
+    desc = ("Abri, piscine, extension : envoyez un croquis, on vérifie les règles de votre mairie et on prépare tout le dossier. "
+            "Dès 149 €, prêt en 48 h.")
     return head(titre, desc, '', '', ld) + '<body>\n\n' + entete('', True) + '\n' + corps + '\n' + pied('') + OVERLAY + '<script src="assets/adresse.js"></script>\n' + scripts('')
 
 
@@ -222,7 +226,10 @@ def page(k):
         need = ['Ce qui a été construit : type, dimensions, matériaux, et la date approximative des travaux',
                 'Les dimensions de ce qui existe et la distance aux limites du terrain',
                 'Des photos de ce qui est construit, la maison vue de la rue, le terrain vu de loin']
-    regles = ''.join(f'<tr><th scope="row">{e(a)}</th><td>{e(b)}</td></tr>' for a, b in c['regles'])
+    def genre(b):
+        x = b.lower()
+        return 'rien' if x.startswith(('aucune', 'rien', 'pas de', 'non')) else 'pc' if 'permis' in x else 'dp'
+    regles = ''.join(f'<div class="regle {genre(b)}"><span>{e(a)}</span><b>{e(b)}</b></div>' for a, b in c['regles'])
     srcs = ' · '.join(f'<a href="{SOURCES[s][1]}" rel="noopener" target="_blank">{e(SOURCES[s][0])}</a>' for s in c['sources'])
     liens = ''.join(tuile(l, base, False) if l in P else (
         f'<a class="tile" href="{base}{URL[l]}/"><img src="{base}img/{img(l)}.webp" alt="" loading="lazy" width="480" height="480"><span>{e(nom(l))}</span></a>'
@@ -244,8 +251,31 @@ def page(k):
         + '</div>')
     PLU_IMG = {'abri': '49-plu-abri', 'annexe': '49-plu-abri', 'cloture': '50-plu-cloture', 'portail': '50-plu-cloture', 'piscine': '51-plu-piscine',
                'extension': '52-plu-extension', 'veranda': '52-plu-extension'}
-    plu_illu = (f'<figure class="plu-illu"><img src="../img/{PLU_IMG.get(k, "44-plu")}.webp" alt="" loading="lazy" width="960" height="960">'
-                '<figcaption>On lit le règlement de votre mairie avant de dessiner : distances, hauteur, part du terrain bâtie.</figcaption></figure>')
+    plu_img = PLU_IMG.get(k, '42-etape-plu')
+    REFUS = {'cloture': ['Une clôture trop haute', 'Un mur plein là où il est interdit', 'Une couleur non admise'],
+             'facade': ['Une couleur hors du nuancier de la commune', 'Un matériau interdit', 'Un enduit non admis'],
+             'piscine': ['Un bassin trop près de la limite du terrain', 'Une distance à la rue non respectée', 'Un abri de piscine trop haut']}
+    REFUS['portail'] = REFUS['cloture']
+    for x in ('menuiseries', 'toiture', 'velux', 'lucarne', 'solaire'):
+        REFUS[x] = ['Une couleur ou un matériau non admis', 'Une ouverture mal placée', 'Une règle propre au secteur protégé']
+    refus = REFUS.get(k, ['Une construction trop près du voisin', 'Une hauteur dépassée', 'Un matériau ou une couleur interdits'])
+    CROIX = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>'
+    COCHE = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+    promesse = ("On vérifie d'abord si c'est régularisable. Si ça ne passe pas, on vous le dit avant de dessiner." if simu == 'regul'
+                else "On lit le règlement de votre mairie avant de dessiner. Si une règle bloque, on vous le dit tout de suite.")
+    risque_html = '' if (k in P and P[k].get('svc')) else f'''
+<section id="risque" class="page-sec alt regles">
+  <div class="wrap regles-g">
+    <figure class="regles-img"><img src="../img/44-plu.webp" alt="Le règlement d'une commune ouvert sur un bureau, avec sa carte des zones et une loupe" loading="lazy" width="640" height="640"></figure>
+    <div>
+      <h2>Un seul détail peut faire refuser votre dossier.</h2>
+      <p class="lead">Chaque mairie a son règlement. Il est différent partout.</p>
+      <ul class="regles-non">{"".join(f"<li>{CROIX}{e(x)}</li>" for x in refus)}</ul>
+      <p class="regles-oui">{COCHE}<span>{promesse}</span></p>
+      <a class="btn blue-btn" href="#top" data-adresse>Commencer par mon adresse</a>
+    </div>
+  </div>
+</section>'''
     # Exemple de dossier réel (avec l'accord écrit du client, données personnelles masquées) : planches cliquables
     ex = c.get('exemple')
     exemple_html = '' if not ex else (
@@ -271,7 +301,8 @@ def page(k):
         faits_prix = f"<span><b>{e(c['prix'])}</b>Prix TTC tout compris</span><span><b>{e(c['delai'])}</b>Dossier prêt</span>"
         cta_prix, cta_lignes = c['prix'], ''
     need_html = '' if not need else (
-        '<ul class="need-list">' + ''.join(f'<li><i>{t}</i>{e(x)}</li>' for t, x in zip(['Le projet', 'Les mesures', 'Les photos'], need)) + '</ul>')
+        '<details class="besoin"><summary>Ce qu\'il faut nous envoyer</summary><ul class="need-list">'
+        + ''.join(f'<li><i>{t}</i>{e(x)}</li>' for t, x in zip(['Le projet', 'Les mesures', 'Les photos'], need)) + '</ul></details>')
     cat = 'regul' if simu == 'regul' else P[simu]['cat']
     prix_num = BASE.get(cat, 149)
     ld = [
@@ -293,10 +324,8 @@ def page(k):
       <nav class="crumbs" aria-label="Fil d'Ariane"><a href="../">Accueil</a> › <a href="../#projets">Projets</a> › <span>{e(n)}</span></nav>
       <h1>{e(c['h1'])}</h1>
       <p class="answer">{e(c['chapo'])}</p>
-      <div class="hero-cta">
-        <button class="btn blue-btn" type="button" data-p="{simu}">{e(c.get("cta", "Voir mon prix en une minute"))}</button>
-        <a class="btn ghost" href="#regles">Les règles en détail</a>
-      </div>
+      <div class="outil-carte hero-adr"><div class="adr" data-id="pp" data-reprend data-label="Votre prix exact : commencez par votre adresse" data-bouton="Voir mon prix"></div>
+        <p class="pm-note">Deux ou trois questions, puis votre prix. <button class="lien" type="button" data-p="{simu}">Je n'ai pas encore l'adresse</button></p></div>
       <div class="facts">{faits_prix}<span><b>{e(c.get("fait3", ["Sans frais", "Si refus de notre fait"])[0])}</b>{e(c.get("fait3", ["Sans frais", "Si refus de notre fait"])[1])}</span></div>
     </div>
     <div class="page-art"><img src="../img/{img(k)}.webp" alt="{e(n)} : illustration du projet" width="480" height="480" fetchpriority="high"></div>
@@ -304,51 +333,41 @@ def page(k):
 </section>
 
 <section id="regles" class="page-sec">
-  <div class="wrap narrow">
+  <div class="wrap">
     <h2>Quelle démarche pour votre projet ?</h2>
-    <table class="rules"><thead><tr><th scope="col">Votre situation</th><th scope="col">Ce qu'il faut</th></tr></thead><tbody>{regles}</tbody></table>
+    <div class="regle-cartes">{regles}</div>
     <p class="rules-note">{e(c['note'])}</p>
     <p class="rules-src">Règles générales du code de l'urbanisme. Le règlement de votre mairie (le PLU) peut être plus strict : on le vérifie avec votre adresse avant de dessiner. Sources : {srcs}. Mis à jour le {date_txt(maj(k))}.</p>
   </div>
 </section>
-
-<section class="page-sec alt">
-  <div class="wrap narrow">
-    <h2>Ce qu'on vous demandera</h2>
-    <p class="lead">Un croquis à main levée suffit. Vous l'envoyez après le paiement, depuis votre téléphone.</p>
+{risque_html}
+<section id="comment" class="page-sec">
+  <div class="wrap">
+    <h2>Comment ça marche</h2>
+    <div class="steps trois" style="margin-top:28px">
+      <article class="step"><img src="../img/41-etape-croquis.webp" alt="Un plan dessiné à la main, photographié avec un téléphone" loading="lazy" width="640" height="640"><div class="body"><span class="n">1</span><h3>Vous envoyez un croquis</h3><p>Avec vos mesures et quelques photos. Depuis votre téléphone, après le paiement.</p></div></article>
+      <article class="step"><img src="../img/{plu_img}.webp" alt="Un terrain vu du dessus, avec la maison, le projet en bleu et les limites" loading="lazy" width="640" height="640"><div class="body"><span class="n">2</span><h3>On vérifie les règles de votre mairie</h3><p>Si une règle bloque votre projet, on vous le dit avant de dessiner.</p></div></article>
+      <article class="step"><img src="../img/43-etape-dossier.webp" alt="Un dossier de plans imprimés : plan de masse, façades, coupe" loading="lazy" width="640" height="640"><div class="body"><span class="n">3</span><h3>Vous recevez le dossier prêt à déposer</h3><p>Tous les plans, le formulaire rempli, relus par une deuxième personne. En {e(c['delai'])}.</p></div></article>
+    </div>
     {need_html}
-    <h2 class="mt">Ce qu'on fait pour vous</h2>
-    {plu_illu}
-    <ul class="need-list">
-      <li><i>On vérifie les règles de votre mairie</i>Avant de dessiner. Si une règle bloque, on vous le dit, et vous décidez de ce que vous changez.</li>
-      <li><i>On trace tous les plans</i>À l'échelle, d'après votre croquis et vos mesures.</li>
-      <li><i>On remplit le formulaire officiel</i>Une deuxième personne relit tout.</li>
-      <li><i>Vous déposez</i>En ligne, avec notre guide. Ou on dépose pour vous.</li>
-    </ul>
     <div class="cta-box">
       <div><b>{e(cta_prix)}</b>{cta_lignes}<span>{e(cta_txt)}</span></div>
       <button class="btn blue-btn" type="button" data-p="{simu}">Voir mon prix exact</button>
     </div>
+    <p class="gar-ligne"><b>{e(gar_t)}</b> {e(gar_p)} <a href="../tarifs/#garantie">Voir les conditions</a></p>
   </div>
 </section>
 {exemple_html}{blocs_sup}
 {faq_html}
 <section class="page-sec">
   <div class="wrap">
-    <div class="guarantee">
-      <div class="seal"><svg width="30" height="30" viewBox="0 0 30 30"><path d="M8 15.5l4.5 4.5L22 10" fill="none" stroke="var(--accent)" stroke-width="3"/></svg></div>
-      <div>
-        <h3>{e(gar_t)}</h3>
-        <p>{e(gar_p)}</p>
-      </div>
-    </div>
-    <h2 class="mt">Projets proches</h2>
+    <h2>Projets proches</h2>
     <div class="tiles related">{liens}</div>
   </div>
 </section>
 </main>
 '''
-    return head(titre, c['desc'], slug + '/', base, ld) + f'<body data-page="{simu}">\n\n' + entete(base, False, simu if simu in P or simu == 'regul' else None) + '\n' + corps + '\n' + pied(base) + OVERLAY + scripts(base)
+    return head(titre, c['desc'], slug + '/', base, ld) + f'<body data-page="{simu}">\n\n' + entete(base, False, simu if simu in P or simu == 'regul' else None) + '\n' + corps + '\n' + pied(base) + OVERLAY + f'<script src="{base}assets/adresse.js"></script>\n' + scripts(base)
 
 
 COOKIES_SANS = ("<p>Le site n'utilise pas de cookie publicitaire ni de mesure d'audience. Seuls des cookies techniques servent à garder "
@@ -490,7 +509,7 @@ def page_plan_masse():
 
 <section id="plu" class="page-sec regles">
   <div class="wrap regles-g">
-    <figure class="regles-img"><img src="../img/44-plu.webp" alt="Le règlement d'une commune ouvert sur un bureau, avec sa carte des zones et une loupe" loading="lazy" width="960" height="960"></figure>
+    <figure class="regles-img"><img src="../img/44-plu.webp" alt="Le règlement d'une commune ouvert sur un bureau, avec sa carte des zones et une loupe" loading="lazy" width="640" height="640"></figure>
     <div>
       <h2>Un seul détail peut faire refuser votre dossier.</h2>
       <p class="lead">Chaque mairie a son règlement. Il est différent partout.</p>
@@ -543,8 +562,8 @@ def page_plan_masse():
 </section>
 </main>
 """
-    h = head(f'Plan de masse en ligne : coté, à l\'échelle, {PRIX_PLAN} € | Le Bon Permis',
-             f"Plan de masse coté dans les 3 dimensions pour déclaration préalable ou permis de construire. Posez votre projet sur votre terrain : aperçu et plan de situation gratuits, PDF prêt à déposer pour {PRIX_PLAN} €.",
+    h = head(f'Plan de masse en ligne : aperçu gratuit, {PRIX_PLAN} € | Le Bon Permis',
+             f"Plan de masse coté pour déclaration préalable ou permis de construire. Tapez votre adresse, posez votre projet : aperçu gratuit, PDF pour {PRIX_PLAN} €.",
              'plan-de-masse/', base, ld)
     h = h.replace('</head>', f'<link rel="stylesheet" href="{base}assets/espace.css">\n</head>')
     return (h + '<body data-page="legal">\n\n' + entete(base, False) + '\n' + corps + '\n' + pied(base) + OVERLAY
@@ -583,7 +602,7 @@ def page_tarifs():
 {corps_src}
 </main>
 """
-    h = head('Tarifs : déclaration préalable dès 149 €, permis de construire dès 490 € | Le Bon Permis',
+    h = head('Tarifs : déclaration préalable dès 149 € | Le Bon Permis',
              f"Tous les prix du Bon Permis : plan de masse {PRIX_PLAN} €, plan vérifié {PRIX_ETUDE} €, déclaration préalable dès 149 €, permis de construire dès 490 €. Options et garantie.",
              'tarifs/', base, ld)
     return h + '<body data-page="legal">\n\n' + entete(base, False) + '\n' + corps + '\n' + pied(base) + OVERLAY + scripts(base)
@@ -609,7 +628,7 @@ def page_plan_situation():
     <div class="outil-carte"><div class="adr" data-id="ps" data-bouton="Voir mon terrain"></div></div>
     <p class="outil-sous">Gratuit · Sans compte · PDF prêt à déposer (DP1, PCMI1)</p>
     </div>
-    <div class="page-art"><img src="../img/45-plan-situation-carte.webp" alt="Un terrain entouré sur le plan d'un quartier" width="960" height="960" fetchpriority="high"></div>
+    <div class="page-art"><img src="../img/45-plan-situation-carte.webp" alt="Un terrain entouré sur le plan d'un quartier" width="640" height="640" fetchpriority="high"></div>
   </div>
   <div class="wrap"><div id="ps-res" class="outil-carte" data-plan="{PRIX_PLAN}" data-etude="{PRIX_ETUDE}" data-dossier="149" aria-live="polite" hidden></div></div>
 </section>
@@ -640,7 +659,7 @@ def page_plan_situation():
 </section>
 </main>
 """
-    h = head('Plan de situation gratuit en ligne (DP1, PCMI1) | Le Bon Permis',
+    h = head('Plan de situation gratuit en ligne (DP1) | Le Bon Permis',
              "Plan de situation gratuit pour déclaration préalable ou permis de construire. Tapez votre adresse : deux cartes IGN, votre terrain repéré, PDF prêt à déposer.",
              'plan-de-situation/', base, ld)
     h = h.replace('</head>', f'<link rel="stylesheet" href="{base}assets/espace.css">\n</head>')

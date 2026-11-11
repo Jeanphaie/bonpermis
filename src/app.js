@@ -24,6 +24,8 @@
     if (p==='regul') return openRegul(opener);
     if (opener) lastFocus = opener;
     S = {p, a:{}, i:0, q:X.flow(P, p), opt:{depot:false, express:false, visio:false, concept:false, d3:false, amenag:false}, regul:!!regul, stage:'a'};
+    // L'adresse déjà donnée sur le site (accueil, page projet, plan de situation) est reprise : on ne la redemande pas.
+    const l = window.BPLieu && window.BPLieu.lire(); if (l) { S.adresse = l.label; S.lieu = {lon: l.lon, lat: l.lat}; }
     showPanel((regul?'Travaux déjà faits · ':'') + P[p].n, P[p].img);
     render();
   }
@@ -56,7 +58,7 @@
   // Le secteur protégé trouvé répond à la question correspondante ; sans données, la question reste posée.
   function renderAdresse(){
     const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-    body.innerHTML = `<div class="qtitle" tabindex="-1">Où se trouvent les travaux ?</div><p class="qhelp">On analyse tout de suite votre terrain : cadastre, plan d'urbanisme, monuments protégés et risques.</p>
+    body.innerHTML = `<div class="qtitle" tabindex="-1">Où se trouvent les travaux ?</div><p class="qhelp">On regarde tout de suite votre terrain et les règles qui s'y appliquent.</p>
       <div class="field adr-wrap"><label for="an-adr"><span>L'adresse des travaux</span></label>
         <input id="an-adr" autocomplete="off" placeholder="Tapez le début : 12 rue des Lilas, Saint-Herblain" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="an-sug" value="${esc(S.adresse || '')}">
         <ul class="sugs" id="an-sug" role="listbox"></ul></div>
@@ -70,10 +72,10 @@
       choisir: x => analyser(x),
       effacer: () => { n++; S.lieu = null; S.terrain = null; an.hidden = true; suite.hidden = true; }
     });
-    const LIGNES = [['adresse', 'Adresse'], ['parcelle', 'Parcelle cadastrale (IGN)'], ['plu', 'Zone du plan local d\'urbanisme'], ['abf', 'Monuments et sites protégés'], ['risques', 'Risques naturels (Géorisques)']];
+    const LIGNES = [['adresse', 'Adresse'], ['parcelle', 'Votre parcelle'], ['plu', 'Zone du règlement de la mairie'], ['abf', 'Secteur protégé'], ['risques', 'Risques naturels']];
     const dessiner = (vals) => {
       an.hidden = false;
-      an.innerHTML = '<p class="an-t">Analyse de votre terrain</p>' + LIGNES.map(([k, l]) => { const v = vals[k];
+      an.innerHTML = '<p class="an-t">Votre terrain</p>' + LIGNES.map(([k, l]) => { const v = vals[k];
         return `<div class="an-l ${v ? v.c : 'cours'}"><span class="an-i" aria-hidden="true"></span><b>${l}</b><span class="an-v">${v ? v.t : 'en cours…'}</span></div>`; }).join('');
     };
     async function analyser(x) {
@@ -354,6 +356,8 @@
     const s = e.target.closest('.js-start');
     if (s) { const a = document.getElementById('projets'); if (!a) return; e.preventDefault(); a.scrollIntoView({behavior:'smooth', block:'start'}); setTimeout(() => { const f = a.querySelector('.tile'); if (f) f.focus({preventScroll:true}); }, 400); }
   });
+  // Adresse choisie dans le haut d'une page projet : le parcours s'ouvre sur ce terrain.
+  document.addEventListener('bp-lieu', () => { const p = document.body.dataset.page; if (P[p] || p === 'regul') open(p, document.querySelector('.adr input')); });
   // Accès direct : bonpermis.fr/#extension ouvre directement le projet
   const fromHash = () => { const k = decodeURIComponent(location.hash.slice(1)); if (P[k] || k==='regul') open(k, null); };
   window.addEventListener('hashchange', fromHash); fromHash();

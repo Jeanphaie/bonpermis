@@ -26,9 +26,12 @@
         sug.querySelectorAll('[data-i]').forEach(b => b.onclick = () => choisir(liste[+b.dataset.i]));
       } catch (e) {}
     }, 220); };
+    // data-reprend : l'adresse déjà donnée ailleurs sur le site est proposée d'office.
+    let repris = 'reprend' in boite.dataset ? lire() : null; if (repris) inp.value = repris.label;
+    inp.addEventListener('input', () => { repris = null; });
     inp.addEventListener('input', chercher);
     inp.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); if (liste[0]) choisir(liste[0]); } });
-    btn.onclick = () => { if (liste[0]) choisir(liste[0]); else { inp.focus(); chercher(); } };
+    btn.onclick = () => { if (repris && inp.value === repris.label) choisir(repris); else if (liste[0]) choisir(liste[0]); else { inp.focus(); chercher(); } };
   }
   window.BPLieu = {lire, garder, brancher};
   document.addEventListener('click', e => { const a = e.target.closest('[data-adresse]'); if (!a) return; const i = document.querySelector('.adr input'); if (!i) return; e.preventDefault(); i.scrollIntoView({behavior: 'smooth', block: 'center'}); setTimeout(() => i.focus({preventScroll: true}), 450); });
