@@ -98,7 +98,7 @@ def entete(base, accueil, simu=None):
     a = '' if accueil else base
     logo = '#top' if accueil else (base or './')
     liens = f'''<a href="{base}projets/">Projets</a>
-      <a href="{base}plan-de-situation/">Plan de situation <i class="gratuit">gratuit</i></a>
+      <a href="{base}plan-de-situation/">Plan de situation</a>
       <a href="{base}plan-de-masse/">Plan de masse</a>
       <a href="{base}regularisation-avant-vente/">Avant une vente</a>
       <a href="{base}tarifs/">Tarifs</a>
