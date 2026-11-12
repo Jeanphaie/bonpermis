@@ -686,7 +686,7 @@ async function equipeDepot(req, res, url) {
   histo(cmd, 'Dossier déposé en mairie, numéro ' + numero); sauver(cmd);
   repondre(res, 200, vueCmd(cmd, true));
   const delai = cmd.kind === 'pc' ? 'deux mois' : 'un mois';
-  await envoyerMail(cmd.email, `Dossier ${cmd.ref} : déposé en mairie`, `Bonjour,\n\nVotre dossier « ${cmd.nom} » est déposé auprès de votre mairie.\nNuméro d'enregistrement : ${numero}\n\nLa mairie a en général ${delai} pour répondre. Ce délai est plus long dans un secteur protégé, et elle peut demander une pièce de plus pendant le premier mois : dans ce cas, nous nous en occupons et nous vous prévenons.\n\nSi vous recevez un courrier ou un e-mail de la mairie, transférez-le nous : nous vous dirons quoi faire.\n\nSuivre votre dossier : ${CONF.site}/espace/dossier/?ref=${cmd.ref}${signature}`, CONF.mailA);
+  await envoyerMail(cmd.email, `Dossier ${cmd.ref} : déposé en mairie`, `Bonjour,\n\nVotre dossier « ${cmd.nom} » est déposé auprès de votre mairie.\nNuméro d'enregistrement : ${numero}\n\nLa mairie a en général ${delai} pour répondre. Ce délai est plus long dans un secteur protégé, et elle peut demander une pièce de plus pendant le premier mois : dans ce cas, nous nous en occupons et nous vous prévenons.\n\nSi vous recevez un courrier ou un e-mail de la mairie, transférez-le-nous : nous vous dirons quoi faire.\n\nSuivre votre dossier : ${CONF.site}/espace/dossier/?ref=${cmd.ref}${signature}`, CONF.mailA);
 }
 async function equipeLivrable(req, res, url) {
   if (!C.sessionAdmin(req)) { req.resume(); return repondre(res, 401, {erreur: 'Connexion équipe requise.'}); }
