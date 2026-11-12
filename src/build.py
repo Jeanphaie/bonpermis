@@ -699,11 +699,14 @@ def page_tarifs():
           faq_ld(corps_src)]
     corps = f"""<main id="top">
 <section class="page-hero">
-  <div class="wrap narrow">
+  <div class="wrap page-grid outil-tete">
+    <div>
     <nav class="crumbs" aria-label="Fil d'Ariane"><a href="../">Accueil</a> › <span>Tarifs</span></nav>
     <h1>Tarifs</h1>
     <p class="answer">Un prix clair, que vous connaissez avant de payer. Le plan de masse seul à {PRIX_PLAN} €, le plan vérifié à {PRIX_ETUDE} €, le dossier complet dès 149 €.</p>
     <div class="hero-cta"><a class="btn blue-btn" href="../projets/">Voir mon prix en une minute</a><a class="btn ghost" href="../plan-de-masse/">Plan de masse à {PRIX_PLAN} €</a></div>
+    </div>
+    <div class="page-art"><img src="../img/43-etape-dossier.webp" alt="Un dossier de plans prêt à déposer : plan de masse, façades, coupe" width="640" height="640" fetchpriority="high"></div>
   </div>
 </section>
 
