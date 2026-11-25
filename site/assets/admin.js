@@ -63,19 +63,22 @@
   }
   function dessinerListe() {
     const k = liste.compteurs;
-    const F = {tous: () => true, attente: x => x.statut === 'elements', verifier: x => ['verification', 'corrections'].includes(x.statut), preparation: x => x.statut === 'preparation', retard: x => x.retard, livres: x => x.statut === 'livre'};
+    const actif = x => !x.archive && x.statut !== 'brouillon';
+    const F = {tous: actif, nonpayes: x => !x.archive && x.statut === 'brouillon', archives: x => x.archive, attente: x => actif(x) && x.statut === 'elements', verifier: x => actif(x) && ['verification', 'corrections'].includes(x.statut), preparation: x => actif(x) && x.statut === 'preparation', retard: x => actif(x) && x.retard, livres: x => actif(x) && x.statut === 'livre'};
     const rq = recherche.toLowerCase();
     const L = liste.dossiers.filter(F[filtre]).filter(x => !rq || [x.ref, x.client, x.email, x.commune, x.nom].join(' ').toLowerCase().includes(rq));
-    el.innerHTML = cadre(`${(() => { const n = liste.dossiers.filter(x => x.aFaire).length, m = liste.dossiers.filter(x => x.aRelire).length; return n || m ? `<p class="carte" style="margin:0 0 14px;font-size:14px;border-color:#0A2FB0">${n ? `<b style="font-weight:500">${n} dossier${n > 1 ? 's' : ''} pour Claude.</b> Dans l'app Claude, projet Bon Permis, écrivez : « nouveau dossier ». ` : ''}${m ? `<b style="font-weight:500">${m} analyse${m > 1 ? 's' : ''} à relire</b> ci-dessous.` : ''}</p>` : ''; })()}<div class="rang ecart"><h1>Dossiers</h1>
+    const ech = liste.mailsEchec || [];
+    const alerteMails = ech.length ? `<p class="carte" style="margin:0 0 14px;font-size:14px;border-color:#B42318;background:#FFF5F5"><b style="font-weight:500;color:#8A1C1C">${ech.length} e-mail${ech.length > 1 ? 's' : ''} non parti${ech.length > 1 ? 's' : ''} depuis 48 h.</b> ${ech.slice(0, 3).map(m => esc(m.sujet) + ' (' + esc(m.a) + ')').join(' · ')}. Le destinataire n'a rien reçu : écrivez-lui depuis le dossier. <a href="#mails">Voir le journal</a></p>` : '';
+    el.innerHTML = cadre(`${alerteMails}${(() => { const n = liste.dossiers.filter(x => actif(x) && x.aFaire).length, m = liste.dossiers.filter(x => actif(x) && x.aRelire).length; return n || m ? `<p class="carte" style="margin:0 0 14px;font-size:14px;border-color:#0A2FB0">${n ? `<b style="font-weight:500">${n} dossier${n > 1 ? 's' : ''} pour Claude.</b> Dans l'app Claude, projet Bon Permis, écrivez : « nouveau dossier ». ` : ''}${m ? `<b style="font-weight:500">${m} analyse${m > 1 ? 's' : ''} à relire</b> ci-dessous.` : ''}</p>` : ''; })()}<div class="rang ecart"><h1>Dossiers</h1>
         <label class="field" style="margin:0"><span class="sr-only">Rechercher</span><input type="search" id="rq" value="${esc(recherche)}" placeholder="Référence, client, ville" aria-label="Rechercher" style="width:260px"></label></div>
-      <div class="kpis">${[['tous', liste.dossiers.length, 'Tous'], ['attente', k.attente, 'En attente du client'], ['verifier', k.verifier, 'À vérifier'], ['preparation', k.preparation, 'En préparation'], ['retard', k.retard, 'En retard'], ['livres', k.livres, 'Livrés ce mois']]
+      <div class="kpis">${[['tous', k.actifs != null ? k.actifs : liste.dossiers.length, 'Dossiers en cours'], ['attente', k.attente, 'En attente du client'], ['verifier', k.verifier, 'À vérifier'], ['preparation', k.preparation, 'En préparation'], ['retard', k.retard, 'En retard'], ['livres', k.livres, 'Livrés ce mois'], ['nonpayes', k.nonPayes || 0, 'Non payés'], ['archives', k.archives || 0, 'Archivés']]
         .map(([id, n, t]) => `<button class="kpi" type="button" data-f="${id}" aria-pressed="${filtre === id}"${id === 'retard' && n ? ' style="border-color:#E6A3A3"' : ''}><b>${n}</b><span>${t}</span></button>`).join('')}</div>
       <div class="tbl"><table><thead><tr><th>Réf.</th><th>Client · projet</th><th>Commune</th><th>Pièces</th><th>Statut</th><th>Échéance</th><th>Paiement</th></tr></thead><tbody>
       ${L.length ? L.map(x => `<tr${x.retard ? ' style="background:#FFF5F5"' : x.statut === 'verification' ? ' style="background:#FFFBF0"' : ''}>
         <td><a href="#${x.ref}">${x.ref}</a></td><td><b style="font-weight:500">${esc(x.client)}</b><br><small>${esc(x.nom)}</small></td><td>${esc(x.commune)}</td>
         <td><span class="barre"><i style="width:${x.recues.sur ? Math.round(x.recues.n / x.recues.sur * 100) : 0}%"></i></span>${x.recues.n} / ${x.recues.sur}${x.aVerifier ? `<br><small>${x.aVerifier} à vérifier</small>` : ''}${x.plusTard ? `<br><small>${x.plusTard} on en reparle</small>` : ''}</td>
         <td><span class="pill st-${STC[x.statut]}">${ST[x.statut]}</span>${x.aFaire ? `<br><small style="color:#0A2FB0;font-weight:500">Claude : ${esc(x.aFaire.toLowerCase())}</small>` : x.aRelire ? '<br><small style="color:#8A1C1C;font-weight:500">Analyse à relire</small>' : ''}</td>
-        <td>${x.retard ? `<b style="color:#8A1C1C;font-weight:500">Dépassée (${jour(x.echeance)})</b>` : x.echeance && x.statut === 'preparation' ? jour(x.echeance) : '-'}</td>
+        <td>${x.retard ? `<b style="color:#8A1C1C;font-weight:500">Dépassée (${jour(x.echeance)})</b>` : x.echeance && ['verification', 'preparation'].includes(x.statut) ? jour(x.echeance) : '-'}</td>
         <td>${euro(x.total)}<br><small>${{solde: 'soldé', acompte: 'acompte payé', offert: 'offert (code promo)', aucun: 'rien payé'}[x.paiement] || ''}</small></td></tr>`).join('') : '<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:30px">Aucun dossier.</td></tr>'}
       </tbody></table></div>${liste.rappels ? `<p class="note" style="margin-top:12px">${liste.rappels} demande(s) de rappel reçues par e-mail.</p>` : ''}`, 'liste');
     brancherCadre();
@@ -189,7 +192,7 @@
       ${C('Terrain', esc(d.adresse), t && t.parcelle ? `Parcelle ${esc(t.parcelle.section)} ${esc(String(t.parcelle.numero).replace(/^0+/, ''))}, ${t.parcelle.contenance || t.parcelle.surfaceCalculee} m²${t.zone ? ', zone ' + esc(t.zone.libelle) : ''}` : '')}
       ${C('Dossier', esc(Maj(KIND[d.kind] || d.kind || '-')), `${d.delai === 1 ? '24 h' : d.delai === 2 ? '48 h' : d.delai + ' jours'} ouvrés`)}
       ${C('Prix', euro(d.total), d.paiements.solde ? 'Soldé' : !d.paiements.acompte ? 'Rien payé pour l\'instant' : d.solde > 0 ? `Reste ${euro(d.solde)} à l'aperçu` : 'Offert' + (d.promo ? ' (code ' + esc(d.promo) + ')' : ''))}
-      ${C('Échéance', d.echeance ? jour(d.echeance) : 'Pas lancée', d.echeance ? '' : d.statut === 'elements' ? 'En attente du client' : '')}`;
+      ${C('Échéance', ['apercu', 'corrections', 'livre'].includes(d.statut) ? (d.statut === 'livre' ? 'Livré' : 'Aperçu envoyé') : d.echeance ? jour(d.echeance) : 'Pas lancée', d.echeance ? '' : d.statut === 'elements' ? 'En attente du client' : d.statut === 'brouillon' ? 'Dossier non payé' : '')}`;
   }
   function blocControles() {
     const c = controles(); if (!c.length || d.analyse) return '';
@@ -201,6 +204,7 @@
     const lancer = ['elements', 'verification'].includes(d.statut), envoyer = d.livrables.length && !['livre'].includes(d.statut);
     el.innerHTML = cadre(`<div class="rang ecart"><a href="#" style="font-size:13px">‹ Tous les dossiers</a>
         <div class="rang"><a class="btn petit ghost" href="/api/admin/dossier.zip?ref=${R()}">Tout télécharger (zip)</a>
+        <button class="btn petit ghost" type="button" data-archiver>${d.archive ? 'Sortir des archives' : 'Archiver'}</button>
         ${lancer ? '<button class="btn petit blue-btn" type="button" data-lancer>Pièces complètes, lancer les plans</button>' : ''}
         ${envoyer ? `<button class="btn petit blue-btn" type="button" data-apercu>${d.statut === 'apercu' ? 'Renvoyer l\'aperçu' : 'Envoyer l\'aperçu au client'}</button>` : ''}</div></div>
       <div class="ct" data-ct>${cartouche()}</div>
@@ -300,6 +304,10 @@
       const numero = prompt('Numéro d\'enregistrement donné par la mairie (ex. DP 056 241 26 X0042) :', ''); if (!numero) return;
       const guichet = prompt('Adresse du guichet en ligne utilisé (facultatif) :', ''); if (guichet === null) return;
       const r = await api('POST', '/depot?ref=' + R(), {numero, guichet}); if (!r.ok) return alert(r.j.erreur || 'Erreur.'); maj(r.j);
+    });
+    const ar = $('[data-archiver]'); if (ar) ar.addEventListener('click', async () => {
+      if (!d.archive && !confirm('Archiver ce dossier ? Il sort de la liste, rien n\'est supprimé, le client garde son accès.')) return;
+      const r = await api('POST', '/archiver?ref=' + R(), {archive: !d.archive}); if (!r.ok) return alert((r.j || {}).erreur || 'Erreur.'); maj(r.j);
     });
     const lc = $('[data-lancer]'); if (lc) lc.addEventListener('click', async () => {
       const c = d.analyse ? d.analyse.points.filter(p => p.niveau === 'bloquant').map(p => p.texte) : controles();

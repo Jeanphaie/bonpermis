@@ -124,7 +124,27 @@ function reference(sessionId) {
 }
 
 // ---------- e-mail (SMTP : port 587 + STARTTLS, ou 465 en TLS direct) ----------
-function envoyerMail(a, sujet, texte, repondreA) {
+// Envoi avec deux nouvelles tentatives (4 s, puis 20 s) : un e-mail ne doit pas se perdre sur une coupure passagère du serveur d'envoi.
+async function envoyerMail(a, sujet, texte, repondreA) {
+  for (const attente of [0, 4000, 20000]) {
+    if (attente) await new Promise(r => setTimeout(r, attente));
+    if (await envoyerMailUneFois(a, sujet, texte, repondreA)) return true;
+    if (!CONF.smtp.hote) return false;
+  }
+  journal('mail perdu après 3 tentatives :', sujet);
+  return false;
+}
+// E-mails en échec depuis 48 h, sans envoi réussi ensuite pour le même destinataire et le même sujet (espace équipe).
+function mailsEnEchec() {
+  const L = lireJournalMails(400), limite = Date.now() - 48 * 3600e3, vus = new Set(), out = [];
+  for (const m of L) { // du plus récent au plus ancien
+    const cle = m.a + '|' + m.sujet;
+    if (new Date(m.date).getTime() < limite) break;
+    if (m.ok) vus.add(cle); else if (!vus.has(cle)) { vus.add(cle); out.push({date: m.date, a: m.a, sujet: m.sujet, etape: m.etape}); }
+  }
+  return out;
+}
+function envoyerMailUneFois(a, sujet, texte, repondreA) {
   const {hote, port, user, pass} = CONF.smtp;
   // Sans identifiant ni mot de passe : relais SMTP autorisé par IP (smtp-relay.gmail.com), on n'envoie pas d'AUTH.
   const auth = !!(user || pass);
@@ -351,7 +371,7 @@ function plusJoursOuvres(d, n) {
 
 module.exports = {
   crypto, fs, path, RACINE, PRIX, DATA, PAGES, P: DATA.P, GROUPS: DATA.GROUPS, NEED: DATA.NEED, PIECES, E, CONF, SECRET, signer, egal,
-  journal, noterMail, lireJournalMails, euro, lireCorps, lireJson, repondre, envoyerFichier, TYPES, ip, trop, tropDeDemandes, lireCookies, cookie,
+  journal, noterMail, lireJournalMails, mailsEnEchec, euro, lireCorps, lireJson, repondre, envoyerFichier, TYPES, ip, trop, tropDeDemandes, lireCookies, cookie,
   encoder, stripe, signatureValide, reference, envoyerMail, signature, chemin, lire, ecrire, creer, liste,
   MAIL_RE, texte, texteLong, nomPropre, id, typeFichier, recevoirFichier, zip, envoyerZip, OUTILS, preparerVue, apercuPdf, plusJoursOuvres
 };

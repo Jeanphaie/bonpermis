@@ -137,7 +137,7 @@ function vueCmd(cmd, pourEquipe) {
     telechargeable: !!cmd.paiements.solde, demandes: NEED[cmd.projet] || NEED.extension,
     lignes: cmd.lignes || null, promo: cmd.promo || null
   };
-  if (pourEquipe) Object.assign(o, {email: cmd.email, client: cmd.nom_client || '', reponses: cmd.reponses, reponsesLisibles: lisibles(cmd), projet: cmd.projet, regul: cmd.regul, historique: cmd.historique, lignes: cmd.lignes || null, session: cmd.session, analyse: cmd.analyse || null, aFaire: aFaire(cmd), liensStripe: [cmd.paiements.acompte && cmd.paiements.acompte.pi, cmd.paiements.solde && cmd.paiements.solde.pi].filter(Boolean)});
+  if (pourEquipe) Object.assign(o, {archive: !!cmd.archive, email: cmd.email, client: cmd.nom_client || '', reponses: cmd.reponses, reponsesLisibles: lisibles(cmd), projet: cmd.projet, regul: cmd.regul, historique: cmd.historique, lignes: cmd.lignes || null, session: cmd.session, analyse: cmd.analyse || null, aFaire: aFaire(cmd), liensStripe: [cmd.paiements.acompte && cmd.paiements.acompte.pi, cmd.paiements.solde && cmd.paiements.solde.pi].filter(Boolean)});
   return o;
 }
 // Réponses au simulateur avec les intitulés des questions, pour l'équipe
@@ -148,11 +148,11 @@ function lisibles(cmd) {
 }
 function resume(cmd) {
   const r = recues(cmd), commune = (cmd.adresse || '').split(',').pop().trim();
-  const retard = cmd.statut === 'preparation' && cmd.echeance && new Date(cmd.echeance) < new Date();
+  const retard = ['verification', 'preparation'].includes(cmd.statut) && cmd.echeance && new Date(cmd.echeance) < new Date();
   return {ref: cmd.ref, nom: cmd.nom, client: cmd.nom_client || cmd.email, email: cmd.email, commune, statut: cmd.statut, recues: r,
     echeance: cmd.echeance || null, retard: !!retard, total: cmd.total, solde: cmd.solde, paiement: cmd.paiements.solde ? 'solde' : cmd.paiements.acompte ? (cmd.paiements.acompte.gratuit ? 'offert' : 'acompte') : 'aucun',
     aFaire: aFaire(cmd), aRelire: !!(cmd.analyse && !cmd.analyse.appliquee),
-    date: cmd.date, dernierMessage: cmd.messages.length ? cmd.messages[cmd.messages.length - 1] : null,
+    archive: !!cmd.archive, date: cmd.date, dernierMessage: cmd.messages.length ? cmd.messages[cmd.messages.length - 1] : null,
     aVerifier: cmd.pieces.filter(p => etatPiece(p, cmd) === 'a_verifier').length, plusTard: cmd.pieces.filter(p => p.plusTard && etatPiece(p, cmd) === 'manquant').length};
 }
 
@@ -400,12 +400,23 @@ async function payerDossier(req, res, url) {
   x = avecPromo(x, d.promo, true); if (x.erreur) return repondre(res, 400, {erreur: x.erreur, champ: 'promo'});
   // Code promo à 100 % : rien à payer, le dossier est validé tout de suite, sans passer par Stripe.
   if (x.promo && x.total === 0) {
-    try { await validerGratuit(cmd, x); } catch (e) { journal('validation gratuite', cmd.ref, e.message); }
-    return repondre(res, 200, {url: `/espace/dossier/?ref=${cmd.ref}&valide=1`, gratuit: true});
+    let mails = null;
+    try { mails = validerGratuit(cmd, x); } catch (e) { journal('validation gratuite', cmd.ref, e.message); }
+    repondre(res, 200, {url: `/espace/dossier/?ref=${cmd.ref}&valide=1`, gratuit: true});
+    if (mails) await mails.catch(e => journal('mails validation gratuite', cmd.ref, e.message));
+    return;
   }
   const lieu = cmd.lieu ? `${(+cmd.lieu.lon).toFixed(6)},${(+cmd.lieu.lat).toFixed(6)}` : '';
   try { const s = await ouvrirPaiementAcompte(x, cmd.email, cmd.adresse, cmd.uid, null, lieu, cmd.ref); repondre(res, 200, {url: s.url}); }
   catch (e) { journal('erreur Stripe :', e.message); repondre(res, 502, {erreur: 'Le paiement n\'a pas pu s\'ouvrir. Réessayez dans un instant.'}); }
+}
+
+// L'échéance (48 h ou 5 jours ouvrés) démarre dès que le dossier est payé et que le client a tout envoyé,
+// sans attendre que l'équipe clique sur « lancer les plans ». Une pièce redemandée la suspend (voir equipeDemander).
+function demarrerEcheance(cmd) {
+  if (cmd.echeance) return;
+  const e = B.plusJoursOuvres(new Date(), delaiJours(cmd)); e.setHours(19, 0, 0, 0); cmd.echeance = e.toISOString();
+  histo(cmd, 'Échéance démarrée : ' + e.toLocaleDateString('fr-FR', {weekday: 'long', day: 'numeric', month: 'long', timeZone: 'Europe/Paris'}));
 }
 
 // Dossier offert par un code promo à 100 % : validé sans paiement (acompte et solde à 0 €).
@@ -417,6 +428,7 @@ async function validerGratuit(cmd, x) {
   const r = recues(cmd);
   cmd.statut = r.n >= r.sur ? 'verification' : 'elements';
   histo(cmd, `Dossier validé sans paiement : code promo ${x.promo} (100 %)${cmd.statut === 'verification' ? ', toutes les pièces sont déjà là' : ''}`);
+  if (cmd.statut === 'verification') demarrerEcheance(cmd);
   sauver(cmd);
   PROMOS.compterUtilisation(x.promo);
   journal('dossier validé gratuitement', cmd.ref, cmd.projet, x.promo);
@@ -437,6 +449,7 @@ async function acompteDossier(s, m, email, nomClient) {
   const r = recues(cmd);
   cmd.statut = r.n >= r.sur ? 'verification' : 'elements';
   histo(cmd, `Acompte reçu : ${euro(s.amount_total / 100)}, dossier validé${cmd.statut === 'verification' ? ' (toutes les pièces sont déjà là)' : ''}`);
+  if (cmd.statut === 'verification') demarrerEcheance(cmd);
   if (m.promo) cmd.promo = m.promo;
   sauver(cmd);
   if (m.promo) PROMOS.compterUtilisation(m.promo);
@@ -582,7 +595,7 @@ async function clientTerminer(req, res, url) {
   const cmd = cmdClient(req, res, url); if (!cmd) return;
   if (cmd.statut !== 'elements') return repondre(res, 200, {ok: true});
   if (!cmd.fichiers.length && !cmd.pieces.some(p => p.type === 'texte' && (p.texte || '').trim())) return repondre(res, 400, {erreur: 'Ajoutez au moins une photo ou une description avant de valider.'});
-  cmd.statut = 'verification'; histo(cmd, 'Le client a envoyé ses éléments'); sauver(cmd);
+  cmd.statut = 'verification'; histo(cmd, 'Le client a envoyé ses éléments'); demarrerEcheance(cmd); sauver(cmd);
   repondre(res, 200, {ok: true});
   const r = recues(cmd);
   const manque = cmd.pieces.filter(p => !facultative(p, cmd) && etatPiece(p, cmd) === 'manquant').map(p => '- ' + p.nom);
@@ -644,12 +657,13 @@ function equipeListe(req, res) {
   if (!C.sessionAdmin(req)) return repondre(res, 401, {erreur: 'Connexion équipe requise.'});
   const cmds = B.liste('commandes').filter(f => /^BP-\w{6}\.json$/.test(f)).map(f => lireCmd(f.slice(0, -5))).filter(Boolean)
     .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
-  const L = cmds.map(resume), mois = new Date().toISOString().slice(0, 7);
+  const tous = cmds.map(resume), L = tous.filter(x => !x.archive && x.statut !== 'brouillon'), mois = new Date().toISOString().slice(0, 7);
   const rappels = B.liste('rappels').filter(f => f.endsWith('.json')).length;
-  repondre(res, 200, {dossiers: L, rappels, compteurs: {
+  repondre(res, 200, {dossiers: tous, rappels, mailsEchec: B.mailsEnEchec(), compteurs: {
+    actifs: L.length, nonPayes: tous.filter(x => !x.archive && x.statut === 'brouillon').length, archives: tous.filter(x => x.archive).length,
     attente: L.filter(x => x.statut === 'elements').length, verifier: L.filter(x => ['verification', 'corrections'].includes(x.statut)).length,
     preparation: L.filter(x => x.statut === 'preparation').length, retard: L.filter(x => x.retard).length,
-    livres: cmds.filter(c => c.statut === 'livre' && (c.paiements.solde.date || '').startsWith(mois)).length}});
+    livres: cmds.filter(c => !c.archive && c.statut === 'livre' && (c.paiements.solde.date || '').startsWith(mois)).length}});
 }
 function equipeDossier(req, res, url) { const cmd = cmdEquipe(req, res, url); if (cmd) repondre(res, 200, {...vueCmd(cmd, true), outils: {images: !!B.OUTILS.magick, pdf: !!B.OUTILS.pdftoppm}}); }
 function equipeVoir(req, res, url) {
@@ -661,7 +675,7 @@ function equipeVoir(req, res, url) {
 // Une pièce demandée ou à refaire remet le dossier en attente du client. Si les plans étaient lancés,
 // l'échéance est suspendue : elle repart quand l'équipe relance, une fois la pièce reçue.
 function attendreClient(cmd) {
-  if (cmd.statut === 'preparation') { cmd.echeance = null; histo(cmd, 'Délai suspendu : pièce demandée au client'); }
+  if (['verification', 'preparation'].includes(cmd.statut) && cmd.echeance) { cmd.echeance = null; histo(cmd, 'Délai suspendu : pièce demandée au client'); }
   if (['verification', 'preparation'].includes(cmd.statut)) cmd.statut = 'elements';
 }
 async function equipePiece(req, res, url) {
@@ -821,11 +835,20 @@ function equipeFichier(req, res, url) {
   const cmd = lireCmd(url.searchParams.get('ref')); if (!cmd) { req.resume(); return repondre(res, 404, {}); }
   return televerser(req, res, cmd, url.searchParams.get('piece'), 'equipe');
 }
+// POST /api/admin/archiver?ref= {archive: true|false} : sort un dossier de la liste (tests, abandons) sans rien supprimer.
+async function equipeArchiver(req, res, url) {
+  const cmd = cmdEquipe(req, res, url); if (!cmd) return;
+  const d = await lireJson(req) || {};
+  cmd.archive = !!d.archive; histo(cmd, cmd.archive ? 'Dossier archivé par l\'équipe' : 'Dossier sorti des archives'); sauver(cmd);
+  repondre(res, 200, vueCmd(cmd, true));
+}
 async function equipeMessage(req, res, url) { const cmd = cmdEquipe(req, res, url); if (cmd) return message(req, res, cmd, 'equipe'); }
 async function equipeLancer(req, res, url) {
   const cmd = cmdEquipe(req, res, url); if (!cmd) return;
   if (!['elements', 'verification'].includes(cmd.statut)) return repondre(res, 409, {erreur: 'Le dossier est déjà lancé.'});
-  const ech = B.plusJoursOuvres(new Date(), delaiJours(cmd)); ech.setHours(19, 0, 0, 0);
+  // L'échéance déjà démarrée à la réception des pièces est gardée : c'est celle promise au client.
+  let ech = cmd.echeance ? new Date(cmd.echeance) : null;
+  if (!ech || ech < new Date()) { ech = B.plusJoursOuvres(new Date(), delaiJours(cmd)); ech.setHours(19, 0, 0, 0); }
   cmd.statut = 'preparation'; cmd.echeance = ech.toISOString();
   for (const p of cmd.pieces) if (etatPiece(p, cmd) === 'a_verifier') p.statut = 'valide';
   histo(cmd, 'Pièces complètes : plans en préparation'); sauver(cmd);
@@ -933,6 +956,6 @@ module.exports = {
   verifierPromo, creerDossier, payerDossier,
   REF_RE, lireCmd, sauver, vueCmd, commande, etatCommande, paiementRecu, enregistrerProjet, supprimerProjet, commanderProjet, espace,
   clientDossier, clientTexte, clientPlusTard, clientPlan, clientFichier, clientSupprimerFichier, clientMessage, clientTerminer, clientValider, clientVoir, clientTelecharger,
-  equipeListe, equipeDossier, equipeVoir, equipePiece, equipeCommande, equipeBrief, equipeAnalyse, equipeAppliquer, equipeGenerer, equipeClasser, equipeFichier, equipeMessage, equipeLancer, equipeDepot, equipeLivrable,
+  equipeListe, equipeArchiver, equipeDossier, equipeVoir, equipePiece, equipeCommande, equipeBrief, equipeAnalyse, equipeAppliquer, equipeGenerer, equipeClasser, equipeFichier, equipeMessage, equipeLancer, equipeDepot, equipeLivrable,
   equipeSupprimerLivrable, equipeEnvoyerApercu, equipeZip, analyser, partAcompte, piecesInitiales, listePieces
 };
