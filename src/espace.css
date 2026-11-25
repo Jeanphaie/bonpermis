@@ -107,6 +107,8 @@ body[data-page=admin] header.top nav{display:none}
 .bo-nav a:focus-visible,.bo-nav button:focus-visible{outline:2px solid #9DADFF}
 .bo-main{padding:24px 28px 48px;min-width:0}
 .bo-main h1{font-family:var(--f-display);font-weight:600;font-size:30px;margin:0}
+.th-tri{all:unset;cursor:pointer;font:inherit;letter-spacing:inherit;text-transform:inherit;color:inherit}.th-tri:hover{color:var(--ink)}.th-tri:focus-visible{outline:2px solid #2340D9;outline-offset:2px}
+.bo-som{position:sticky;top:66px;z-index:5;display:flex;gap:6px;overflow-x:auto;padding:8px 0;margin:10px 0 4px;background:#F6F7FB}.bo-som button{all:unset;cursor:pointer;font-size:13px;padding:6px 12px;border:1px solid #D9DCEA;border-radius:999px;background:#fff;white-space:nowrap}.bo-som button:hover{border-color:#2340D9;color:#2340D9}.bo-som button:focus-visible{outline:2px solid #2340D9}.bo-g > div{scroll-margin-top:124px}
 .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:18px 0}
 .kpi{all:unset;cursor:pointer;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column}
 .kpi b{font-family:var(--f-display);font-size:26px;line-height:1.1}

@@ -235,7 +235,8 @@ async function situation(req, res) {
   const d = await lireJson(req) || {}, lon = +(d.lieu && d.lieu.lon), lat = +(d.lieu && d.lieu.lat), email = texte(d.email, 254).toLowerCase(), accord = d.accord === true;
   if (!MAIL_RE.test(email)) return repondre(res, 400, {erreur: 'Indiquez votre adresse e-mail pour recevoir le plan.'});
   if (!Number.isFinite(lon) || !Number.isFinite(lat) || Math.abs(lat) > 90 || Math.abs(lon) > 180) return repondre(res, 400, {erreur: 'Adresse introuvable.'});
-  const terrain = await T.analyserTerrain(+lon.toFixed(6), +lat.toFixed(6));
+  // Avec le cache commun (mémoire puis disque) : l'adresse a souvent déjà été lue par l'accueil ou le simulateur.
+  const terrain = await T.lireTerrain(+lon.toFixed(6), +lat.toFixed(6));
   if (!terrain.parcelle) return repondre(res, 502, {erreur: 'Le cadastre ne répond pas pour cette adresse. Réessayez dans un instant.'});
   const id = B.id(12), commune = terrain.parcelle.commune || '';
   const cartes = await cartesSituation(lon, lat, 's' + id);
@@ -258,7 +259,8 @@ async function terrainConstat(req, res, url) {
   if (B.trop('plan-terrain:' + B.ip(req), 60)) return repondre(res, 429, {erreur: 'Trop de demandes. Réessayez dans quelques minutes.'});
   const lon = +url.searchParams.get('lon'), lat = +url.searchParams.get('lat');
   if (!Number.isFinite(lon) || !Number.isFinite(lat) || Math.abs(lat) > 90 || Math.abs(lon) > 180) return repondre(res, 400, {erreur: 'Adresse introuvable.'});
-  const terrain = await T.analyserTerrain(+lon.toFixed(6), +lat.toFixed(6));
+  // Avec le cache commun (mémoire puis disque) : l'adresse a souvent déjà été lue par l'accueil ou le simulateur.
+  const terrain = await T.lireTerrain(+lon.toFixed(6), +lat.toFixed(6));
   if (!terrain.parcelle) return repondre(res, 502, {erreur: 'On ne trouve pas de parcelle à cette adresse. Vérifiez le numéro et la rue, ou réessayez dans un instant.'});
   repondre(res, 200, constat(terrain));
 }

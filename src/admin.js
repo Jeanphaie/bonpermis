@@ -15,6 +15,7 @@
   const EP = {manquant: 'Manquant', a_verifier: 'À vérifier', valide: 'Validé', a_refaire: 'À refaire'};
   const CODES = ['CERFA', 'DP1', 'DP2', 'DP3', 'DP4', 'DP5', 'DP6', 'DP7', 'DP8', 'DP11', 'PC1', 'PC2', 'PC3', 'PC4', 'PC5', 'PC6', 'PC7', 'PC8', 'NOTICE', 'AUTRE'];
   const NOMS = {CERFA: 'Formulaire', DP1: 'Plan de situation', DP2: 'Plan de masse', DP3: 'Plan en coupe', DP4: 'Plan des façades et toitures', DP5: 'Représentation de l\'aspect extérieur', DP6: 'Insertion dans l\'environnement', DP7: 'Photo environnement proche', DP8: 'Photo paysage lointain', DP11: 'Notice', PC1: 'Plan de situation', PC2: 'Plan de masse', PC3: 'Plan en coupe', PC4: 'Notice descriptive', PC5: 'Plan des façades et toitures', PC6: 'Insertion dans l\'environnement', PC7: 'Photo environnement proche', PC8: 'Photo paysage lointain', NOTICE: 'Notice descriptive', AUTRE: 'Document'};
+  let tri = {col: 'date', sens: -1};
   let filtre = 'tous', recherche = '', liste = null, d = null, sel = null, zoom = 1, rot = 0;
 
   // ---------- connexion ----------
@@ -67,7 +68,11 @@
     const actif = x => !x.archive && x.statut !== 'brouillon';
     const F = {tous: actif, nonpayes: x => !x.archive && x.statut === 'brouillon', archives: x => x.archive, attente: x => actif(x) && x.statut === 'elements', verifier: x => actif(x) && ['verification', 'corrections'].includes(x.statut), preparation: x => actif(x) && x.statut === 'preparation', retard: x => actif(x) && x.retard, livres: x => actif(x) && x.statut === 'livre'};
     const rq = recherche.toLowerCase();
-    const L = liste.dossiers.filter(F[filtre]).filter(x => !rq || [x.ref, x.client, x.email, x.commune, x.nom].join(' ').toLowerCase().includes(rq));
+    const ORDRE = {elements: 1, verification: 2, corrections: 3, preparation: 4, apercu: 5, livre: 6, brouillon: 0};
+    const CLE = {ref: x => x.ref, client: x => String(x.client || '').toLowerCase(), commune: x => String(x.commune || '').toLowerCase(), pieces: x => x.recues.sur ? x.recues.n / x.recues.sur : 0, statut: x => ORDRE[x.statut] || 0, echeance: x => x.echeance || '9999', paiement: x => x.total, date: x => x.date || ''};
+    const cmp = (a, b) => { const u = CLE[tri.col](a), v = CLE[tri.col](b); return (u < v ? -1 : u > v ? 1 : 0) * tri.sens; };
+    const TH = (col, lib) => `<th><button type="button" class="th-tri" data-tri="${col}" aria-label="Trier par ${lib.toLowerCase()}">${lib}${tri.col === col ? (tri.sens > 0 ? ' ▲' : ' ▼') : ''}</button></th>`;
+    const L = liste.dossiers.filter(F[filtre]).sort(cmp).filter(x => !rq || [x.ref, x.client, x.email, x.commune, x.nom].join(' ').toLowerCase().includes(rq));
     const ech = liste.mailsEchec || [];
     const alerteMails = ech.length ? `<p class="carte" style="margin:0 0 14px;font-size:14px;border-color:#B42318;background:#FFF5F5"><b style="font-weight:500;color:#8A1C1C">${ech.length} e-mail${ech.length > 1 ? 's' : ''} en échec ces dernières 48 h.</b> ${ech.slice(0, 3).map(m => esc(m.sujet) + ' (' + esc(m.a) + ')').join(' · ')}. Le destinataire n'a rien reçu : écrivez-lui depuis le dossier. <a href="#mails">Voir le journal</a></p>` : '';
     el.innerHTML = cadre(`${alerteMails}${(() => { const n = liste.dossiers.filter(x => actif(x) && x.aFaire).length, m = liste.dossiers.filter(x => actif(x) && x.aRelire).length; return n || m ? `<p class="carte" style="margin:0 0 14px;font-size:14px;border-color:#0A2FB0">${n ? `<b style="font-weight:500">${n} dossier${n > 1 ? 's' : ''} pour Claude.</b> Dans l'app Claude, projet Bon Permis, écrivez : « nouveau dossier ». ` : ''}${m ? `<b style="font-weight:500">${m} analyse${m > 1 ? 's' : ''} à relire</b> ci-dessous.` : ''}</p>` : ''; })()}<div class="rang ecart"><h1>Dossiers</h1>
@@ -75,7 +80,7 @@
       <div class="kpis">${[['tous', k.actifs != null ? k.actifs : liste.dossiers.length, 'Dossiers en cours'], ['attente', k.attente, 'En attente du client'], ['verifier', k.verifier, 'À vérifier'], ['preparation', k.preparation, 'En préparation'], ['retard', k.retard, 'En retard'], ['livres', k.livres, 'Livrés ce mois'], ['nonpayes', k.nonPayes || 0, 'Non payés'], ['archives', k.archives || 0, 'Archivés']]
         .map(([id, n, t]) => `<button class="kpi" type="button" data-f="${id}" aria-pressed="${filtre === id}"${id === 'retard' && n ? ' style="border-color:#E6A3A3"' : ''}><b>${n}</b><span>${t}</span></button>`).join('')}</div>
       <p class="note" style="margin:10px 0 12px">Relances automatiques des dossiers pas finalisés : <b style="font-weight:500;color:${liste.relancesAuto ? '#3E5A38' : '#8A1C1C'}">${liste.relancesAuto ? 'activées' : 'désactivées'}</b> · <a href="#relances">Régler et lire les textes</a></p>
-      <div class="tbl"><table><thead><tr><th>Réf.</th><th>Client · projet</th><th>Commune</th><th>Pièces</th><th>Statut</th><th>Échéance</th><th>Paiement</th></tr></thead><tbody>
+      <div class="tbl"><table><thead><tr>${TH('ref', 'Réf.')}${TH('client', 'Client · projet')}${TH('commune', 'Commune')}${TH('pieces', 'Pièces')}${TH('statut', 'Statut')}${TH('echeance', 'Échéance')}${TH('paiement', 'Paiement')}</tr></thead><tbody>
       ${L.length ? L.map(x => `<tr${x.retard ? ' style="background:#FFF5F5"' : x.statut === 'verification' ? ' style="background:#FFFBF0"' : ''}>
         <td><a href="#${x.ref}">${x.ref}</a></td><td><b style="font-weight:500">${esc(x.client)}</b><br><small>${esc(x.nom)}</small></td><td>${esc(x.commune)}</td>
         <td><span class="barre"><i style="width:${x.recues.sur ? Math.round(x.recues.n / x.recues.sur * 100) : 0}%"></i></span>${x.recues.n} / ${x.recues.sur}${x.aVerifier ? `<br><small>${x.aVerifier} à vérifier</small>` : ''}${x.plusTard ? `<br><small>${x.plusTard} on en reparle</small>` : ''}</td>
@@ -85,6 +90,7 @@
       </tbody></table></div>${liste.rappels ? `<p class="note" style="margin-top:12px">${liste.rappels} demande(s) de rappel reçues par e-mail.</p>` : ''}`, 'liste');
     brancherCadre();
     el.querySelectorAll('[data-f]').forEach(b => b.addEventListener('click', () => { filtre = b.dataset.f; dessinerListe(); }));
+    el.querySelectorAll('[data-tri]').forEach(b => b.addEventListener('click', () => { tri = {col: b.dataset.tri, sens: tri.col === b.dataset.tri ? -tri.sens : 1}; dessinerListe(); }));
     const rqi = el.querySelector('#rq'); rqi.addEventListener('input', () => { recherche = rqi.value; const p = rqi.selectionStart; dessinerListe(); const n = el.querySelector('#rq'); n.focus(); n.setSelectionRange(p, p); });
   }
 
@@ -211,6 +217,7 @@
         ${lancer ? '<button class="btn petit blue-btn" type="button" data-lancer>Pièces complètes, lancer les plans</button>' : ''}
         ${envoyer ? `<button class="btn petit blue-btn" type="button" data-apercu>${d.statut === 'apercu' ? 'Renvoyer l\'aperçu' : 'Envoyer l\'aperçu au client'}</button>` : ''}</div></div>
       <div class="ct" data-ct>${cartouche()}</div>
+      <nav class="bo-som" aria-label="Dans ce dossier">${[['z-ana', 'Analyse'], ['z-vis', 'Réponses'], ['z-rep', 'Fichiers'], ['z-cmd', 'Commande'], ['z-ter', 'Terrain'], ['z-liv', 'À livrer'], ['z-msg', 'Messages'], ['z-his', 'Historique']].map(([z, t]) => `<button type="button" data-aller="${z}">${t}</button>`).join('')}</nav>
       ${!d.outils.images || !d.outils.pdf ? `<p class="form-err" style="margin-top:10px">Outils d'images absents sur le serveur : ${!d.outils.pdf ? 'pas d\'aperçu des PDF livrés' : ''}${!d.outils.images ? ' pas de conversion des photos HEIC ni de filigrane' : ''}.</p>` : ''}
       <div class="bo-g">
         <div class="z-ana">${blocAnalyse()}<div data-ctl>${blocControles()}</div></div>
@@ -308,6 +315,7 @@
       const guichet = prompt('Adresse du guichet en ligne utilisé (facultatif) :', ''); if (guichet === null) return;
       const r = await api('POST', '/depot?ref=' + R(), {numero, guichet}); if (!r.ok) return alert(r.j.erreur || 'Erreur.'); maj(r.j);
     });
+    el.querySelectorAll('[data-aller]').forEach(b => b.addEventListener('click', () => { const z = el.querySelector('.' + b.dataset.aller); if (z) z.scrollIntoView({behavior: 'smooth', block: 'start'}); }));
     const rl = $('[data-relancer]'); if (rl) rl.addEventListener('click', async () => {
       const r0 = d.relances || {};
       if (!confirm(`Envoyer maintenant un e-mail de relance à ${d.email} ?\n\n${r0.phase === 'paiement' ? 'Motif : dossier créé mais pas validé (acompte non réglé).' : 'Motif : pièces manquantes.'}${r0.dernier ? '\nDernière relance : ' + jour(r0.dernier) + '.' : ''}${r0.stop ? '\nAttention : ce client a demandé à ne plus être relancé.' : ''}`)) return;

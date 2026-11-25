@@ -74,8 +74,11 @@
 
   async function charger(l) {
     lieu = l; zone.hidden = false; if (hero) hero.hidden = true;
-    zone.innerHTML = '<p class="pm-note">On cherche votre terrain…</p>';
+    zone.innerHTML = '<p class="pm-note" data-attente>On cherche votre terrain…</p>';
     zone.scrollIntoView({block: 'start'});
+    // La lecture du cadastre et du PLU prend parfois une dizaine de secondes : on dit où on en est.
+    const etapes = ['On lit le cadastre…', 'On cherche la zone de votre terrain dans le règlement de la mairie…', 'On regarde les secteurs protégés et les risques…', 'Encore quelques secondes…'];
+    let ie = 0; const minuteur = setInterval(() => { const p = zone.querySelector('[data-attente]'); if (!p) return clearInterval(minuteur); p.textContent = etapes[Math.min(ie++, etapes.length - 1)]; }, 2500);
     try { k = await api('GET', `/api/plan-situation/terrain?lon=${encodeURIComponent(l.lon)}&lat=${encodeURIComponent(l.lat)}`); resultat(); }
     catch (e) { zone.innerHTML = `<p class="pm-msg">${esc(e.message)}</p><p><button class="lien" type="button" data-autre>Essayer une autre adresse</button></p>`; zone.querySelector('[data-autre]').onclick = () => { window.BPLieu.garder(null); zone.hidden = true; if (hero) hero.hidden = false; }; }
   }
