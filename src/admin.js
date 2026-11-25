@@ -76,7 +76,7 @@
         <td><span class="barre"><i style="width:${x.recues.sur ? Math.round(x.recues.n / x.recues.sur * 100) : 0}%"></i></span>${x.recues.n} / ${x.recues.sur}${x.aVerifier ? `<br><small>${x.aVerifier} à vérifier</small>` : ''}${x.plusTard ? `<br><small>${x.plusTard} on en reparle</small>` : ''}</td>
         <td><span class="pill st-${STC[x.statut]}">${ST[x.statut]}</span>${x.aFaire ? `<br><small style="color:#0A2FB0;font-weight:500">Claude : ${esc(x.aFaire.toLowerCase())}</small>` : x.aRelire ? '<br><small style="color:#8A1C1C;font-weight:500">Analyse à relire</small>' : ''}</td>
         <td>${x.retard ? `<b style="color:#8A1C1C;font-weight:500">Dépassée (${jour(x.echeance)})</b>` : x.echeance && x.statut === 'preparation' ? jour(x.echeance) : '-'}</td>
-        <td>${euro(x.total)}<br><small>${x.paiement === 'solde' ? 'soldé' : 'acompte payé'}</small></td></tr>`).join('') : '<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:30px">Aucun dossier.</td></tr>'}
+        <td>${euro(x.total)}<br><small>${{solde: 'soldé', acompte: 'acompte payé', offert: 'offert (code promo)', aucun: 'rien payé'}[x.paiement] || ''}</small></td></tr>`).join('') : '<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:30px">Aucun dossier.</td></tr>'}
       </tbody></table></div>${liste.rappels ? `<p class="note" style="margin-top:12px">${liste.rappels} demande(s) de rappel reçues par e-mail.</p>` : ''}`, 'liste');
     brancherCadre();
     el.querySelectorAll('[data-f]').forEach(b => b.addEventListener('click', () => { filtre = b.dataset.f; dessinerListe(); }));
@@ -188,7 +188,7 @@
       ${C('Projet', esc(d.nom), d.regul === 'true' ? 'Régularisation' : '')}
       ${C('Terrain', esc(d.adresse), t && t.parcelle ? `Parcelle ${esc(t.parcelle.section)} ${esc(String(t.parcelle.numero).replace(/^0+/, ''))}, ${t.parcelle.contenance || t.parcelle.surfaceCalculee} m²${t.zone ? ', zone ' + esc(t.zone.libelle) : ''}` : '')}
       ${C('Dossier', esc(Maj(KIND[d.kind] || d.kind || '-')), `${d.delai === 1 ? '24 h' : d.delai === 2 ? '48 h' : d.delai + ' jours'} ouvrés`)}
-      ${C('Prix', euro(d.total), d.paiements.solde ? 'Soldé' : `Reste ${euro(d.solde)} à l'aperçu`)}
+      ${C('Prix', euro(d.total), d.paiements.solde ? 'Soldé' : !d.paiements.acompte ? 'Rien payé pour l\'instant' : d.solde > 0 ? `Reste ${euro(d.solde)} à l'aperçu` : 'Offert' + (d.promo ? ' (code ' + esc(d.promo) + ')' : ''))}
       ${C('Échéance', d.echeance ? jour(d.echeance) : 'Pas lancée', d.echeance ? '' : d.statut === 'elements' ? 'En attente du client' : '')}`;
   }
   function blocControles() {
@@ -369,7 +369,7 @@
     const dt = s => new Date(s).toLocaleString('fr-FR', {day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit'});
     el.innerHTML = cadre(`<h1>E-mails envoyés</h1>
       <p class="note">Chaque envoi depuis le site, avec la réponse du serveur d'envoi (${esc((d.smtp || {}).hote || '?')}, expéditeur ${esc((d.smtp || {}).expediteur || '?')}).
-      « Remis au serveur » veut dire que Hostinger a accepté l'e-mail : s'il n'arrive pas, c'est la boîte du destinataire qui l'a écarté (regarder alors la boîte contact@bonpermis.fr pour un e-mail de non-remise).</p>
+      « Remis au serveur » veut dire que le serveur d'envoi a accepté l'e-mail : s'il n'arrive pas, c'est la boîte du destinataire qui l'a écarté (regarder alors la boîte contact@bonpermis.fr pour un e-mail de non-remise).</p>
       <form class="carte rang" id="ft" style="margin:16px 0" novalidate>
         <label class="field" style="margin:0;flex:1;min-width:220px"><span>Envoyer un e-mail de test à</span><input name="a" type="email" required placeholder="adresse@exemple.fr"></label>
         <button class="btn blue-btn petit" type="submit" style="align-self:flex-end">Envoyer le test</button>

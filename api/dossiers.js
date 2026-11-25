@@ -150,7 +150,7 @@ function resume(cmd) {
   const r = recues(cmd), commune = (cmd.adresse || '').split(',').pop().trim();
   const retard = cmd.statut === 'preparation' && cmd.echeance && new Date(cmd.echeance) < new Date();
   return {ref: cmd.ref, nom: cmd.nom, client: cmd.nom_client || cmd.email, email: cmd.email, commune, statut: cmd.statut, recues: r,
-    echeance: cmd.echeance || null, retard: !!retard, total: cmd.total, solde: cmd.solde, paiement: cmd.paiements.solde ? 'solde' : 'acompte',
+    echeance: cmd.echeance || null, retard: !!retard, total: cmd.total, solde: cmd.solde, paiement: cmd.paiements.solde ? 'solde' : cmd.paiements.acompte ? (cmd.paiements.acompte.gratuit ? 'offert' : 'acompte') : 'aucun',
     aFaire: aFaire(cmd), aRelire: !!(cmd.analyse && !cmd.analyse.appliquee),
     date: cmd.date, dernierMessage: cmd.messages.length ? cmd.messages[cmd.messages.length - 1] : null,
     aVerifier: cmd.pieces.filter(p => etatPiece(p, cmd) === 'a_verifier').length, plusTard: cmd.pieces.filter(p => p.plusTard && etatPiece(p, cmd) === 'manquant').length};

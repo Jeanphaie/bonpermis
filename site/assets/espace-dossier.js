@@ -33,7 +33,7 @@
       ['Vos pièces', pos <= 1 ? `${pos === 1 ? 'En cours · ' : ''}${d.recues.n} sur ${d.recues.sur}` : `${d.recues.n} sur ${d.recues.sur} reçues`],
       ['Vérification', pos === 2 ? 'En cours, sous 24 h ouvrées' : 'sous 24 h ouvrées'],
       ['Aperçu des plans', d.statut === 'preparation' && d.echeance ? 'Au plus tard le ' + jour(d.echeance) : d.statut === 'apercu' ? 'À relire' : d.statut === 'corrections' ? 'Corrections en cours' : delai],
-      ['Dossier prêt', d.paiements.solde ? 'Téléchargeable' : 'après le solde']
+      ['Dossier prêt', d.paiements.solde ? 'Téléchargeable' : d.paiements.acompte && !(d.total > 0) ? 'après validation des plans' : 'après le solde']
     ];
     return `<ol class="dz-etapes" aria-label="Avancement du dossier">${L.map((x, k) => {
       const c = k < pos ? 'fait' : k === pos ? 'encours' : '';
@@ -212,7 +212,7 @@
     const S = lesEtapes();
     if (ouv == null || ouv >= S.length) ouvrirDefaut(S);
     return `${frise(S)}${carteEtape(S)}
-      <p class="dz-ensuite"><b>Ensuite, de notre côté</b> : vérification sous 24 h ouvrées · aperçu des plans · dossier prêt après le solde. Tout est enregistré au fur et à mesure : vous pouvez arrêter et revenir plus tard.</p>`;
+      <p class="dz-ensuite"><b>Ensuite, de notre côté</b> : vérification sous 24 h ouvrées · aperçu des plans · ${d.paiements.acompte && !(d.total > 0) ? 'dossier prêt dès que vous validez vos plans' : 'dossier prêt après le solde'}. Tout est enregistré au fur et à mesure : vous pouvez arrêter et revenir plus tard.</p>`;
   }
   function brancherGuide() {
     const S = lesEtapes(), aller = () => { afficher(); const f = el.querySelector('.dz-frise'); if (f && f.getBoundingClientRect().top < 0) f.scrollIntoView({block: 'start'}); };
