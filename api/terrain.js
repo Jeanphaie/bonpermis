@@ -10,6 +10,8 @@
 const B = require('./base');
 const {fs, path, repondre, journal} = B;
 
+// Prescriptions du PLU qui changent ce qu'on peut construire : signalées en tête dans la fiche de l'équipe.
+const ALERTES_PLU = /nappe|inond|submersion|bois[ée]s? class|EBC|continuit|trame|zone humide|recul|retrait|alignement|patrimo|paysag|risque|incendie|al[ée]a|inconstructib|non aedificandi|emplacement r[ée]serv|lisi[èe]re|cours d.eau/i;
 const GEOPF = 'https://data.geopf.fr', CARTO = 'https://apicarto.ign.fr/api', GEORISQUES = 'https://www.georisques.gouv.fr/api/v1';
 const DELAI = 9000, DUREE_CACHE = 7 * 86400000;
 const cache = new Map();
@@ -118,11 +120,27 @@ async function analyserTerrain(lon, lat) {
   // Parcelles voisines (fond de plan de masse) : celles qui touchent la boîte élargie.
   const bx = [b[0] - dLon, b[1] - dLat, b[2] + dLon, b[3] + dLat];
   const poly = encodeURIComponent(JSON.stringify({type: 'Polygon', coordinates: [[[bx[0], bx[1]], [bx[2], bx[1]], [bx[2], bx[3]], [bx[0], bx[3]], [bx[0], bx[1]]]]}));
-  const [bati, muni, vois] = await Promise.all([
+  // Prescriptions et informations du PLU qui touchent la parcelle (nappe, zone inondable, EBC, trame verte, reculs...).
+  // Elles ne se voient pas dans la zone seule et font refuser des dossiers : lues sur toute la parcelle, pas sur le point.
+  const gParc = fp && fp.geometry ? encodeURIComponent(JSON.stringify(fp.geometry)) : pt;
+  const [bati, muni, vois, ...presc] = await Promise.all([
     essai('batiments', () => lireUrl(`${GEOPF}/wfs/ows?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature&TYPENAMES=BDTOPO_V3:batiment&outputFormat=application/json&COUNT=200&BBOX=${bbox},urn:ogc:def:crs:EPSG::4326`)),
     insee ? essai('commune', () => lireUrl(`${CARTO}/gpu/municipality?insee=${encodeURIComponent(insee)}`)) : null,
-    essai('voisines', () => lireUrl(`${CARTO}/cadastre/parcelle?geom=${poly}&_limit=60`))
+    essai('voisines', () => lireUrl(`${CARTO}/cadastre/parcelle?geom=${poly}&_limit=60`)),
+    ...['prescription-surf', 'prescription-lin', 'prescription-pct', 'info-surf'].map(c => essai('plu-' + c, () => lireUrl(`${CARTO}/gpu/${c}?geom=${gParc}`)))
   ]);
+  out.prescriptions = [];
+  const vusP = new Set();
+  presc.forEach((r, i) => {
+    for (const f of (r && r.features) || []) {
+      const p = f.properties || {}, libelle = reparer(p.libelle) || '';
+      if (!libelle || vusP.has(libelle)) continue; vusP.add(libelle);
+      const info = i === 3;
+      out.prescriptions.push({libelle, texte: reparer(p.txt) || '', type: (info ? p.typeinf : p.typepsc) || '', information: info,
+        alerte: !info && ALERTES_PLU.test(libelle + ' ' + (p.txt || ''))});
+    }
+  });
+  out.prescriptions.sort((a, b) => b.alerte - a.alerte || a.information - b.information);
   out.voisines = [];
   for (const f of (vois && vois.features) || []) {
     if (out.parcelle && f.properties && f.properties.idu === out.parcelle.idu) continue;
@@ -182,7 +200,7 @@ async function analyserTerrain(lon, lat) {
   return out;
 }
 
-function cheminCache(cle) { return B.chemin('terrain', 'v3-' + cle.replace(/[^\d.,-]/g, '_') + '.json'); }
+function cheminCache(cle) { return B.chemin('terrain', 'v4-' + cle.replace(/[^\d.,-]/g, '_') + '.json'); }
 async function terrain(req, res, url) {
   const lon = +url.searchParams.get('lon'), lat = +url.searchParams.get('lat');
   if (!Number.isFinite(lon) || !Number.isFinite(lat) || lon < -180 || lon > 180 || lat < -90 || lat > 90) return repondre(res, 400, {erreur: 'Coordonnées invalides.'});

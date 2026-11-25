@@ -245,8 +245,16 @@
         l.push(`Distance à la limite la plus proche : ${nb(me.limite)} m`);
         if (me.limite > 0 && me.limite < 3) alertes.push('À moins de 3 m d\'une limite : le PLU impose souvent un recul. On le vérifie pour vous.');
       }
-      if (P !== 'maison' && me.surface > 20 && me.surface <= 40) alertes.push('Plus de 20 m² : en zone urbaine avec PLU une déclaration suffit jusqu\'à 40 m², sinon un permis. On vérifie pour vous.');
-      if (P !== 'maison' && me.surface > 40) alertes.push('Plus de 40 m² : un permis de construire est probablement nécessaire. On vérifie pour vous.');
+      // Seuils (code de l'urbanisme) : construction séparée de la maison, permis au-delà de 20 m² (R.421-1, R.421-9) ;
+      // collée à la maison (extension), déclaration jusqu'à 40 m² en zone urbaine d'un PLU (R.421-14 b, R.421-17 f) ;
+      // piscine non couverte, déclaration jusqu'à 100 m² de bassin (R.421-9 f). Terrasse de plain-pied et clôture : pas de seuil de surface.
+      const colle = plan.formes.some(f => f.t === 'accole');
+      if (P === 'piscine') { if (me.surface > 100) alertes.push('Plus de 100 m² de bassin : il faut un permis de construire.'); }
+      else if (!['maison', 'terrasse', 'cloture', 'portail'].includes(P) && me.surface > 20) {
+        if (!colle) alertes.push('Plus de 20 m² au sol pour une construction séparée de la maison : il faut un permis de construire, même en zone urbaine. On vous le confirme avant de commencer.');
+        else if (me.surface <= 40) alertes.push('Plus de 20 m², collé à la maison : en zone urbaine d\'un PLU une déclaration suffit jusqu\'à 40 m², sinon un permis. On vérifie pour vous.');
+        else alertes.push('Plus de 40 m² : il faut un permis de construire.');
+      }
     }
     if (plan.mode === 'limites' || plan.mode === 'point') {
       const L = (plan.cotes || []).reduce((s, k) => { const [a, b] = segs(W.parc)[k] || []; return a ? s + len(sub(b, a)) : s; }, 0);

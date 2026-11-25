@@ -139,6 +139,7 @@
     if (t.zone) li.push(['PLU', `${esc(t.zone.libelle)} · ${esc(t.zone.libelleLong)}${t.zone.reglement ? ' · ' + esc(t.zone.reglement) : ''}`]);
     else if (t.commune) li.push(['PLU', t.commune.rnu ? 'Commune au RNU (règles nationales)' : 'Zone non trouvée']);
     li.push(['Protection', t.protections.length ? t.protections.map(p => `${esc(p.libelle)} : ${esc(p.nom)}${p.detail ? ' (' + esc(p.detail) + ')' : ''}`).join('<br>') : (t.secteurProtege === false ? 'Aucune dans les données publiques (à confirmer)' : 'Non vérifiée')]);
+    if (Array.isArray(t.prescriptions)) li.push(['Prescriptions PLU', t.prescriptions.length ? t.prescriptions.map(p => `<span style="${p.alerte ? 'color:#8A1C1C;font-weight:500' : ''}">${esc(p.libelle)}${p.texte ? ' (' + esc(p.texte) + ')' : ''}</span>`).join('<br>') + (t.prescriptions.some(p => p.alerte) ? '<br><small class="note">En rouge : règle à lire dans le règlement avant de dessiner.</small>' : '') : 'Aucune sur la parcelle']);
     if (Array.isArray(t.risques)) li.push(['Risques', t.risques.length ? t.risques.map(r => esc(r.libelle) + (r.niveau ? ' (' + esc(r.niveau) + ')' : '') + (r.detail ? ' · ' + esc(r.detail) : '')).join('<br>') + (t.georisques ? `<br><a href="${esc(t.georisques)}" target="_blank" rel="noopener">Rapport Géorisques</a>` : '') : 'Aucun risque majeur à l\'adresse']);
     const bs = t.batiments.filter(b => b.surParcelle);
     li.push(['Bâtiments', bs.length ? bs.map(b => `${b.emprise} m² au sol${b.hauteur != null ? ', ' + String(b.hauteur).replace('.', ',') + ' m à la gouttière' : ''}${b.etages ? ', ' + b.etages + ' niv.' : ''}${b.usage ? ' · ' + esc(b.usage) : ''}`).join('<br>') : 'Aucun sur la parcelle']);
@@ -149,7 +150,34 @@
     if (!d.lieu || terr.ref === d.ref) return;
     const ref = d.ref; terr = {ref, v: null};
     fetch(`/api/terrain?lon=${d.lieu.lon}&lat=${d.lieu.lat}`).then(r => r.json()).catch(() => ({erreur: 'Service terrain indisponible.'}))
-      .then(v => { if (terr.ref !== ref) return; terr.v = v; const z = el.querySelector('[data-tq]'); if (z) z.innerHTML = ficheTerrain(); });
+      .then(v => { if (terr.ref !== ref) return; terr.v = v; const z = el.querySelector('[data-tq]'); if (z) z.innerHTML = ficheTerrain(); const c = el.querySelector('[data-ctl]'); if (c) c.innerHTML = blocControles(); });
+  }
+
+  // Contrôles de cohérence entre le simulateur, le plan du client et ses textes : à lire avant de lancer les plans.
+  const KIND = {dp: 'déclaration préalable', pc: 'permis de construire', pd: 'permis de démolir', svc: 'service', none: 'aucune démarche'};
+  const nb = x => (Math.round(x * 10) / 10).toLocaleString('fr-FR');
+  function controles() {
+    const out = [], plan = (d.pieces.find(p => p.type === 'plan' && p.plan) || {}).plan;
+    const surf = plan && plan.mesures && plan.mesures.surface, colle = plan && (plan.formes || []).some(f => f.t === 'accole');
+    const separe = ['abri', 'annexe', 'carport'].includes(d.projet);
+    for (const p of d.pieces.filter(x => x.type === 'texte' && x.texte)) {
+      const m = String(p.texte).match(/(\d+(?:[.,]\d+)?)\s*m?\s*[x×*]\s*(\d+(?:[.,]\d+)?)/i); if (!m) continue;
+      const a = parseFloat(m[1].replace(',', '.')) * parseFloat(m[2].replace(',', '.'));
+      if (surf && Math.abs(a - surf) > Math.max(3, surf * .2)) out.push(`« ${p.nom} » donne ${m[0]} soit ${nb(a)} m², le plan donne ${nb(surf)} m². Demander la vraie mesure.`);
+      if (!surf && separe && a > 20 && d.kind === 'dp') out.push(`« ${p.nom} » donne ${nb(a)} m² : au-delà de 20 m², il faut un permis, la commande est une déclaration.`);
+      break;
+    }
+    if (surf && separe && !colle) {
+      if (surf > 20 && d.kind === 'dp') out.push(`Le plan donne ${nb(surf)} m² : construction séparée de plus de 20 m², il faut un permis. La commande est une déclaration : modifier la commande.`);
+      if (surf <= 20 && d.kind === 'pc') out.push(`Le plan donne ${nb(surf)} m² : une déclaration suffit peut-être. La commande est un permis : vérifier et ajuster le prix.`);
+    }
+    if (d.regul === 'true') out.push('Travaux déjà faits : la prescription de 10 ans ne joue pas si un permis était exigé (L.421-9 5°). Le dossier doit respecter le PLU actuel.');
+    const t = terr.ref === d.ref && terr.v; if (t && Array.isArray(t.prescriptions)) for (const p of t.prescriptions.filter(x => x.alerte)) out.push(`Prescription du PLU sur la parcelle : ${p.libelle}. Lire la règle correspondante.`);
+    return out;
+  }
+  function blocControles() {
+    const c = controles(); if (!c.length) return '';
+    return `<section class="carte" style="border-color:#B3261E"><h3 style="color:#8A1C1C">À vérifier avant de lancer · ${c.length}</h3><ul style="margin:0;padding-left:18px;font-size:13px">${c.map(x => `<li style="margin-bottom:4px">${esc(x)}</li>`).join('')}</ul></section>`;
   }
 
   function dessinerDossier() {
@@ -163,13 +191,22 @@
       ${!d.outils.images || !d.outils.pdf ? `<p class="form-err" style="margin-top:10px">Outils d'images absents sur le serveur : ${!d.outils.pdf ? 'pas d\'aperçu des PDF livrés' : ''}${!d.outils.images ? ' pas de conversion des photos HEIC ni de filigrane' : ''}.</p>` : ''}
       <div class="bo-d">
         <aside class="pile">
+          <div data-ctl>${blocControles()}</div>
           <section class="carte"><h3>Commande</h3><dl class="dl">
             <dt>Projet</dt><dd>${esc(d.nom)}</dd><dt>Client</dt><dd>${esc(d.client)}<br><a href="mailto:${esc(d.email)}">${esc(d.email)}</a></dd>
             <dt>Options</dt><dd>${esc((d.options || '').replace(/,/g, ', '))}</dd>
             ${d.depot ? (() => { const m = d.pieces.find(x => x.id === 'cerfa-mandat'), f = d.depot.fait; return `<dt>Dépôt</dt><dd><b style="color:${f ? '#3E5A38' : '#B3261E'}">${f ? 'Déposé le ' + jour(f.date) + ', numéro ' + esc(f.numero) : 'À faire par nous'}</b><br><small class="note">Accord du client : ${m && m.texte ? '« ' + esc(m.texte) + ' »' : f ? 'non enregistré' : 'pas encore donné, ne pas déposer'}</small>${f ? '' : '<br><button class="btn petit ghost" type="button" data-depot style="margin-top:6px">Dossier déposé, prévenir le client</button>'}</dd>`; })() : ''}
+            <dt>Dossier</dt><dd>${esc(KIND[d.kind] || d.kind || '-')}</dd>
             <dt>Prix</dt><dd>${euro(d.total)}</dd><dt>Acompte</dt><dd style="color:#3E5A38">${d.paiements.acompte ? euro(d.paiements.acompte.montant) + ' le ' + jour(d.paiements.acompte.date) : '-'}</dd>
             <dt>Solde</dt><dd>${d.paiements.solde ? `<span style="color:#3E5A38">payé le ${jour(d.paiements.solde.date)}</span>` : euro(d.solde) + ' à l\'aperçu'}</dd>
             <dt>Échéance</dt><dd>${d.echeance ? jour(d.echeance) : `${d.delai === 1 ? '24 h' : d.delai === 2 ? '48 h' : d.delai + ' jours'} ouvrés après validation`}</dd></dl>
+            ${d.paiements.solde ? '' : `<details style="margin-top:8px"><summary class="lien" style="display:inline">Changer le type de dossier ou le prix</summary>
+              <form id="fcmd" class="pile" style="margin-top:8px">
+              <div class="rang"><label class="field" style="margin:0;flex:1"><span>Dossier</span><select name="kind">${Object.entries(KIND).filter(([k]) => k !== 'none').map(([k, v]) => `<option value="${k}"${k === d.kind ? ' selected' : ''}>${v}</option>`).join('')}</select></label>
+              <label class="field" style="margin:0;width:110px"><span>Prix total (€)</span><input name="total" inputmode="decimal" value="${d.total}"></label></div>
+              <label class="field" style="margin:0"><span>Raison, lue par le client</span><input name="motif" placeholder="Ex. : l'abri fait 24 m², au-delà de 20 m² la loi impose un permis"></label>
+              <label style="font-size:13px"><input type="checkbox" name="prevenir" checked> Prévenir le client (message et e-mail)</label>
+              <button class="btn petit" type="submit">Enregistrer</button></form></details>`}
             ${d.liensStripe.map(pi => `<a class="note" style="display:block" href="https://dashboard.stripe.com/payments/${esc(pi)}" target="_blank" rel="noopener">Paiement Stripe ${esc(pi.slice(-6))}</a>`).join('')}</section>
           <section class="carte"><h3>Terrain</h3><p style="margin:0 0 8px;font-size:14px">${esc(d.adresse)}</p>
             <p class="rang" style="font-size:13px;gap:12px"><a href="https://www.geoportail.gouv.fr/carte?q=${encodeURIComponent(d.adresse)}" target="_blank" rel="noopener">Géoportail</a><a href="https://cadastre.data.gouv.fr/" target="_blank" rel="noopener">Cadastre</a><a href="https://www.geoportail-urbanisme.gouv.fr/map/" target="_blank" rel="noopener">PLU</a></p><div data-tq>${ficheTerrain()}</div></section>
@@ -186,7 +223,10 @@
             <details style="margin-top:10px"><summary class="lien" style="display:inline">+ Demander une pièce</summary>
               <form id="fpiece" class="pile" style="margin-top:8px"><label class="field" style="margin:0"><span>Nom</span><input name="nom" placeholder="Ex. : Accord de la copropriété"></label>
               <label class="field" style="margin:0"><span>Explication pour le client</span><input name="aide"></label>
-              <button class="btn petit" type="submit">Demander (e-mail au client)</button></form></details>
+              <label class="field" style="margin:0"><span>Réponse attendue</span><select name="type"><option value="texte">Texte (mesures, réponse écrite)</option><option value="fichier">Fichier (photo, PDF)</option></select></label>
+              <label style="font-size:13px"><input type="checkbox" name="prevenir" checked> E-mail au client maintenant</label>
+              <small class="note">Plusieurs demandes ? Décochez, puis écrivez un seul message au client.</small>
+              <button class="btn petit" type="submit">Demander</button></form></details>
             <label class="ajout" style="width:100%;box-sizing:border-box">Ajouter un fichier reçu par e-mail<input type="file" multiple id="upeq" accept="image/*,application/pdf"></label><div id="progeq"></div></section>
           <section class="carte"><h3>Pièces à livrer · ${d.livrables.length}</h3>
             ${d.livrables.map(l => `<div class="pl"><button class="nm" type="button" data-s="l:${l.id}"><b>${esc(l.code)}</b> ${esc(l.nom)}</button><small class="note">${l.pages ? l.pages + ' p.' : 'sans aperçu'}</small></div>`).join('') || '<p class="note" style="margin:0">Aucun PDF déposé.</p>'}
@@ -247,7 +287,14 @@
       if (!confirm('Retirer ce PDF du dossier ?')) return;
       const r = await api('DELETE', `/livrable?ref=${R()}&id=${b.dataset.dl}`); sel = null; maj(r.j);
     }));
-    const fp = $('#fpiece'); if (fp) fp.addEventListener('submit', async e => { e.preventDefault(); const r = await api('POST', '/piece?ref=' + R(), {ajouter: true, nom: fp.nom.value, aide: fp.aide.value}); if (!r.ok) return alert(r.j.erreur || 'Erreur.'); maj(r.j); });
+    const fp = $('#fpiece'); if (fp) fp.addEventListener('submit', async e => { e.preventDefault(); const r = await api('POST', '/piece?ref=' + R(), {ajouter: true, nom: fp.nom.value, aide: fp.aide.value, type: fp.type.value, prevenir: fp.prevenir.checked}); if (!r.ok) return alert(r.j.erreur || 'Erreur.'); maj(r.j); });
+    const fc = $('#fcmd'); if (fc) fc.addEventListener('submit', async e => {
+      e.preventDefault();
+      const total = parseFloat(String(fc.total.value).replace(',', '.'));
+      if (!confirm(`Passer la commande en ${KIND[fc.kind.value]} à ${euro(total)} ?${fc.prevenir.checked ? ' Le client est prévenu.' : ''}`)) return;
+      const r = await api('POST', '/commande?ref=' + R(), {kind: fc.kind.value, total, motif: fc.motif.value, prevenir: fc.prevenir.checked});
+      if (!r.ok) return alert(r.j.erreur || 'Erreur.'); maj(r.j);
+    });
     const fm = $('#fmsg'); fm.addEventListener('submit', async e => { e.preventDefault(); if (!fm.t.value.trim()) return; const r = await api('POST', '/message?ref=' + R(), {texte: fm.t.value}); if (!r.ok) return alert(r.j.erreur || 'Erreur.'); vueDossier(d.ref); });
     const fl = $('#flivr');
     if (fl) {

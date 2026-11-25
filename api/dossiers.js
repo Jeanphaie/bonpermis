@@ -632,10 +632,14 @@ async function equipePiece(req, res, url) {
   if (d.ajouter) {
     const nom = texte(d.nom, 80); if (!nom) return repondre(res, 400, {erreur: 'Donnez un nom à la pièce.'});
     const p = {id: 'p' + B.id(4), nom, aide: texte(d.aide, 300), type: d.type === 'texte' ? 'texte' : 'fichier', ajoutee: true};
-    cmd.pieces.splice(cmd.pieces.findIndex(x => x.id === 'autre'), 0, p); histo(cmd, `Pièce demandée : ${nom}`); sauver(cmd);
+    cmd.pieces.splice(cmd.pieces.findIndex(x => x.id === 'autre'), 0, p); histo(cmd, `Pièce demandée : ${nom}${p.type === 'texte' ? ' (réponse écrite)' : ''}`);
+    // Une pièce demandée remet le dossier en attente du client.
+    if (cmd.statut === 'verification') cmd.statut = 'elements';
+    sauver(cmd);
     repondre(res, 200, vueCmd(cmd, true));
     const u = C.lireUser(cmd.uid);
-    if (u) await envoyerMail(cmd.email, `Dossier ${cmd.ref} : un document de plus`, `Bonjour,\n\nPour votre dossier, il nous faut aussi : ${nom}${p.aide ? ' (' + p.aide + ')' : ''}.\n\nL'ajouter depuis votre espace : ${C.lienLong(u, '/espace/dossier/?ref=' + cmd.ref)}${signature}`, CONF.mailA);
+    // prevenir: false : plusieurs demandes d'affilée, puis un seul message au client.
+    if (u && d.prevenir !== false) await envoyerMail(cmd.email, `Dossier ${cmd.ref} : un document de plus`, `Bonjour,\n\nPour votre dossier, il nous faut aussi : ${nom}${p.aide ? ' (' + p.aide + ')' : ''}.\n\nL'ajouter depuis votre espace : ${C.lienLong(u, '/espace/dossier/?ref=' + cmd.ref)}${signature}`, CONF.mailA);
     return;
   }
   const p = cmd.pieces.find(x => x.id === d.piece); if (!p) return repondre(res, 400, {erreur: 'Pièce inconnue.'});
@@ -652,6 +656,30 @@ async function equipePiece(req, res, url) {
   sauver(cmd); repondre(res, 200, vueCmd(cmd, true));
   const u = C.lireUser(cmd.uid);
   if (d.statut === 'a_refaire' && u) await envoyerMail(cmd.email, `Dossier ${cmd.ref} : une pièce à refaire`, `Bonjour,\n\n« ${p.nom} » : ${p.motif}\n\nL'envoyer de nouveau depuis votre espace : ${C.lienLong(u, '/espace/dossier/?ref=' + cmd.ref)}${signature}`, CONF.mailA);
+}
+// Changement de type de dossier ou de prix (ex. une déclaration qui devient un permis après les mesures du client).
+// Possible tant que le solde n'est pas payé. Le solde est recalculé : prix total moins l'acompte déjà payé.
+const KINDS = {dp: 'Déclaration préalable', pc: 'Permis de construire', pd: 'Permis de démolir', svc: 'Service'};
+async function equipeCommande(req, res, url) {
+  const cmd = cmdEquipe(req, res, url); if (!cmd) return;
+  if (cmd.paiements.solde) return repondre(res, 409, {erreur: 'Le solde est déjà payé : la commande ne change plus.'});
+  const d = await lireJson(req, 5000) || {};
+  const kind = KINDS[d.kind] ? d.kind : cmd.kind, total = Math.round(+d.total * 100) / 100, motif = texte(d.motif, 300);
+  const paye = cmd.paiements.acompte ? cmd.paiements.acompte.montant : 0;
+  if (!Number.isFinite(total) || total < paye || total > 20000) return repondre(res, 400, {erreur: `Prix invalide : au moins ${euro(paye)} (acompte déjà payé).`});
+  if (!motif) return repondre(res, 400, {erreur: 'Indiquez la raison : le client la lira.'});
+  if (kind === cmd.kind && total === cmd.total) return repondre(res, 400, {erreur: 'Rien ne change.'});
+  const avant = {kind: cmd.kind, total: cmd.total}, ecart = Math.round((total - cmd.total) * 100) / 100;
+  cmd.kind = kind; cmd.total = total; cmd.solde = Math.round((total - paye) * 100) / 100;
+  if (ecart) cmd.lignes = [...(cmd.lignes || [[cmd.nom, avant.total]]), [`Ajustement : ${motif}`, ecart]];
+  // Le délai suit le type de dossier ; une échéance déjà lancée est recalculée depuis aujourd'hui.
+  if (cmd.echeance && avant.kind !== kind) { const e = B.plusJoursOuvres(new Date(), delaiJours(cmd)); e.setHours(19, 0, 0, 0); cmd.echeance = e.toISOString(); }
+  histo(cmd, `Commande modifiée : ${KINDS[avant.kind] || avant.kind} ${euro(avant.total)} -> ${KINDS[kind]} ${euro(total)} (${motif})`);
+  const txt = `${avant.kind !== kind ? `Votre projet relève d'un${kind === 'pc' || kind === 'pd' ? '' : 'e'} ${KINDS[kind].toLowerCase()}. ` : ''}${motif}\nNouveau prix : ${euro(total)}. Déjà réglé : ${euro(paye)}. Reste à régler après l'aperçu des plans : ${euro(cmd.solde)}.`;
+  if (d.prevenir !== false) cmd.messages.push({de: 'equipe', texte: txt, date: new Date().toISOString()});
+  sauver(cmd); repondre(res, 200, vueCmd(cmd, true));
+  const u = C.lireUser(cmd.uid);
+  if (u && d.prevenir !== false) await envoyerMail(cmd.email, `Dossier ${cmd.ref} : votre commande change`, `Bonjour,\n\n${txt}\n\nUne question ? Répondez depuis votre dossier : ${C.lienLong(u, '/espace/dossier/?ref=' + cmd.ref)}${signature}`, CONF.mailA);
 }
 async function equipeClasser(req, res, url) {
   const cmd = cmdEquipe(req, res, url); if (!cmd) return;
@@ -734,6 +762,6 @@ module.exports = {
   verifierPromo, creerDossier, payerDossier,
   REF_RE, lireCmd, sauver, vueCmd, commande, etatCommande, paiementRecu, enregistrerProjet, supprimerProjet, commanderProjet, espace,
   clientDossier, clientTexte, clientPlusTard, clientPlan, clientFichier, clientSupprimerFichier, clientMessage, clientTerminer, clientValider, clientVoir, clientTelecharger,
-  equipeListe, equipeDossier, equipeVoir, equipePiece, equipeClasser, equipeFichier, equipeMessage, equipeLancer, equipeDepot, equipeLivrable,
+  equipeListe, equipeDossier, equipeVoir, equipePiece, equipeCommande, equipeClasser, equipeFichier, equipeMessage, equipeLancer, equipeDepot, equipeLivrable,
   equipeSupprimerLivrable, equipeEnvoyerApercu, equipeZip, analyser, partAcompte, piecesInitiales, listePieces
 };

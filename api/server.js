@@ -136,6 +136,7 @@ const ROUTES = {
   'GET /api/admin/dossier': D.equipeDossier,
   'GET /api/admin/voir': D.equipeVoir,
   'POST /api/admin/piece': D.equipePiece,
+  'POST /api/admin/commande': D.equipeCommande,
   'POST /api/admin/classer': D.equipeClasser,
   'POST /api/admin/fichier': D.equipeFichier,
   'POST /api/admin/message': D.equipeMessage,
