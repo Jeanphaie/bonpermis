@@ -235,6 +235,13 @@ function lireJournalMails(n = 200) {
   return t.trim().split('\n').filter(Boolean).slice(-n).reverse().map(l => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean);
 }
 
+// 19 h, heure de Paris, le jour de la date donnée (les échéances promises au client), été comme hiver.
+function a19hParis(d) {
+  const e = new Date(d); e.setUTCHours(18, 0, 0, 0);
+  const h = +new Intl.DateTimeFormat('fr-FR', {timeZone: 'Europe/Paris', hour: 'numeric', hour12: false}).formatToParts(e).find(x => x.type === 'hour').value;
+  e.setUTCHours(18 - (h - 19)); return e;
+}
+
 // ---------- stockage JSON ----------
 const chemin = (...p) => path.join(CONF.donnees, ...p);
 function lire(...p) { try { return JSON.parse(fs.readFileSync(chemin(...p), 'utf8')); } catch { return null; } }
@@ -371,7 +378,7 @@ function plusJoursOuvres(d, n) {
 
 module.exports = {
   crypto, fs, path, RACINE, PRIX, DATA, PAGES, P: DATA.P, GROUPS: DATA.GROUPS, NEED: DATA.NEED, PIECES, E, CONF, SECRET, signer, egal,
-  journal, noterMail, lireJournalMails, mailsEnEchec, euro, lireCorps, lireJson, repondre, envoyerFichier, TYPES, ip, trop, tropDeDemandes, lireCookies, cookie,
+  journal, noterMail, lireJournalMails, mailsEnEchec, a19hParis, euro, lireCorps, lireJson, repondre, envoyerFichier, TYPES, ip, trop, tropDeDemandes, lireCookies, cookie,
   encoder, stripe, signatureValide, reference, envoyerMail, signature, chemin, lire, ecrire, creer, liste,
   MAIL_RE, texte, texteLong, nomPropre, id, typeFichier, recevoirFichier, zip, envoyerZip, OUTILS, preparerVue, apercuPdf, plusJoursOuvres
 };

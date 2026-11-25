@@ -422,7 +422,7 @@ async function payerDossier(req, res, url) {
 // sans attendre que l'équipe clique sur « lancer les plans ». Une pièce redemandée la suspend (voir equipeDemander).
 function demarrerEcheance(cmd) {
   if (cmd.echeance) return;
-  const e = B.plusJoursOuvres(new Date(), delaiJours(cmd)); e.setHours(19, 0, 0, 0); cmd.echeance = e.toISOString();
+  const e = B.a19hParis(B.plusJoursOuvres(new Date(), delaiJours(cmd))); cmd.echeance = e.toISOString();
   histo(cmd, 'Échéance démarrée : ' + e.toLocaleDateString('fr-FR', {weekday: 'long', day: 'numeric', month: 'long', timeZone: 'Europe/Paris'}));
 }
 
@@ -731,7 +731,7 @@ function changerCommande(cmd, kindVoulu, totalVoulu, motifBrut) {
   cmd.kind = kind; cmd.total = total; cmd.solde = Math.round((total - paye) * 100) / 100;
   if (ecart) cmd.lignes = [...(cmd.lignes || [[cmd.nom, avant.total]]), [`Ajustement : ${motif}`, ecart]];
   // Le délai suit le type de dossier ; une échéance déjà lancée est recalculée depuis aujourd'hui.
-  if (cmd.echeance && avant.kind !== kind) { const e = B.plusJoursOuvres(new Date(), delaiJours(cmd)); e.setHours(19, 0, 0, 0); cmd.echeance = e.toISOString(); }
+  if (cmd.echeance && avant.kind !== kind) { const e = B.a19hParis(B.plusJoursOuvres(new Date(), delaiJours(cmd))); cmd.echeance = e.toISOString(); }
   histo(cmd, `Commande modifiée : ${KINDS[avant.kind] || avant.kind} ${euro(avant.total)} -> ${KINDS[kind]} ${euro(total)} (${motif})`);
   return {texte: `${avant.kind !== kind ? `Votre projet relève d'un${kind === 'pc' || kind === 'pd' ? '' : 'e'} ${KINDS[kind].toLowerCase()}. ` : ''}${motif}\nNouveau prix : ${euro(total)}. Déjà réglé : ${euro(paye)}. Reste à régler après l'aperçu des plans : ${euro(cmd.solde)}.`};
 }
@@ -856,7 +856,7 @@ async function equipeLancer(req, res, url) {
   if (!['elements', 'verification'].includes(cmd.statut)) return repondre(res, 409, {erreur: 'Le dossier est déjà lancé.'});
   // L'échéance déjà démarrée à la réception des pièces est gardée : c'est celle promise au client.
   let ech = cmd.echeance ? new Date(cmd.echeance) : null;
-  if (!ech || ech < new Date()) { ech = B.plusJoursOuvres(new Date(), delaiJours(cmd)); ech.setHours(19, 0, 0, 0); }
+  if (!ech || ech < new Date()) { ech = B.a19hParis(B.plusJoursOuvres(new Date(), delaiJours(cmd))); }
   cmd.statut = 'preparation'; cmd.echeance = ech.toISOString();
   for (const p of cmd.pieces) if (etatPiece(p, cmd) === 'a_verifier') p.statut = 'valide';
   histo(cmd, 'Pièces complètes : plans en préparation'); sauver(cmd);

@@ -325,6 +325,15 @@
       const r = await api('POST', '/lancer?ref=' + R()); if (!r.ok) return alert(r.j.erreur || 'Erreur.'); maj(r.j);
     });
     const ap = $('[data-apercu]'); if (ap) ap.addEventListener('click', async () => {
+      // Garde-fous avant d'envoyer des plans au client : dossier incomplet ou analyse avec points bloquants.
+      const al = [];
+      if (!d.livrables.some(l => l.code === 'CERFA')) al.push('Aucun formulaire Cerfa parmi les pièces à livrer.');
+      const mq = d.pieces.filter(p => !p.facultatif && p.etat === 'manquant');
+      if (mq.length) al.push(`${mq.length} élément${mq.length > 1 ? 's' : ''} obligatoire${mq.length > 1 ? 's' : ''} jamais reçu${mq.length > 1 ? 's' : ''} : ${mq.map(p => p.nom).join(', ')}.`);
+      const bl = d.analyse ? d.analyse.points.filter(p => p.niveau === 'bloquant') : [];
+      if (bl.length && !d.analyse.appliquee) al.push(`L'analyse signale ${bl.length} point${bl.length > 1 ? 's' : ''} bloquant${bl.length > 1 ? 's' : ''} pas encore traité${bl.length > 1 ? 's' : ''}.`);
+      if (d.livrables.length < 3) al.push(`Seulement ${d.livrables.length} pièce${d.livrables.length > 1 ? 's' : ''} déposée${d.livrables.length > 1 ? 's' : ''}.`);
+      if (al.length && !confirm('Avant d\'envoyer l\'aperçu au client :\n- ' + al.join('\n- ') + '\n\nEnvoyer quand même ?')) return;
       const t = prompt('Message joint pour le client (facultatif) :', ''); if (t === null) return;
       const r = await api('POST', '/apercu?ref=' + R(), {texte: t}); if (!r.ok) return alert(r.j.erreur || 'Erreur.'); maj(r.j);
     });

@@ -161,13 +161,15 @@
     proches.sort((a, b) => a.d - b.d);
     const pris = [];
     for (const m of proches) { if (pris.length >= 2) break; if (pris.some(x => ecartAngle(x.ang, m.ang) < 30 && Math.abs(x.ang - m.ang) < 30)) continue; pris.push(m); }
-    for (const m of pris) { if (m.d < 0.05) texte(g, add(m.p, mul(unit(sub(m.p, ctr)), 9 * sw)), 'en limite', 10 * sw, 'pl-cote-t', {'stroke-width': 3 * sw}); else cote(g, m.p, m.q, sw); }
+    const occupes = []; // milieux des cotes : l'étiquette du projet les évite
+    for (const m of pris) { occupes.push(mul(add(m.p, m.q), .5)); if (m.d < 0.05) texte(g, add(m.p, mul(unit(sub(m.p, ctr)), 9 * sw)), 'en limite', 10 * sw, 'pl-cote-t', {'stroke-width': 3 * sw}); else cote(g, m.p, m.q, sw); }
     let mb = null;
     for (const s of segsBats(W, f.bat)) {
       for (const p of c) { const d = distSeg(p, s[0], s[1]); if (!mb || d < mb.d) mb = {d, a: p, b: projSeg(p, s[0], s[1])}; }
       for (const p of [s[0], s[1]]) for (const [a, b] of segs(c)) { const d = distSeg(p, a, b); if (!mb || d < mb.d) mb = {d, a: projSeg(p, a, b), b: p}; }
     }
-    if (mb && mb.d > 0.05 && mb.d < 30) cote(g, mb.a, mb.b, sw, null, 'maison');
+    if (mb && mb.d > 0.05 && mb.d < 30) { cote(g, mb.a, mb.b, sw, null, 'maison'); occupes.push(mul(add(mb.a, mb.b), .5)); }
+    return occupes;
   }
 
   // La scène complète : fond cadastral, parcelle, bâtiments, formes, cotes, nord, échelle. Partagée par l'éditeur et l'aperçu.
@@ -198,9 +200,12 @@
       if (f.t === 'point') { const p = W.F.m(f.p); el('circle', {cx: p[0], cy: -p[1], r: 6 * sw, class: 'pl-forme choisi'}, g); texte(g, add(p, [0, -12 * sw]), 'Portail', 11 * sw, 'pl-lab', {'stroke-width': 3 * sw}); return; }
       const c = contour(f, W); if (!c) return;
       el('polygon', {points: ptsAttr(c), class: 'pl-forme' + (i === o.sel ? ' choisi' : ''), 'stroke-width': 2 * sw, 'data-forme': i}, g);
-      cotesForme(g, f, W, sw);
-      const ctr = centre(c), bas = Math.min(...c.map(p => p[1]));
-      texte(g, [ctr[0], bas - 24 * sw], `${o.nom || 'Projet'} · ${nb(aire(c))} m²`, 11 * sw, 'pl-lab', {'stroke-width': 3 * sw});
+      const occupes = cotesForme(g, f, W, sw) || [];
+      const ctr = centre(c), bas = Math.min(...c.map(p => p[1])), haut = Math.max(...c.map(p => p[1]));
+      // Étiquette sous le projet, ou au-dessus si une cote passe déjà dessous.
+      const dessous = [ctr[0], bas - 24 * sw], dessus = [ctr[0], haut + 24 * sw];
+      const gene = p => Math.min(...occupes.map(q => len(sub(q, p))), Infinity);
+      texte(g, gene(dessous) >= gene(dessus) || gene(dessous) > 40 * sw ? dessous : dessus, `${o.nom || 'Projet'} · ${nb(aire(c))} m²`, 11 * sw, 'pl-lab', {'stroke-width': 3 * sw});
       if (o.edit && i === o.sel && (f.t === 'rect')) { // poignée de rotation
         const v = [-Math.sin(f.a * RAD), Math.cos(f.a * RAD)], h = add(ctr, mul(v, f.P / 2 + 16 * sw));
         el('line', {x1: ctr[0] + v[0] * f.P / 2, y1: -(ctr[1] + v[1] * f.P / 2), x2: h[0], y2: -h[1], class: 'pl-poignee-l', 'stroke-width': 1.2 * sw}, g);
