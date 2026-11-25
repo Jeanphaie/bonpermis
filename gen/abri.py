@@ -35,6 +35,7 @@ DIST = sorted([(SAB.distance(LineString(s)), s) for s in SEGS], key=lambda t: t[
 EMPRISE = L * l
 BATI = sum(b['emprise'] for b, _ in BATS if b['surParcelle'])
 # Rien de propre à un dossier n'est écrit en dur : tout vient de projet.json, avec des valeurs par défaut neutres.
+NOM = A.get('nom', 'Abri de jardin'); USAGE = A.get('usage', 'rangement, non habitable'); EP = A.get('epaisseur_mur', 0.045)
 REGUL = bool(d.get('regularisation', 'annee' in A))
 ETAT = 'à régulariser' if REGUL else 'projetée'
 REG = d.get('regles', {})                    # {emprise_max_pct, emprise_ref, implantation, hauteur} : lignes écrites seulement si fournies
@@ -137,7 +138,7 @@ def masse():
     cm = SP(maison[1]).representative_point()
     pl.texte(*P((cm.x, cm.y)), 'MAISON\nEXISTANTE', 1.7, ha='center', va='center', z=24, bbox=dict(fc='white', ec='none', pad=0.8, alpha=0.9), linespacing=1.4)
     lp = loc(0, 0)
-    pl.texte(P(lp)[0] - 20, P(lp)[1] - 14, f"ABRI DE JARDIN\n{fr(L)} x {fr(l)} m, {fr(EMPRISE, 1)} m²\négout +{fr(EG)} / faîtage +{fr(FA)}", 1.7, couleur=ROUGE, z=24, va='center', ha='right',
+    pl.texte(P(lp)[0] - 20, P(lp)[1] - 14, f"{NOM.upper()}\n{fr(L)} x {fr(l)} m, {fr(EMPRISE, 1)} m²\négout +{fr(EG)} / faîtage +{fr(FA)}", 1.7, couleur=ROUGE, z=24, va='center', ha='right',
              bbox=dict(fc='white', ec='none', pad=0.8, alpha=0.9), linespacing=1.4)
     pl.ligne([P(loc(-L / 2, -l / 2)), (P(lp)[0] - 19, P(lp)[1] - 12)], lw=LW_TRES_FIN, c=ROUGE, z=24)
     from shapely.ops import polylabel
@@ -175,7 +176,7 @@ def masse():
     # colonne de droite
     x = x1 - col + 6; y = y1 - 4
     pl.texte(x, y, 'LÉGENDE', 2.2, gras=True); y -= 7
-    for fc, ec, ha, t in [('#b9bfc6', ENCRE, None, 'Construction existante conservée'), ('#f9e3e0', ROUGE, '////', (f"Abri de jardin à régulariser (construit en {A['annee']})" if REGUL and A.get('annee') else f'Abri de jardin {ETAT[:-1] if not REGUL else ETAT}')),
+    for fc, ec, ha, t in [('#b9bfc6', ENCRE, None, 'Construction existante conservée'), ('#f9e3e0', ROUGE, '////', (f"{NOM} à régulariser (construit en {A['annee']})" if REGUL and A.get('annee') else f"{NOM} {'à régulariser' if REGUL else 'en projet'}")),
                           ('#e3e5e8', GRIS, None, 'Bâti voisin (IGN BD TOPO)')]:
         pl.rect(x, y - 1, 9, 4.5, fc=fc, ec=ec, lw=LW_VUE, hatch=ha); pl.texte(x + 12, y, t, 1.8); y -= 7
     pl.ligne([(x, y + 1.2), (x + 9, y + 1.2)], lw=LW_COUPE, ls=(0, (10, 2.5, 2, 2.5))); pl.texte(x + 12, y, 'Limite de la parcelle (cadastre)', 1.8); y -= 7
@@ -184,9 +185,9 @@ def masse():
     pl.texte(x + 12, y, 'Prise de vue photographique', 1.8); y -= 11
     pl.texte(x, y, 'SURFACES', 2.2, gras=True); y -= 6
     tot = BATI + EMPRISE; S = d['surface_terrain']
-    for a, b in [('Terrain', f"{S:,} m²".replace(',', ' ')), ('Emprise existante (IGN BD TOPO)', f'{fr(BATI, 0)} m²'), ('Emprise de l\'abri', f'{fr(EMPRISE)} m²'),
+    for a, b in [('Terrain', f"{S:,} m²".replace(',', ' ')), ('Emprise existante (IGN BD TOPO)', f'{fr(BATI, 0)} m²'), ('Emprise de la construction', f'{fr(EMPRISE)} m²'),
                  ('Emprise totale', f'{fr(tot, 0)} m², soit {fr(tot / S * 100, 1)} % du terrain'), ] + ([(f"Emprise maximale ({REG.get('emprise_ref') or 'règlement, ' + fr(REG['emprise_max_pct'], 0) + ' %'})", f"{fr(S * REG['emprise_max_pct'] / 100, 0)} m²")] if REG.get('emprise_max_pct') else []) + [
-                 ('Surface de plancher de l\'abri', f'{fr(SDP)} m²')]:
+                 ('Surface de plancher créée', f'{fr(SDP)} m²')]:
         pl.texte(x, y, a, 1.7, couleur=GRIS); pl.texte(x + col - 10, y, b, 1.7, ha='right')
         pl.ligne([(x, y - 1.6), (x + col - 10, y - 1.6)], lw=LW_TRES_FIN, c='#d5d9de'); y -= 5
     y -= 6
@@ -194,7 +195,7 @@ def masse():
     notes = [f"Distances aux limites séparatives : {fr(DIST[0][0])} m ({cote_limite(DIST[0][1])}) et {fr(DIST[1][0])} m ({cote_limite(DIST[1][1])}).{' ' + REG['implantation'] if REG.get('implantation') else ''}",
              f"Hauteurs depuis le terrain naturel : égout +{fr(EG)}, faîtage +{fr(FA)}. Terrain naturel à {fr(TN_NGF, 1)} m NGF (IGN RGE ALTI), non modifié.",
              d.get('acces') or f"Accès depuis la voie publique ({d['voie']['texte']}), inchangé.",
-             d.get('reseaux') or "Aucun raccordement aux réseaux : abri de rangement.",
+             d.get('reseaux') or "Aucun raccordement aux réseaux.",
              d.get('eaux') or "Eaux de toiture infiltrées sur la parcelle."] + d.get('hypotheses', [])
     for n in notes:
         for i, ll in enumerate(textwrap.wrap(n, 70)):
@@ -219,7 +220,7 @@ def masse():
 
 
 # ------------------------------------------------------------------ PCMI3
-SDP = round((L - 0.09) * (l - 0.09), 2)     # murs en madriers de 45 mm déduits
+SDP = round((L - 2 * EP) * (l - 2 * EP), 2)     # épaisseur des murs déduite
 BBV = min((-1.6, 1.6), key=lambda v: LineString([loc(-L / 2, v), loc(-L / 2 - 6, v)]).intersection(SPARC.exterior).distance(__import__('shapely.geometry', fromlist=['Point']).Point(loc(-L / 2, v))))
 COUPES = [('AA', (0.8, -l / 2 - 3.2), (0.8, l / 2 + 2.2), (-1, 0)), ('BB', (-L / 2 - 2.2, BBV), (L / 2 + 3.2, BBV), (0, 1))]
 EPM, EPT, EPD = 0.045, 0.07, 0.12
@@ -240,7 +241,7 @@ def coupe(pl, nom, a, b, reg, X0, Y0, k):
     pts = [Q(s0, tn(s0)), Q(s1, tn(s1))]
     pl.ligne(pts, lw=LW_COUPE, z=40)
     pl.poly(pts + [Q(s1, -0.55), Q(s0, -0.55)], fc='none', ec='#aab1b9', lw=0, hatch='/////', z=9)
-    pl.texte(pts[0][0], Q(s0, -0.55)[1] - 3.2, f'Terrain naturel (IGN RGE ALTI, {fr(TN_NGF, 1)} m NGF au droit de l\'abri), non modifié', 1.4, couleur=GRIS, z=41)
+    pl.texte(pts[0][0], Q(s0, -0.55)[1] - 3.2, f'Terrain naturel (IGN RGE ALTI, {fr(TN_NGF, 1)} m NGF au droit de la construction), non modifié', 1.4, couleur=GRIS, z=41)
     R = dict(fc='#fbe4e1', ec=ROUGE, lw=LW_VUE, hatch='//////', z=35)
     # dalle, murs
     pl.poly([Q(-half - 0.05, PL - EPD), Q(half + 0.05, PL - EPD), Q(half + 0.05, PL), Q(-half - 0.05, PL)], **R)
@@ -262,7 +263,7 @@ def coupe(pl, nom, a, b, reg, X0, Y0, k):
         pl.poly([Q(-half - DR, FA), Q(half + DR, FA), Q(half + DR, FA - EPT), Q(-half - DR, FA - EPT)], **R)
         pl.ligne([Q(-half - DR, EG - DE * PENTE), Q(half + DR, EG - DE * PENTE)], lw=LW_FIN, c=ENCRE, z=31)
         pl.rect(*Q(-half + EPM, PL), (2 * half - 2 * EPM) * k, (FA - EPT - PL) * k, fc='white', ec='none', lw=0, z=30)
-    pl.texte(Q(0, 0)[0], Q(0, 1.05)[1], 'ABRI DE JARDIN\nrangement, non habitable', 1.7, ha='center', va='center', couleur=ROUGE, z=36, linespacing=1.5)
+    pl.texte(Q(0, 0)[0], Q(0, 1.05)[1], f'{NOM.upper()}\n{USAGE}', 1.7, ha='center', va='center', couleur=ROUGE, z=36, linespacing=1.5)
     # limites de propriété rencontrées
     A3, B3 = loc(*a), loc(*b)
     inter = LineString([A3, B3]).intersection(SPARC.exterior)
@@ -422,7 +423,7 @@ def facades():
     for fc, t in [(BOIS, MAT['murs']), (BOIS, MAT['portes']), (TOLE, MAT['couverture']), (BOIS, MAT['rives']), (DALLE, MAT['soubassement'])]:
         pl.rect(x, y - 0.8, 6, 3.6, fc=fc, ec=ENCRE, lw=LW_FIN); pl.texte(x + 9, y, t, 1.6); y -= 6
     pl.texte(x, y - 2, "\n".join(textwrap.wrap(f"Aucune ouverture autre que les portes du pignon {face(1, 0)}. {MAT['note']}", 48)), 1.6, couleur=GRIS, va='top', linespacing=1.5)
-    pl.texte(x0 + 6, y0 + 3, ("Construction existante, à régulariser : les façades décrivent l'abri tel qu'il est construit. " if REGUL else '') + (d.get('hypotheses') or [''])[0], 1.6, couleur=GRIS)
+    pl.texte(x0 + 6, y0 + 3, ("Construction existante, à régulariser : les façades décrivent ce qui est construit. " if REGUL else '') + (d.get('hypotheses') or [''])[0], 1.6, couleur=GRIS)
     fin(pl, 'PCMI5')
 
 
