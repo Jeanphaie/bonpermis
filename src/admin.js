@@ -164,15 +164,16 @@
     if (!a) return d.aFaire ? `<section class="carte" style="border-color:#0A2FB0"><h3>Analyse</h3><p style="margin:0;font-size:14px">${esc(d.aFaire)}.</p><p class="note" style="margin:6px 0 0">Dans l'app Claude, projet Bon Permis : « nouveau dossier ».</p></section>` : '';
     const n = a.demandes.length + a.refaire.length, chg = a.dossier && (a.dossier.kind !== d.kind || (a.dossier.total && a.dossier.total !== d.total));
     return `<section class="carte" style="border-color:${a.appliquee ? 'var(--line,#E3E6EE)' : '#0A2FB0'}"><h3>Analyse · ${esc(a.par)} · ${court(a.date)}${a.appliquee ? ' · appliquée' : ''}</h3>
+      <div class="${a.appliquee ? '' : 'ana-g'}"><div>
       ${d.aFaire ? `<p class="form-err" style="margin:0 0 8px">${esc(d.aFaire)} : dites « nouveau dossier » à Claude.</p>` : ''}
       ${a.resume ? `<p style="margin:0 0 10px;font-size:14px;white-space:pre-wrap">${esc(a.resume)}</p>` : ''}
-      <ul style="margin:0;padding:0;list-style:none;font-size:13px">${a.points.map(p => `<li style="margin-bottom:6px"><b style="color:${NV[p.niveau][0]};font-weight:500">${NV[p.niveau][1]}</b> · ${esc(p.texte)}${p.source ? ` <small class="note" style="display:inline">(${esc(p.source)})</small>` : ''}</li>`).join('')}</ul>
-      ${a.appliquee ? '' : `<form id="fana" class="pile" style="margin-top:10px;border-top:1px solid #E3E6EE;padding-top:10px">
+      <ul class="pts">${a.points.map(p => `<li><b style="color:${NV[p.niveau][0]}">${NV[p.niveau][1]}</b><span>${esc(p.texte)}${p.source ? ` <small class="note" style="display:inline">(${esc(p.source)})</small>` : ''}</span></li>`).join('')}</ul></div>
+      ${a.appliquee ? '' : `<form id="fana" class="pile"><h3>Pour le client</h3>
         ${chg ? `<label style="font-size:13px"><input type="checkbox" name="commande" checked> Passer la commande en <b>${esc(KIND[a.dossier.kind])}</b>${a.dossier.total ? ' à <b>' + euro(a.dossier.total) + '</b>' : ''}${a.dossier.motif ? ' : ' + esc(a.dossier.motif) : ''}</label>` : ''}
         ${n ? `<p style="margin:0;font-size:13px"><b style="font-weight:500">Demandé au client :</b><br>${[...a.demandes.map(q => esc(q.nom) + (q.type === 'fichier' ? ' (fichier)' : '')), ...a.refaire.map(r => 'À refaire : ' + esc((d.pieces.find(p => p.id === r.piece) || {}).nom || r.piece))].join('<br>')}</p>` : ''}
-        <label class="field" style="margin:0"><span>Message au client (modifiable)</span><textarea name="message" rows="${Math.min(16, Math.max(4, Math.ceil((a.message || '').length / 55)))}">${esc(a.message)}</textarea></label>
+        <label class="field" style="margin:0"><span>Message au client (modifiable)</span><textarea name="message" rows="${Math.min(22, Math.max(5, Math.ceil((a.message || '').length / 38)))}">${esc(a.message)}</textarea></label>
         <button class="btn petit blue-btn" type="submit">${n ? 'Envoyer au client (un seul e-mail)' : 'Valider l\'analyse'}</button>
-        ${n && d.statut === 'preparation' ? '<small class="note">Le dossier repasse en attente du client et le délai est suspendu.</small>' : ''}</form>`}</section>`;
+        ${n && d.statut === 'preparation' ? '<small class="note">Le dossier repasse en attente du client et le délai est suspendu.</small>' : ''}</form>`}</div></section>`;
   }
   function blocControles() {
     const c = controles(); if (!c.length || d.analyse) return '';
@@ -188,9 +189,28 @@
         ${lancer ? '<button class="btn petit blue-btn" type="button" data-lancer>Pièces complètes, lancer les plans</button>' : ''}
         ${envoyer ? `<button class="btn petit blue-btn" type="button" data-apercu>${d.statut === 'apercu' ? 'Renvoyer l\'aperçu' : 'Envoyer l\'aperçu au client'}</button>` : ''}</div></div>
       ${!d.outils.images || !d.outils.pdf ? `<p class="form-err" style="margin-top:10px">Outils d'images absents sur le serveur : ${!d.outils.pdf ? 'pas d\'aperçu des PDF livrés' : ''}${!d.outils.images ? ' pas de conversion des photos HEIC ni de filigrane' : ''}.</p>` : ''}
-      <div class="bo-d">
-        <aside class="pile">
-          ${blocAnalyse()}<div data-ctl>${blocControles()}</div>
+      <div class="bo-g">
+        <div class="z-ana">${blocAnalyse()}<div data-ctl>${blocControles()}</div></div>
+        <div class="z-vis pile">${visionneuse()}
+          <section class="carte"><h3>Réponses du client · ${textes.filter(p => p.texte).length} / ${textes.length}</h3><div class="rep-g">
+            ${textes.map(p => `<div class="rep"><small class="note">${esc(p.nom)} <span class="pill st-${p.etat}">${EP[p.etat]}</span></small><p>${esc(p.texte) || '<span class="note">(vide)</span>'}</p>
+            ${p.texte ? `<span class="rang" style="gap:12px"><button class="lien" type="button" data-tv="${p.id}">Valider</button><button class="lien" type="button" data-tr="${p.id}" style="color:#8A1C1C">À refaire</button></span>` : ''}</div>`).join('')}</div></section>
+        </div>
+        <div class="z-rep pile">
+          <section class="carte"><h3>Pièces demandées · ${d.recues.n} / ${d.recues.sur}</h3>
+            ${d.pieces.map(p => { const n = d.fichiers.filter(f => f.piece === p.id).length; const cur = sel && sel.k === 'f' && (d.fichiers.find(f => f.id === sel.id) || {}).piece === p.id;
+              return `<div class="pl${cur ? ' sel' : ''}"><button class="nm" type="button" data-pp="${p.id}">${esc(p.nom)}${n ? ` · ${n}` : ''}${p.facultatif ? ' <small class="note" style="display:inline">(facult.)</small>' : ''}</button><span class="pill st-${p.etat}">${p.plusTard ? 'On en reparle' : EP[p.etat]}</span></div>`; }).join('')}
+            <details style="margin-top:10px"><summary class="lien" style="display:inline">+ Demander une pièce</summary>
+              <form id="fpiece" class="pile" style="margin-top:8px"><label class="field" style="margin:0"><span>Nom</span><input name="nom" placeholder="Ex. : Accord de la copropriété"></label>
+              <label class="field" style="margin:0"><span>Explication pour le client</span><input name="aide"></label>
+              <label class="field" style="margin:0"><span>Réponse attendue</span><select name="type"><option value="texte">Texte (mesures, réponse écrite)</option><option value="fichier">Fichier (photo, PDF)</option></select></label>
+              <label style="font-size:13px"><input type="checkbox" name="prevenir" checked> E-mail au client maintenant</label>
+              <small class="note">Plusieurs demandes ? Décochez, puis écrivez un seul message au client.</small>
+              <button class="btn petit" type="submit">Demander</button></form></details>
+            <label class="ajout" style="width:100%;box-sizing:border-box">Ajouter un fichier reçu par e-mail<input type="file" multiple id="upeq" accept="image/*,application/pdf"></label><div id="progeq"></div></section>
+          ${d.pieces.filter(p => p.type === 'plan').map(p => `<section class="carte"><h3>${esc(p.nom)} <span class="pill st-${p.etat}" style="text-transform:none;letter-spacing:0">${EP[p.etat]}</span></h3>${p.plan ? `<div class="plan-mini" data-plan-ap="${p.id}"></div><p style="margin:8px 0 0;font-size:13px;white-space:pre-wrap">${esc(p.texte)}</p><div class="rang" style="margin-top:8px"><button class="lien" type="button" data-tv="${p.id}">Valider</button><button class="lien" type="button" data-tr="${p.id}" style="color:#8A1C1C">À refaire</button></div>` : '<p class="note" style="margin:0">Pas encore placé par le client.</p>'}</section>`).join('')}
+        </div>
+        <div class="z-cmd pile">
           <section class="carte"><h3>Commande</h3><dl class="dl">
             <dt>Projet</dt><dd>${esc(d.nom)}</dd><dt>Client</dt><dd>${esc(d.client)}<br><a href="mailto:${esc(d.email)}">${esc(d.email)}</a></dd>
             <dt>Options</dt><dd>${esc((d.options || '').replace(/,/g, ', '))}</dd>
@@ -207,26 +227,13 @@
               <label style="font-size:13px"><input type="checkbox" name="prevenir" checked> Prévenir le client (message et e-mail)</label>
               <button class="btn petit" type="submit">Enregistrer</button></form></details>`}
             ${d.liensStripe.map(pi => `<a class="note" style="display:block" href="https://dashboard.stripe.com/payments/${esc(pi)}" target="_blank" rel="noopener">Paiement Stripe ${esc(pi.slice(-6))}</a>`).join('')}</section>
+          <section class="carte"><h3>Réponses au simulateur</h3>${(d.reponsesLisibles || []).map(([k, v]) => `<p style="margin:0 0 8px;font-size:13px"><span class="note" style="display:block;margin:0">${esc(k)}</span><b style="font-weight:500">${esc(v)}</b></p>`).join('') || '<p class="note">-</p>'}${d.regul === 'true' ? '<p class="note">Travaux déjà réalisés (régularisation)</p>' : ''}</section>
+        </div>
+        <div class="z-ter pile">
           <section class="carte"><h3>Terrain</h3><p style="margin:0 0 8px;font-size:14px">${esc(d.adresse)}</p>
             <p class="rang" style="font-size:13px;gap:12px"><a href="https://www.geoportail.gouv.fr/carte?q=${encodeURIComponent(d.adresse)}" target="_blank" rel="noopener">Géoportail</a><a href="https://cadastre.data.gouv.fr/" target="_blank" rel="noopener">Cadastre</a><a href="https://www.geoportail-urbanisme.gouv.fr/map/" target="_blank" rel="noopener">PLU</a></p><div data-tq>${ficheTerrain()}</div></section>
-          <section class="carte"><h3>Réponses au simulateur</h3>${(d.reponsesLisibles || []).map(([k, v]) => `<p style="margin:0 0 8px;font-size:13px"><span class="note" style="display:block;margin:0">${esc(k)}</span><b style="font-weight:500">${esc(v)}</b></p>`).join('') || '<p class="note">-</p>'}${d.regul === 'true' ? '<p class="note">Travaux déjà réalisés (régularisation)</p>' : ''}</section>
-          ${d.pieces.filter(p => p.type === 'plan').map(p => `<section class="carte"><h3>${esc(p.nom)} <span class="pill st-${p.etat}" style="text-transform:none;letter-spacing:0">${EP[p.etat]}</span></h3>${p.plan ? `<div class="plan-mini" data-plan-ap="${p.id}"></div><p style="margin:8px 0 0;font-size:13px;white-space:pre-wrap">${esc(p.texte)}</p><div class="rang" style="margin-top:8px"><button class="lien" type="button" data-tv="${p.id}">Valider</button><button class="lien" type="button" data-tr="${p.id}" style="color:#8A1C1C">À refaire</button></div>` : '<p class="note" style="margin:0">Pas encore placé par le client.</p>'}</section>`).join('')}
-          ${textes.map(p => `<section class="carte"><h3>${esc(p.nom)} <span class="pill st-${p.etat}" style="text-transform:none;letter-spacing:0">${EP[p.etat]}</span></h3><p style="margin:0;font-size:14px;white-space:pre-wrap">${esc(p.texte) || '<span class="note">(vide)</span>'}</p>
-            ${p.texte ? `<div class="rang" style="margin-top:8px"><button class="lien" type="button" data-tv="${p.id}">Valider</button><button class="lien" type="button" data-tr="${p.id}" style="color:#8A1C1C">À refaire</button></div>` : ''}</section>`).join('')}
-        </aside>
-        <section>${visionneuse()}</section>
-        <aside class="pile">
-          <section class="carte"><h3>Pièces demandées · ${d.recues.n} / ${d.recues.sur}</h3>
-            ${d.pieces.map(p => { const n = d.fichiers.filter(f => f.piece === p.id).length; const cur = sel && sel.k === 'f' && (d.fichiers.find(f => f.id === sel.id) || {}).piece === p.id;
-              return `<div class="pl${cur ? ' sel' : ''}"><button class="nm" type="button" data-pp="${p.id}">${esc(p.nom)}${n ? ` · ${n}` : ''}${p.facultatif ? ' <small class="note" style="display:inline">(facult.)</small>' : ''}</button><span class="pill st-${p.etat}">${p.plusTard ? 'On en reparle' : EP[p.etat]}</span></div>`; }).join('')}
-            <details style="margin-top:10px"><summary class="lien" style="display:inline">+ Demander une pièce</summary>
-              <form id="fpiece" class="pile" style="margin-top:8px"><label class="field" style="margin:0"><span>Nom</span><input name="nom" placeholder="Ex. : Accord de la copropriété"></label>
-              <label class="field" style="margin:0"><span>Explication pour le client</span><input name="aide"></label>
-              <label class="field" style="margin:0"><span>Réponse attendue</span><select name="type"><option value="texte">Texte (mesures, réponse écrite)</option><option value="fichier">Fichier (photo, PDF)</option></select></label>
-              <label style="font-size:13px"><input type="checkbox" name="prevenir" checked> E-mail au client maintenant</label>
-              <small class="note">Plusieurs demandes ? Décochez, puis écrivez un seul message au client.</small>
-              <button class="btn petit" type="submit">Demander</button></form></details>
-            <label class="ajout" style="width:100%;box-sizing:border-box">Ajouter un fichier reçu par e-mail<input type="file" multiple id="upeq" accept="image/*,application/pdf"></label><div id="progeq"></div></section>
+        </div>
+        <div class="z-liv pile">
           <section class="carte"><h3>Pièces à livrer · ${d.livrables.length}</h3>
             ${d.livrables.map(l => `<div class="pl"><button class="nm" type="button" data-s="l:${l.id}"><b>${esc(l.code)}</b> ${esc(l.nom)}</button><small class="note">${l.pages ? l.pages + ' p.' : 'sans aperçu'}</small></div>`).join('') || '<p class="note" style="margin:0">Aucun PDF déposé.</p>'}
             ${d.statut !== 'livre' && window.BPCerfa ? '<button class="btn petit ghost" type="button" id="bcerfa" style="margin-top:10px;width:100%">Pré-remplir le formulaire Cerfa</button>' : ''}
@@ -235,12 +242,16 @@
               <label class="field" style="margin:0;flex:2"><span>Intitulé</span><input name="nom" value="${esc(NOMS.CERFA)}"></label></div>
               <label class="ajout" style="margin:0">Choisir le PDF et déposer<input type="file" name="pdf" accept="application/pdf"></label><div id="proglivr"></div></form>
               <p class="note">Le client voit un aperçu en image avec filigrane. Il télécharge les PDF après le solde.</p>` : '<p class="note">Dossier livré : le client télécharge les PDF.</p>'}</section>
+        </div>
+        <div class="z-msg pile">
           <section class="carte"><h3>Messages</h3>
             <div class="fil">${d.messages.map(m => `<div class="msg ${m.de === 'client' ? 'equipe' : 'client'}${m.type === 'correction' ? ' correction' : ''}"><small>${m.de === 'client' ? 'Client' : 'Équipe'} · ${court(m.date)}${m.type === 'correction' ? ' · correction' : ''}</small>${esc(m.texte)}</div>`).join('') || '<p class="note" style="margin:0">Aucun message.</p>'}</div>
             <form id="fmsg"><label class="field" style="margin:0"><span class="sr-only">Message au client</span><textarea name="t" rows="3" aria-label="Message au client" placeholder="Message au client (envoyé aussi par e-mail)"></textarea></label>
             <div class="rang fin" style="margin-top:8px"><button class="btn petit" type="submit">Envoyer</button></div></form></section>
+        </div>
+        <div class="z-his pile">
           <section class="carte"><h3>Historique</h3><ol class="histo">${d.historique.map(h => `<li><b>${court(h.date)}</b> · ${esc(h.texte)}</li>`).join('')}</ol></section>
-        </aside></div>`, 'dossier');
+        </div></div>`, 'dossier');
     brancherCadre(); brancher(); chargerTerrain();
     if (window.BPPlan) el.querySelectorAll('[data-plan-ap]').forEach(c => { const p = d.pieces.find(x => x.id === c.dataset.planAp); if (p && p.plan) window.BPPlan.apercu(c, p.plan, d.projet); });
   }

@@ -146,7 +146,26 @@ body[data-page=admin] header.top nav{display:none}
 .pl.sel{background:var(--accent-soft);margin:0 -14px;padding:8px 14px}
 .histo{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;font-size:13px;max-height:240px;overflow:auto}
 .histo b{font-weight:500}
-@media (max-width:1100px){.bo-d{grid-template-columns:1fr}.vis-c{height:420px}}
+/* Dossier, espace équipe : analyse en tête sur toute la largeur, puis photos et réponses, puis commande, terrain, livraison. */
+.bo-g{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));grid-template-areas:"ana ana ana ana ana ana" "vis vis vis vis rep rep" "cmd cmd ter ter liv liv" "msg msg msg his his his";gap:16px;align-items:start;margin-top:16px}
+.z-ana{grid-area:ana}.z-vis{grid-area:vis}.z-rep{grid-area:rep}.z-cmd{grid-area:cmd}.z-ter{grid-area:ter}.z-liv{grid-area:liv}.z-msg{grid-area:msg}.z-his{grid-area:his}
+.bo-g > div{min-width:0}
+.bo-g .carte{padding:16px}.bo-g .carte + .carte{margin-top:0}
+.bo-g h3{margin:0 0 10px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.z-ana .carte{padding:20px 22px}.z-ana [data-ctl]:not(:empty){margin-top:12px}
+.ana-g{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(320px,1fr);gap:28px;align-items:start}
+.ana-g > form{border-left:1px solid var(--line);padding-left:28px}
+.pts{margin:0;padding:0;list-style:none;font-size:14px;line-height:1.45}
+.pts li{display:grid;grid-template-columns:74px 1fr;gap:10px;padding:7px 0;border-top:1px solid var(--line)}
+.pts b{font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.04em;padding-top:2px}
+.rep-g{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 24px}
+.rep{padding:9px 0;border-top:1px solid var(--line);font-size:14px}
+.rep p{margin:2px 0 4px;white-space:pre-wrap;word-break:break-word}
+.rep .pill{font-size:11px;margin-left:4px}
+.z-his .histo{max-height:320px;overflow:auto}
+@media (max-width:1100px){.bo-d{grid-template-columns:1fr}.vis-c{height:420px}
+  .bo-g{grid-template-columns:1fr;grid-template-areas:"ana" "vis" "rep" "cmd" "ter" "liv" "msg" "his"}
+  .ana-g{grid-template-columns:1fr}.ana-g > form{border-left:0;padding-left:0;border-top:1px solid var(--line);padding-top:14px}.rep-g{grid-template-columns:1fr}}
 @media (max-width:760px){.bo{grid-template-columns:1fr}.bo-nav{flex-direction:row;overflow-x:auto;padding:8px}.bo-main{padding:18px 14px}}
 /* ---------- connexion / création de compte ---------- */
 .esp .wrap.a-large{max-width:1080px}
