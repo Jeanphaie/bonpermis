@@ -761,3 +761,25 @@ header.top:has(.top-act > button.btn) nav.links a[href$="questions/"]{display:no
 .compare td.us{background:var(--accent-soft);font-weight:600}
 .compare td.us::before{color:var(--accent)}
 }
+/* Guides : exemples de plans et méthodes */
+.guide-plan{margin:20px 0 0;border:1px solid var(--line);border-radius:var(--r);overflow:hidden;background:#fff}
+.guide-plan a{display:block;border-bottom:1px solid var(--line)}
+.guide-plan img{display:block;width:100%;height:auto}
+.guide-plan figcaption{padding:14px 18px;font-size:15px;line-height:1.5}
+.guide-plan figcaption span{color:var(--muted);font-size:13px;white-space:nowrap}
+.guide-etapes{list-style:none;counter-reset:g;padding:0;margin:8px 0 28px;display:grid;gap:22px}
+.guide-etapes li{counter-increment:g;position:relative;padding-left:52px}
+.guide-etapes li::before{content:counter(g);position:absolute;left:0;top:0;width:34px;height:34px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;font-weight:700}
+.guide-etapes h2.h3,.guide-etapes h3{margin:4px 0 6px;font-size:19px}
+.guide-etapes p{margin:0;color:var(--muted);line-height:1.6}
+.guide-liens{margin-top:22px;font-size:15px}
+.guide-liens a{color:var(--accent);font-weight:600}
+.cta-box + .cta-box{margin-top:12px}
+.pieces{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:18px}
+.piece{border:1px solid var(--line);border-radius:var(--r);overflow:hidden;background:var(--surface);display:flex;flex-direction:column}
+.piece img{display:block;width:100%;height:auto;border-bottom:1px solid var(--line)}
+.piece > div{padding:16px 18px 18px;display:flex;flex-direction:column;gap:6px}
+.piece b{font-size:12px;letter-spacing:.08em;color:var(--accent)}
+.piece h3{font-size:19px;margin:0}
+.piece p{margin:0;color:var(--muted);font-size:15px;line-height:1.5}
+.piece a{color:var(--accent);font-weight:600;font-size:15px;margin-top:4px}

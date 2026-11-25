@@ -131,7 +131,7 @@ def pied(base):
     blocs = ''.join(
         f'<div><b>{e(t)}</b><ul>' + ''.join(f'<li><a href="{base}{URL[k]}/">{e(nom(k))}</a></li>' for k in ks if k in URL) + '</ul></div>'
         for t, ks in cols)
-    blocs += f'<div><b>Outils</b><ul><li><a href="{base}plan-de-situation/">Plan de situation gratuit</a></li><li><a href="{base}plan-de-masse/">Plan de masse en ligne</a></li><li><a href="{base}tarifs/">Tarifs</a></li><li><a href="{base}comment-ca-marche/">Comment ça marche</a></li><li><a href="{base}questions/">Questions fréquentes</a></li><li><a href="{base}projets/">Tous les projets</a></li></ul></div>'
+    blocs += f'<div><b>Outils</b><ul><li><a href="{base}plan-de-situation/">Plan de situation gratuit</a></li><li><a href="{base}plan-de-masse/">Plan de masse en ligne</a></li><li><a href="{base}exemple-plan-de-masse/">Exemple de plan de masse</a></li><li><a href="{base}comment-faire-un-plan-de-masse/">Comment faire un plan de masse</a></li><li><a href="{base}plan-de-coupe/">Plan de coupe</a></li><li><a href="{base}pieces-du-dossier/">Pièces du dossier</a></li><li><a href="{base}tarifs/">Tarifs</a></li><li><a href="{base}comment-ca-marche/">Comment ça marche</a></li><li><a href="{base}questions/">Questions fréquentes</a></li><li><a href="{base}projets/">Tous les projets</a></li></ul></div>'
     return f'''<footer>
   <div class="wrap">
     <nav class="plan" aria-label="Tous les projets">{blocs}</nav>
@@ -171,7 +171,7 @@ def scripts(base):
 def tuile(k, base, simu=True):
     p = P[k]
     sub = f"<small>{e(p['sub'])}</small>" if p.get('sub') else ''
-    return (f'<a class="tile" href="{base}{URL[k]}/"' + (f' data-p="{k}"' if simu else '') + f'><img src="{base}img/{p["img"]}.webp" alt="" loading="lazy" width="480" height="480">'
+    return (f'<a class="tile" href="{base}{URL[k]}/"' + (f' data-p="{k}"' if simu else '') + f'><img src="{base}img/{p["img"]}.webp" alt="{e(p["n"])} : croquis du projet" loading="lazy" width="480" height="480">'
             f'<span>{e(p["n"])}{sub}</span></a>')
 
 
@@ -547,7 +547,7 @@ def page_plan_masse():
 
 <section class="page-sec">
   <div class="wrap pm-recu">
-    <figure class="pm-ex"><a href="../img/exemple-plan-masse-auto.webp" target="_blank" rel="noopener"><img src="../img/exemple-plan-masse-auto-p.webp" alt="Exemple de plan de masse sorti de l'outil : terrain, maison, abri de jardin coté, distances aux limites" loading="lazy" width="900" height="637"></a><figcaption>Exemple sorti de l'outil. Cliquez pour agrandir.</figcaption></figure>
+    <figure class="pm-ex"><a href="../img/exemple-plan-masse-auto.webp" target="_blank" rel="noopener"><img src="../img/exemple-plan-masse-auto-p.webp" alt="Exemple de plan de masse sorti de l'outil : terrain, maison, abri de jardin coté, distances aux limites" loading="lazy" width="900" height="637"></a><figcaption>Exemple sorti de l'outil. Cliquez pour agrandir. <a href="../exemple-plan-de-masse/">Voir d'autres exemples</a> · <a href="../comment-faire-un-plan-de-masse/">Le faire soi-même</a></figcaption></figure>
     <div>
       <h2>Ce que vous recevez</h2>
       <ul class="pm-puces">
@@ -695,6 +695,181 @@ def page_questions():
                         'Questions fréquentes', "Les réponses aux questions qu'on nous pose le plus.", sections, [faq_ld(bloc)])
 
 
+def _plan(dossier, fichier, alt, legende, base='../'):
+    """Un plan montré en grand : vignette cliquable, légende dessous."""
+    return (f'<figure class="guide-plan"><a href="{base}img/{dossier}{fichier}.webp" target="_blank" rel="noopener">'
+            f'<img src="{base}img/{dossier}{fichier}-p.webp" alt="{e(alt)}" loading="lazy" width="900" height="637"></a>'
+            f'<figcaption>{legende} <span>Cliquez pour ouvrir en grand.</span></figcaption></figure>')
+
+
+def _faq_bloc(qr):
+    return '<div class="faq">' + ''.join(f'<details><summary>{e(q)}</summary><p>{e(r)}</p></details>' for q, r in qr) + '</div>'
+
+
+GUIDE_CTA = f'''<div class="cta-box"><div><b>Votre plan de masse en 2 minutes, {PRIX_PLAN} €</b><span>Tapez votre adresse, posez votre projet : les distances se calculent toutes seules. Aperçu gratuit.</span></div><a class="btn blue-btn" href="../plan-de-masse/">Faire mon plan</a></div>
+    <div class="cta-box"><div><b>Ou on fait tout le dossier, dès 149 €</b><span>Règles de votre mairie vérifiées, tous les plans, le formulaire. Prêt en 48 h.</span></div><a class="btn ghost" href="../projets/">Voir mon prix</a></div>'''
+
+
+def page_exemple_masse():
+    qr = [("Quelle échelle pour un plan de masse ?", "Aucune échelle n'est imposée. En pratique, entre le 1/100 et le 1/500 : il faut que tout le terrain tienne sur la feuille et que les cotes restent lisibles. L'échelle doit être écrite sur le plan."),
+          ("Quelle différence entre DP2 et PCMI2 ?", "C'est la même pièce. DP2 est son numéro dans une déclaration préalable, PCMI2 dans un permis de construire de maison individuelle."),
+          ("Faut-il un géomètre ?", "Non, ce n'est pas obligatoire. On part en général du plan cadastral. Attention : le cadastre n'a pas valeur de bornage, ses limites sont indicatives."),
+          ("Peut-on faire un plan de masse à la main ?", "Oui. La mairie n'impose ni logiciel ni professionnel. Elle attend un plan à l'échelle, coté et lisible."),
+          ("Que veut dire « coté dans les trois dimensions » ?", "Le plan indique la longueur, la largeur et la hauteur de la construction. La hauteur s'écrit à côté du projet, puisqu'on ne la voit pas sur une vue de dessus.")]
+    sections = f'''<section class="page-sec" style="padding-top:0">
+  <div class="wrap narrow">
+    <h2>Exemple 1 : une extension de maison</h2>
+    {_plan('exemple-extension/', 'pcmi2-plan-de-masse', "Exemple de plan de masse PCMI2 pour une extension de maison : terrain, extension cotée, distances aux limites, tableau des surfaces", "<b>Extension de 31 m², permis de construire.</b> Dossier réel, nom et adresse masqués, publié avec l'accord de la cliente.")}
+    <h2 class="mt">Exemple 2 : un abri de jardin</h2>
+    {_plan('exemple-abri/', 'pcmi2-plan-de-masse', "Exemple de plan de masse pour un abri de jardin de 24 m² : abri coté, distances aux limites du terrain", "<b>Abri de jardin de 6 m sur 4.</b> Exemple préparé par notre équipe sur un terrain réel, non déposé en mairie.")}
+    <h2 class="mt">Exemple 3 : le plan sorti de notre outil</h2>
+    {_plan('', 'exemple-plan-masse-auto', "Exemple de plan de masse coté sorti de l'outil en ligne : terrain, maison, abri de jardin, distances aux limites", f"<b>Abri de 4 m sur 3, plan automatique à {PRIX_PLAN} €.</b> Terrain réel, commune et parcelle remplacées par des valeurs d'exemple.")}
+  </div>
+</section>
+
+<section class="page-sec alt">
+  <div class="wrap narrow">
+    <h2>Ce qu'un plan de masse doit montrer</h2>
+    <ul class="need-list">
+      <li><i>Le terrain en entier</i>Ses limites, ses dimensions, les parcelles voisines.</li>
+      <li><i>Ce qui existe déjà</i>La maison et les autres constructions, à garder ou à démolir.</li>
+      <li><i>Votre projet, coté</i>Longueur, largeur et hauteur : c'est ce qu'on appelle « coté dans les trois dimensions ».</li>
+      <li><i>Les distances</i>Entre le projet et chaque limite du terrain, et entre le projet et la maison.</li>
+      <li><i>L'accès et les réseaux</i>L'entrée depuis la rue, et les raccordements (eau, électricité, assainissement) quand le projet en a besoin.</li>
+      <li><i>Les plantations</i>Les arbres gardés, supprimés ou plantés.</li>
+      <li><i>Les repères</i>Le nord, l'échelle, l'endroit du trait de coupe et les endroits d'où les photos sont prises.</li>
+    </ul>
+    <p class="rules-src">Pièce exigée par le code de l'urbanisme : article R. 431-36 pour une déclaration préalable, article R. 431-9 pour un permis de construire. Le règlement de votre mairie peut demander des précisions en plus. Mis à jour le {date_txt('2026-11-25')}.</p>
+    {GUIDE_CTA}
+    <p class="guide-liens">À lire aussi : <a href="../comment-faire-un-plan-de-masse/">Comment faire un plan de masse</a> · <a href="../plan-de-coupe/">Le plan de coupe</a> · <a href="../pieces-du-dossier/">Toutes les pièces du dossier</a></p>
+  </div>
+</section>
+
+<section id="faq" class="page-sec">
+  <div class="wrap narrow"><h2>Questions fréquentes</h2>{_faq_bloc(qr)}</div>
+</section>'''
+    return _page_simple('exemple-plan-de-masse/', 'Exemple de plan de masse (DP2, PCMI2) | Le Bon Permis',
+                        "Trois exemples de plan de masse à ouvrir en grand : extension, abri de jardin, plan automatique. Et la liste de ce que la mairie veut y trouver.",
+                        'Exemple de plan de masse (DP2, PCMI2)', "Trois plans de masse tels qu'on les livre, à ouvrir en grand. Et ce que la mairie veut y trouver.",
+                        sections, [faq_ld(_faq_bloc(qr))])
+
+
+def page_tuto_masse():
+    qr = [("Où trouver le plan de son terrain ?", "Sur cadastre.gouv.fr ou sur le Géoportail : le plan cadastral est gratuit. Il donne les limites de la parcelle et les bâtiments, sans valeur de bornage."),
+          ("Quel logiciel pour faire un plan de masse ?", "Aucun n'est imposé : papier millimétré, tableur, logiciel de dessin, ou notre outil en ligne. Ce qui compte, c'est l'échelle et les cotes."),
+          ("Combien de temps faut-il ?", "À la main, comptez une à deux heures avec les mesures. Avec notre outil, environ deux minutes une fois l'adresse saisie."),
+          ("Le plan de masse suffit-il pour déposer ?", "Non. Une déclaration préalable demande aussi un plan de situation, et selon le projet un plan de coupe, les façades, une insertion et des photos.")]
+    sections = f'''<section class="page-sec" style="padding-top:0">
+  <div class="wrap narrow">
+    <ol class="guide-etapes">
+      <li><h2 class="h3">Récupérez le plan de votre terrain</h2><p>Imprimez l'extrait du plan cadastral de votre parcelle, depuis cadastre.gouv.fr ou le Géoportail. Vous y trouvez les limites du terrain, la maison et les voisins.</p></li>
+      <li><h2 class="h3">Choisissez une échelle</h2><p>Entre le 1/100 et le 1/500 en général : tout le terrain doit tenir sur la feuille. Au 1/200, 1 cm sur le plan vaut 2 m sur le terrain. Écrivez l'échelle sur le plan.</p></li>
+      <li><h2 class="h3">Tracez le terrain et ce qui existe</h2><p>Les limites avec leurs longueurs, la maison, le garage, la piscine. Indiquez la rue et l'entrée du terrain.</p></li>
+      <li><h2 class="h3">Dessinez votre projet et cotez-le</h2><p>Sa longueur, sa largeur et sa hauteur : c'est le plan « coté dans les trois dimensions ». Distinguez-le de l'existant par une couleur ou des hachures.</p></li>
+      <li><h2 class="h3">Mesurez les distances aux limites</h2><p>Entre le projet et chaque limite du terrain, et entre le projet et la maison. C'est ce que la mairie regarde en premier.</p></li>
+      <li><h2 class="h3">Ajoutez l'accès, les réseaux et les plantations</h2><p>Le chemin depuis la rue, les raccordements si le projet en a besoin, les arbres gardés, supprimés ou plantés.</p></li>
+      <li><h2 class="h3">Terminez par les repères</h2><p>La flèche du nord, une légende, l'endroit du trait de coupe, et les endroits d'où vous prenez les photos du dossier.</p></li>
+    </ol>
+    {_plan('', 'exemple-plan-masse-auto', "Plan de masse coté terminé : terrain, maison, abri de jardin, distances aux limites, nord et échelle", "<b>Le résultat attendu.</b> Ici un abri de 4 m sur 3, sorti de notre outil.")}
+  </div>
+</section>
+
+<section class="page-sec alt">
+  <div class="wrap narrow">
+    <h2>Les erreurs qui font réclamer la pièce</h2>
+    <ul class="need-list">
+      <li><i>Pas de cotes</i>Un plan à l'échelle mais sans dimensions écrites : la mairie ne peut rien vérifier.</li>
+      <li><i>Pas de distances aux limites</i>C'est pourtant la première règle que la mairie contrôle.</li>
+      <li><i>La hauteur oubliée</i>Elle fait partie des trois dimensions demandées.</li>
+      <li><i>Une partie du terrain coupée</i>Le plan doit montrer la parcelle entière.</li>
+      <li><i>Un plan juste, mais un projet interdit</i>Le plan de masse ne dit pas si le règlement de votre mairie autorise le projet.</li>
+    </ul>
+    {GUIDE_CTA}
+    <p class="guide-liens">À lire aussi : <a href="../exemple-plan-de-masse/">Trois exemples de plan de masse</a> · <a href="../plan-de-coupe/">Le plan de coupe</a> · <a href="../pieces-du-dossier/">Toutes les pièces du dossier</a></p>
+  </div>
+</section>
+
+<section id="faq" class="page-sec">
+  <div class="wrap narrow"><h2>Questions fréquentes</h2>{_faq_bloc(qr)}</div>
+</section>'''
+    return _page_simple('comment-faire-un-plan-de-masse/', 'Comment faire un plan de masse en 7 étapes | Le Bon Permis',
+                        "Faire son plan de masse soi-même en 7 étapes : plan cadastral, échelle, cotes dans les trois dimensions, distances aux limites. Avec un exemple.",
+                        'Comment faire un plan de masse', "Sept étapes, du plan cadastral au plan coté. À la main, ou en deux minutes avec notre outil.",
+                        sections, [faq_ld(_faq_bloc(qr))])
+
+
+def page_coupe():
+    qr = [("Le plan de coupe est-il toujours obligatoire ?", "Pour un permis de construire, oui. Pour une déclaration préalable, il est demandé quand le projet modifie le profil du terrain : construction neuve, extension, piscine, terrasse surélevée."),
+          ("Quelle différence entre DP3 et PCMI3 ?", "C'est la même pièce : DP3 dans une déclaration préalable, PCMI3 dans un permis de construire de maison individuelle."),
+          ("Où placer le trait de coupe ?", "Là où il montre le mieux le projet et la pente du terrain, en général en travers de la construction. Son emplacement doit être reporté sur le plan de masse."),
+          ("Comment connaître la pente de son terrain ?", "En la mesurant sur place, ou à partir des altitudes de l'IGN, consultables sur le Géoportail. Sur un terrain plat, un trait horizontal suffit.")]
+    sections = f'''<section class="page-sec" style="padding-top:0">
+  <div class="wrap narrow">
+    <h2>Exemple 1 : une extension de maison</h2>
+    {_plan('exemple-extension/', 'pcmi3-coupe', "Exemple de plan de coupe PCMI3 pour une extension de maison : profil du terrain, construction en tranche, hauteurs", "<b>Extension de maison, permis de construire.</b> Dossier réel, nom et adresse masqués, publié avec l'accord de la cliente.")}
+    <h2 class="mt">Exemple 2 : un abri de jardin</h2>
+    {_plan('exemple-abri/', 'pcmi3-coupe', "Exemple de plan de coupe pour un abri de jardin : abri et terrain en tranche, hauteurs", "<b>Abri de jardin de 6 m sur 4.</b> Exemple préparé par notre équipe sur un terrain réel, non déposé en mairie.")}
+  </div>
+</section>
+
+<section class="page-sec alt">
+  <div class="wrap narrow">
+    <h2>Ce qu'un plan de coupe doit montrer</h2>
+    <ul class="need-list">
+      <li><i>Le terrain en tranche</i>Son profil avant les travaux, et après si le projet le modifie (terrassement, remblai).</li>
+      <li><i>La construction posée dessus</i>Comment elle s'implante par rapport au sol.</li>
+      <li><i>Les hauteurs</i>Au bas du toit et au sommet, mesurées depuis le sol.</li>
+      <li><i>Les limites du terrain</i>Pour voir la distance entre la construction et les voisins.</li>
+    </ul>
+    <h2 class="mt">Comment le faire</h2>
+    <ol class="guide-etapes">
+      <li><h3>Tracez le trait de coupe sur le plan de masse</h3><p>Une ligne qui traverse le projet, avec une lettre à chaque bout (A et A').</p></li>
+      <li><h3>Dessinez le sol le long de cette ligne</h3><p>À la même échelle que le plan de masse ou plus grande (1/100 ou 1/50), avec la pente réelle.</p></li>
+      <li><h3>Posez la construction</h3><p>Les murs, le toit, le plancher, à l'échelle.</p></li>
+      <li><h3>Cotez les hauteurs</h3><p>Du sol au bas du toit, du sol au sommet. Ce sont elles que la mairie compare à son règlement.</p></li>
+    </ol>
+    <p class="rules-src">Pièce prévue par l'article R. 431-10 du code de l'urbanisme. Mis à jour le {date_txt('2026-11-25')}.</p>
+    <div class="cta-box"><div><b>On fait votre dossier, plan de coupe compris, dès 149 €</b><span>Règles de votre mairie vérifiées, tous les plans, le formulaire. Prêt en 48 h.</span></div><a class="btn blue-btn" href="../projets/">Voir mon prix</a></div>
+    <p class="guide-liens">À lire aussi : <a href="../exemple-plan-de-masse/">Exemples de plan de masse</a> · <a href="../comment-faire-un-plan-de-masse/">Comment faire un plan de masse</a> · <a href="../pieces-du-dossier/">Toutes les pièces du dossier</a></p>
+  </div>
+</section>
+
+<section id="faq" class="page-sec">
+  <div class="wrap narrow"><h2>Questions fréquentes</h2>{_faq_bloc(qr)}</div>
+</section>'''
+    return _page_simple('plan-de-coupe/', 'Plan de coupe (DP3, PCMI3) : exemples | Le Bon Permis',
+                        "Deux exemples de plan de coupe à ouvrir en grand, ce que la mairie veut y voir, et comment le dessiner en quatre étapes.",
+                        'Plan de coupe : exemples et méthode (DP3, PCMI3)', "Deux plans de coupe tels qu'on les livre, ce que la mairie veut y voir, et comment le dessiner.",
+                        sections, [faq_ld(_faq_bloc(qr))])
+
+
+def page_pieces():
+    def carte(code, nom, texte, img=None, lien=None):
+        vis = '' if not img else (f'<img src="../img/{img}" alt="{e(nom)} : illustration" loading="lazy" width="640" height="640" style="aspect-ratio:720/509;object-fit:cover">' if img.endswith('.webp')
+               else f'<img src="../img/{img}-p.webp" alt="{e(code)} : {e(nom.lower())}, exemple" loading="lazy" width="720" height="509">')
+        suite = f'<a href="{lien[0]}">{lien[1]}</a>' if lien else ''
+        return f'<article class="piece">{vis}<div><b>{code}</b><h3>{nom}</h3><p>{texte}</p>{suite}</div></article>'
+    cartes = ''.join([
+        carte('DP1 · PCMI1', 'Plan de situation', "Il situe le terrain dans la commune.", '45-plan-situation-carte.webp', ('../plan-de-situation/', 'Le faire gratuitement')),
+        carte('DP2 · PCMI2', 'Plan de masse', "Le terrain vu du dessus, le projet coté, les distances aux limites.", 'exemple-extension/pcmi2-plan-de-masse', ('../exemple-plan-de-masse/', 'Voir trois exemples')),
+        carte('DP3 · PCMI3', 'Plan de coupe', "Le terrain et la construction en tranche, avec les hauteurs.", 'exemple-extension/pcmi3-coupe', ('../plan-de-coupe/', 'Exemples et méthode')),
+        carte('PCMI4', 'Notice', "Un texte qui décrit le terrain et le projet. Demandée pour un permis.", '44-plu.webp'),
+        carte('DP4 · PCMI5', 'Façades et toitures', "Chaque face de la construction, avant et après travaux, avec matériaux et couleurs.", 'exemple-extension/pcmi5-facades-projet'),
+        carte('DP6 · PCMI6', 'Insertion dans le paysage', "Une image du projet fini, calée sur une photo du terrain.", 'exemple-extension/pcmi6-insertion'),
+        carte('DP7, DP8 · PCMI7, PCMI8', 'Photos du terrain', "Une de près, une de loin, repérées sur le plan de masse.", 'exemple-extension/pcmi7-8-photos'),
+    ])
+    sections = f'''<section class="page-sec" style="padding-top:0">
+  <div class="wrap">
+    <div class="pieces">{cartes}</div>
+    <p class="rules-src">Exemples tirés d'un dossier réel d'extension de maison, nom et adresse masqués, publié avec l'accord de la cliente. La liste exacte des pièces dépend du projet : la mairie peut en demander d'autres (secteur protégé, copropriété). À ces plans s'ajoute le formulaire officiel (Cerfa).</p>
+    <div class="cta-box"><div><b>On prépare toutes ces pièces pour vous, dès 149 €</b><span>À partir de votre croquis, de vos mesures et de vos photos. Prêt en 48 h.</span></div><a class="btn blue-btn" href="../projets/">Voir mon prix</a></div>
+  </div>
+</section>'''
+    return _page_simple('pieces-du-dossier/', 'Pièces du dossier : DP1 à DP8, PCMI1 à 8 | Le Bon Permis',
+                        "Plan de situation, plan de masse, plan de coupe, façades, insertion, photos : chaque pièce d'une déclaration préalable ou d'un permis, avec un exemple.",
+                        'Les pièces du dossier, avec un exemple de chacune', "Ce que la mairie demande pour une déclaration préalable ou un permis de construire, pièce par pièce.", sections)
+
+
 def page_tarifs():
     base = '../'
     corps_src = (SRC / 'tarifs.html').read_text(encoding='utf-8')
@@ -797,12 +972,25 @@ def sitemap(chemins):
         corps = _re.sub(r'Mis à jour le [^.<]+', '', corps)
         h = hashlib.sha256(corps.encode('utf-8')).hexdigest()[:16]
         if c not in memo:
-            memo[c] = {'h': h, 'd': connues.get(c, MAJ)}
+            memo[c] = {'h': h, 'd': connues.get(c, auj)}
         elif memo[c]['h'] != h:
             memo[c] = {'h': h, 'd': auj}
     f.write_text(json.dumps(memo, ensure_ascii=False, indent=1, sort_keys=True) + '\n', encoding='utf-8')
-    urls = ''.join(f'<url><loc>{DOMAINE}/{c}</loc><lastmod>{memo[c]["d"]}</lastmod></url>\n' for c in chemins)
-    return f'<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n{urls}</urlset>\n'
+    # Sitemap d'images : pour chaque page, les images de son contenu (plans en grand compris), une fois chacune.
+    import posixpath
+
+    def images(c):
+        html = (SITE / c / 'index.html').read_text(encoding='utf-8')
+        corps = html[html.find('<main'):html.find('</main>')]
+        vues = []
+        for src in _re.findall(r'<a href="([^"]+\.webp)"', corps) + _re.findall(r'<img[^>]+src="([^"]+\.(?:webp|jpg|png))"', corps):
+            u = posixpath.normpath(posixpath.join('/' + c, src))
+            if u not in vues and '-p.webp' not in u:
+                vues.append(u)
+        return ''.join(f'<image:image><image:loc>{DOMAINE}{u}</image:loc></image:image>' for u in vues[:40])
+    urls = ''.join(f'<url><loc>{DOMAINE}/{c}</loc><lastmod>{memo[c]["d"]}</lastmod>{images(c)}</url>\n' for c in chemins)
+    return ('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" '
+            f'xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">\n{urls}</urlset>\n')
 
 
 def main():
@@ -834,7 +1022,9 @@ def main():
     (SITE / 'plan-de-situation').mkdir(exist_ok=True)
     (SITE / 'plan-de-situation' / 'index.html').write_text(page_plan_situation(), encoding='utf-8')
     chemins.append('plan-de-situation/')
-    for chemin, fabrique in (('projets', page_projets), ('comment-ca-marche', page_comment), ('questions', page_questions)):
+    for chemin, fabrique in (('projets', page_projets), ('comment-ca-marche', page_comment), ('questions', page_questions),
+                             ('exemple-plan-de-masse', page_exemple_masse), ('comment-faire-un-plan-de-masse', page_tuto_masse),
+                             ('plan-de-coupe', page_coupe), ('pieces-du-dossier', page_pieces)):
         (SITE / chemin).mkdir(exist_ok=True)
         (SITE / chemin / 'index.html').write_text(fabrique(), encoding='utf-8')
         chemins.append(chemin + '/')
