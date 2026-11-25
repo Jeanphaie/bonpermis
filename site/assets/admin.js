@@ -47,6 +47,7 @@
     return `<div class="bo"><nav class="bo-nav" aria-label="Équipe">
       <a href="#" class="${actif === 'liste' ? 'on' : ''}">Dossiers</a>
       <a href="#promos" class="${actif === 'promos' ? 'on' : ''}">Codes promo</a>
+      <a href="#relances" class="${actif === 'relances' ? 'on' : ''}">Relances</a>
       <a href="#mails" class="${actif === 'mails' ? 'on' : ''}">E-mails envoyés</a>
       <a href="https://dashboard.stripe.com/payments" target="_blank" rel="noopener">Paiements (Stripe)</a>
       <button type="button" data-out>Se déconnecter</button></nav>
@@ -68,16 +69,17 @@
     const rq = recherche.toLowerCase();
     const L = liste.dossiers.filter(F[filtre]).filter(x => !rq || [x.ref, x.client, x.email, x.commune, x.nom].join(' ').toLowerCase().includes(rq));
     const ech = liste.mailsEchec || [];
-    const alerteMails = ech.length ? `<p class="carte" style="margin:0 0 14px;font-size:14px;border-color:#B42318;background:#FFF5F5"><b style="font-weight:500;color:#8A1C1C">${ech.length} e-mail${ech.length > 1 ? 's' : ''} non parti${ech.length > 1 ? 's' : ''} depuis 48 h.</b> ${ech.slice(0, 3).map(m => esc(m.sujet) + ' (' + esc(m.a) + ')').join(' · ')}. Le destinataire n'a rien reçu : écrivez-lui depuis le dossier. <a href="#mails">Voir le journal</a></p>` : '';
+    const alerteMails = ech.length ? `<p class="carte" style="margin:0 0 14px;font-size:14px;border-color:#B42318;background:#FFF5F5"><b style="font-weight:500;color:#8A1C1C">${ech.length} e-mail${ech.length > 1 ? 's' : ''} en échec ces dernières 48 h.</b> ${ech.slice(0, 3).map(m => esc(m.sujet) + ' (' + esc(m.a) + ')').join(' · ')}. Le destinataire n'a rien reçu : écrivez-lui depuis le dossier. <a href="#mails">Voir le journal</a></p>` : '';
     el.innerHTML = cadre(`${alerteMails}${(() => { const n = liste.dossiers.filter(x => actif(x) && x.aFaire).length, m = liste.dossiers.filter(x => actif(x) && x.aRelire).length; return n || m ? `<p class="carte" style="margin:0 0 14px;font-size:14px;border-color:#0A2FB0">${n ? `<b style="font-weight:500">${n} dossier${n > 1 ? 's' : ''} pour Claude.</b> Dans l'app Claude, projet Bon Permis, écrivez : « nouveau dossier ». ` : ''}${m ? `<b style="font-weight:500">${m} analyse${m > 1 ? 's' : ''} à relire</b> ci-dessous.` : ''}</p>` : ''; })()}<div class="rang ecart"><h1>Dossiers</h1>
         <label class="field" style="margin:0"><span class="sr-only">Rechercher</span><input type="search" id="rq" value="${esc(recherche)}" placeholder="Référence, client, ville" aria-label="Rechercher" style="width:260px"></label></div>
       <div class="kpis">${[['tous', k.actifs != null ? k.actifs : liste.dossiers.length, 'Dossiers en cours'], ['attente', k.attente, 'En attente du client'], ['verifier', k.verifier, 'À vérifier'], ['preparation', k.preparation, 'En préparation'], ['retard', k.retard, 'En retard'], ['livres', k.livres, 'Livrés ce mois'], ['nonpayes', k.nonPayes || 0, 'Non payés'], ['archives', k.archives || 0, 'Archivés']]
         .map(([id, n, t]) => `<button class="kpi" type="button" data-f="${id}" aria-pressed="${filtre === id}"${id === 'retard' && n ? ' style="border-color:#E6A3A3"' : ''}><b>${n}</b><span>${t}</span></button>`).join('')}</div>
+      <p class="note" style="margin:10px 0 12px">Relances automatiques des dossiers pas finalisés : <b style="font-weight:500;color:${liste.relancesAuto ? '#3E5A38' : '#8A1C1C'}">${liste.relancesAuto ? 'activées' : 'désactivées'}</b> · <a href="#relances">Régler et lire les textes</a></p>
       <div class="tbl"><table><thead><tr><th>Réf.</th><th>Client · projet</th><th>Commune</th><th>Pièces</th><th>Statut</th><th>Échéance</th><th>Paiement</th></tr></thead><tbody>
       ${L.length ? L.map(x => `<tr${x.retard ? ' style="background:#FFF5F5"' : x.statut === 'verification' ? ' style="background:#FFFBF0"' : ''}>
         <td><a href="#${x.ref}">${x.ref}</a></td><td><b style="font-weight:500">${esc(x.client)}</b><br><small>${esc(x.nom)}</small></td><td>${esc(x.commune)}</td>
         <td><span class="barre"><i style="width:${x.recues.sur ? Math.round(x.recues.n / x.recues.sur * 100) : 0}%"></i></span>${x.recues.n} / ${x.recues.sur}${x.aVerifier ? `<br><small>${x.aVerifier} à vérifier</small>` : ''}${x.plusTard ? `<br><small>${x.plusTard} on en reparle</small>` : ''}</td>
-        <td><span class="pill st-${STC[x.statut]}">${ST[x.statut]}</span>${x.aFaire ? `<br><small style="color:#0A2FB0;font-weight:500">Claude : ${esc(x.aFaire.toLowerCase())}</small>` : x.aRelire ? '<br><small style="color:#8A1C1C;font-weight:500">Analyse à relire</small>' : ''}</td>
+        <td><span class="pill st-${STC[x.statut]}">${ST[x.statut]}</span>${x.aFaire ? `<br><small style="color:#0A2FB0;font-weight:500">Claude : ${esc(x.aFaire.toLowerCase())}</small>` : x.aRelire ? '<br><small style="color:#8A1C1C;font-weight:500">Analyse à relire</small>' : ''}${x.relances ? `<br><small>${x.relances} relance${x.relances > 1 ? 's' : ''}</small>` : ''}${x.relanceStop ? '<br><small>ne veut plus de rappel</small>' : ''}</td>
         <td>${x.retard ? `<b style="color:#8A1C1C;font-weight:500">Dépassée (${jour(x.echeance)})</b>` : x.echeance && ['verification', 'preparation'].includes(x.statut) ? jour(x.echeance) : '-'}</td>
         <td>${euro(x.total)}<br><small>${{solde: 'soldé', acompte: 'acompte payé', offert: 'offert (code promo)', aucun: 'rien payé'}[x.paiement] || ''}</small></td></tr>`).join('') : '<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:30px">Aucun dossier.</td></tr>'}
       </tbody></table></div>${liste.rappels ? `<p class="note" style="margin-top:12px">${liste.rappels} demande(s) de rappel reçues par e-mail.</p>` : ''}`, 'liste');
@@ -204,6 +206,7 @@
     const lancer = ['elements', 'verification'].includes(d.statut), envoyer = d.livrables.length && !['livre'].includes(d.statut);
     el.innerHTML = cadre(`<div class="rang ecart"><a href="#" style="font-size:13px">‹ Tous les dossiers</a>
         <div class="rang"><a class="btn petit ghost" href="/api/admin/dossier.zip?ref=${R()}">Tout télécharger (zip)</a>
+        ${d.relances ? `<button class="btn petit ghost" type="button" data-relancer>Relancer le client${d.relances.envoyees ? ' (' + d.relances.envoyees + ' déjà)' : ''}</button>` : ''}
         <button class="btn petit ghost" type="button" data-archiver>${d.archive ? 'Sortir des archives' : 'Archiver'}</button>
         ${lancer ? '<button class="btn petit blue-btn" type="button" data-lancer>Pièces complètes, lancer les plans</button>' : ''}
         ${envoyer ? `<button class="btn petit blue-btn" type="button" data-apercu>${d.statut === 'apercu' ? 'Renvoyer l\'aperçu' : 'Envoyer l\'aperçu au client'}</button>` : ''}</div></div>
@@ -305,6 +308,12 @@
       const guichet = prompt('Adresse du guichet en ligne utilisé (facultatif) :', ''); if (guichet === null) return;
       const r = await api('POST', '/depot?ref=' + R(), {numero, guichet}); if (!r.ok) return alert(r.j.erreur || 'Erreur.'); maj(r.j);
     });
+    const rl = $('[data-relancer]'); if (rl) rl.addEventListener('click', async () => {
+      const r0 = d.relances || {};
+      if (!confirm(`Envoyer maintenant un e-mail de relance à ${d.email} ?\n\n${r0.phase === 'paiement' ? 'Motif : dossier créé mais pas validé (acompte non réglé).' : 'Motif : pièces manquantes.'}${r0.dernier ? '\nDernière relance : ' + jour(r0.dernier) + '.' : ''}${r0.stop ? '\nAttention : ce client a demandé à ne plus être relancé.' : ''}`)) return;
+      rl.disabled = true; const r = await api('POST', '/relancer?ref=' + R()); rl.disabled = false;
+      if (!r.ok) return alert((r.j || {}).erreur || 'Erreur.'); maj(r.j);
+    });
     const ar = $('[data-archiver]'); if (ar) ar.addEventListener('click', async () => {
       if (!d.archive && !confirm('Archiver ce dossier ? Il sort de la liste, rien n\'est supprimé, le client garde son accès.')) return;
       const r = await api('POST', '/archiver?ref=' + R(), {archive: !d.archive}); if (!r.ok) return alert((r.j || {}).erreur || 'Erreur.'); maj(r.j);
@@ -398,6 +407,28 @@
     });
   }
 
+  // ---------- relances ----------
+  async function vueRelances(msg) {
+    const r = await api('GET', '/reglages');
+    if (r.s === 401) return connexion();
+    const g = r.j || {}, T = g.textes || [];
+    el.innerHTML = cadre(`<h1>Relances</h1>
+      <p class="note">Pour les dossiers pas finalisés : créés mais pas validés (acompte non réglé), ou validés mais avec des pièces manquantes. Envois du lundi au vendredi, entre 9 h et 19 h. Jamais pour un dossier archivé, ni pour un client qui a cliqué « ne plus me relancer », ni pour un dossier resté plus de 15 jours sans suite. Le bouton « Relancer le client » d'une fiche envoie la relance suivante tout de suite, que l'automatique soit activé ou non.</p>
+      <div class="carte" style="margin:16px 0"><div class="rang ecart"><span>Relances automatiques : <b style="font-weight:500;color:${g.relancesAuto ? '#3E5A38' : '#8A1C1C'}">${g.relancesAuto ? 'activées' : 'désactivées'}</b></span>
+        <button class="btn petit ${g.relancesAuto ? 'ghost' : 'blue-btn'}" type="button" data-auto="${g.relancesAuto ? '0' : '1'}">${g.relancesAuto ? 'Désactiver' : 'Activer'}</button></div></div>
+      ${msg ? `<p class="${msg.ok ? 'ok-msg' : 'form-err'}">${esc(msg.t)}</p>` : ''}
+      <h2 style="font-size:17px;margin:22px 0 8px">Les e-mails envoyés</h2>
+      ${T.map(t => `<details class="carte" style="margin:0 0 10px"><summary style="cursor:pointer"><b style="font-weight:500">${esc(t.quand)}</b> · ${esc(t.sujet)}</summary><pre style="white-space:pre-wrap;font:inherit;font-size:14px;margin:12px 0 0">${esc(t.corps)}</pre></details>`).join('')}`, 'relances');
+    brancherCadre();
+    const b = el.querySelector('[data-auto]');
+    if (b) b.addEventListener('click', async () => {
+      const on = b.dataset.auto === '1';
+      if (on && !confirm('Activer les relances automatiques ? Les dossiers concernés recevront leur premier e-mail dès la prochaine passe (dans les 30 minutes, aux heures ouvrées). Archivez d\'abord les dossiers de test.')) return;
+      const t = await api('POST', '/reglages', {relancesAuto: on});
+      vueRelances(t.ok ? {ok: true, t: on ? 'Relances automatiques activées.' : 'Relances automatiques désactivées.'} : {ok: false, t: (t.j || {}).erreur || 'Erreur.'});
+    });
+  }
+
   // ---------- codes promo ----------
   async function vuePromos(msg) {
     const r = await api('GET', '/promos');
@@ -420,7 +451,7 @@
       ${msg ? `<p class="${msg.ok ? 'ok-msg' : 'form-err'}">${esc(msg.t)}</p>` : ''}
       <div class="tbl"><table><thead><tr><th>Code</th><th>Effet</th><th>Utilisé</th><th>Fin</th><th>Note</th><th>État</th></tr></thead><tbody>
       ${L.length ? L.map(p => `<tr><td><b>${esc(p.code)}</b></td><td>${(TY[p.type] || String)(p.valeur)}</td><td>${p.utilises || 0}${p.max ? ' / ' + p.max : ''}</td><td>${p.expire ? esc(p.expire) : '<small>aucune</small>'}</td><td><small>${esc(p.note || '')}</small></td>
-        <td><button class="lien" type="button" data-bascule="${esc(p.code)}" data-actif="${p.actif ? '0' : '1'}">${p.actif ? 'Actif · désactiver' : 'Inactif · activer'}</button></td></tr>`).join('') : '<tr><td colspan="6">Aucun code pour l\'instant.</td></tr>'}
+        <td><button class="lien" type="button" data-bascule="${esc(p.code)}" data-actif="${p.actif ? '0' : '1'}">${p.actif ? 'Actif · désactiver' : 'Inactif · activer'}</button> · <button class="lien" type="button" data-suppr="${esc(p.code)}" style="color:#8A1C1C">Supprimer</button></td></tr>`).join('') : '<tr><td colspan="6">Aucun code pour l\'instant.</td></tr>'}
       </tbody></table></div>`, 'promos');
     brancherCadre();
     const fp = el.querySelector('#fp');
@@ -429,6 +460,11 @@
       const t = await api('POST', '/promos', {code: fp.code.value, type: fp.type.value, valeur: fp.valeur.value, max: fp.max.value, expire: fp.expire.value, note: fp.note.value});
       vuePromos(t.ok ? {ok: true, t: 'Code enregistré.'} : {ok: false, t: (t.j || {}).erreur || 'Erreur.'});
     });
+    el.querySelectorAll('[data-suppr]').forEach(b => b.addEventListener('click', async () => {
+      if (!confirm(`Supprimer le code ${b.dataset.suppr} ? Il ne pourra plus être utilisé. Les dossiers qui l'ont déjà utilisé ne changent pas.`)) return;
+      const t = await api('POST', '/promos/supprimer', {code: b.dataset.suppr});
+      vuePromos(t.ok ? {ok: true, t: `Code ${b.dataset.suppr} supprimé.`} : {ok: false, t: (t.j || {}).erreur || 'Erreur.'});
+    }));
     el.querySelectorAll('[data-bascule]').forEach(b => b.addEventListener('click', async () => {
       await api('POST', '/promos/actif', {code: b.dataset.bascule, actif: b.dataset.actif === '1'}); vuePromos();
     }));
@@ -436,7 +472,7 @@
 
   function route() {
     const h = decodeURIComponent(location.hash.slice(1));
-    if (h === 'promos') vuePromos(); else if (h === 'mails') vueMails(); else if (/^BP-[A-Z0-9]{6}$/.test(h)) vueDossier(h); else vueListe();
+    if (h === 'promos') vuePromos(); else if (h === 'relances') vueRelances(); else if (h === 'mails') vueMails(); else if (/^BP-[A-Z0-9]{6}$/.test(h)) vueDossier(h); else vueListe();
   }
   window.addEventListener('hashchange', route);
   route();

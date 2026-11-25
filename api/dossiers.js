@@ -137,6 +137,7 @@ function vueCmd(cmd, pourEquipe) {
     telechargeable: !!cmd.paiements.solde, demandes: NEED[cmd.projet] || NEED.extension,
     lignes: cmd.lignes || null, promo: cmd.promo || null
   };
+  if (pourEquipe) { try { o.relances = require('./relances').resume(cmd); } catch (e) { o.relances = null; } }
   if (pourEquipe) Object.assign(o, {archive: !!cmd.archive, email: cmd.email, client: cmd.nom_client || '', reponses: cmd.reponses, reponsesLisibles: lisibles(cmd), projet: cmd.projet, regul: cmd.regul, historique: cmd.historique, lignes: cmd.lignes || null, session: cmd.session, analyse: cmd.analyse || null, aFaire: aFaire(cmd), liensStripe: [cmd.paiements.acompte && cmd.paiements.acompte.pi, cmd.paiements.solde && cmd.paiements.solde.pi].filter(Boolean)});
   return o;
 }
@@ -152,7 +153,7 @@ function resume(cmd) {
   return {ref: cmd.ref, nom: cmd.nom, client: cmd.nom_client || cmd.email, email: cmd.email, commune, statut: cmd.statut, recues: r,
     echeance: cmd.echeance || null, retard: !!retard, total: cmd.total, solde: cmd.solde, paiement: cmd.paiements.solde ? 'solde' : cmd.paiements.acompte ? (cmd.paiements.acompte.gratuit ? 'offert' : 'acompte') : 'aucun',
     aFaire: aFaire(cmd), aRelire: !!(cmd.analyse && !cmd.analyse.appliquee),
-    archive: !!cmd.archive, date: cmd.date, dernierMessage: cmd.messages.length ? cmd.messages[cmd.messages.length - 1] : null,
+    archive: !!cmd.archive, relances: (cmd.relances && cmd.relances.n) || 0, relanceStop: !!(cmd.relances && cmd.relances.stop), date: cmd.date, dernierMessage: cmd.messages.length ? cmd.messages[cmd.messages.length - 1] : null,
     aVerifier: cmd.pieces.filter(p => etatPiece(p, cmd) === 'a_verifier').length, plusTard: cmd.pieces.filter(p => p.plusTard && etatPiece(p, cmd) === 'manquant').length};
 }
 
@@ -659,7 +660,7 @@ function equipeListe(req, res) {
     .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
   const tous = cmds.map(resume), L = tous.filter(x => !x.archive && x.statut !== 'brouillon'), mois = new Date().toISOString().slice(0, 7);
   const rappels = B.liste('rappels').filter(f => f.endsWith('.json')).length;
-  repondre(res, 200, {dossiers: tous, rappels, mailsEchec: B.mailsEnEchec(), compteurs: {
+  repondre(res, 200, {dossiers: tous, rappels, mailsEchec: B.mailsEnEchec(), relancesAuto: !!(B.lire('reglages.json') || {}).relancesAuto, compteurs: {
     actifs: L.length, nonPayes: tous.filter(x => !x.archive && x.statut === 'brouillon').length, archives: tous.filter(x => x.archive).length,
     attente: L.filter(x => x.statut === 'elements').length, verifier: L.filter(x => ['verification', 'corrections'].includes(x.statut)).length,
     preparation: L.filter(x => x.statut === 'preparation').length, retard: L.filter(x => x.retard).length,

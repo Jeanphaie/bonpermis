@@ -18,6 +18,7 @@ const D = require('./dossiers');
 const PR = require('./promos');
 const T = require('./terrain');
 const PV = require('./planvente');
+const RL = require('./relances');
 const {crypto, CONF, P, repondre, lireCorps, lireJson, texte, journal, envoyerMail, signatureValide} = B;
 
 // ---------- demande de rappel ----------
@@ -86,6 +87,11 @@ const ROUTES = {
   'GET /api/admin/promos': PR.liste,
   'POST /api/admin/promos': PR.enregistrer,
   'POST /api/admin/promos/actif': PR.basculer,
+  'POST /api/admin/promos/supprimer': PR.supprimer,
+  'GET /api/admin/reglages': RL.lireReglages,
+  'POST /api/admin/reglages': RL.ecrireReglages,
+  'POST /api/admin/relancer': RL.relancer,
+  'GET /api/relance/stop': RL.stop,
   // terrain (données IGN) : simulateur et plan du projet
   'GET /api/terrain/adresses': T.adresses,
   'GET /api/terrain': T.terrain,
@@ -180,5 +186,7 @@ const serveur = http.createServer(async (req, res) => {
 serveur.requestTimeout = 15 * 60 * 1000;
 
 if (require.main === module) { setTimeout(C.purgerInactifs, 60000); setInterval(C.purgerInactifs, 86400000).unref(); }
+// Relances des dossiers pas finalisés : une passe toutes les 30 minutes (n'envoie rien tant que l'équipe ne les a pas activées).
+if (require.main === module) { setTimeout(RL.passe, 120000); setInterval(RL.passe, 30 * 60000).unref(); }
 if (require.main === module) serveur.listen(CONF.port, () => journal(`service Le Bon Permis sur le port ${CONF.port}`, CONF.stripeCle ? '' : '(clé Stripe absente)', `images:${!!B.OUTILS.magick} pdf:${!!B.OUTILS.pdftoppm}`));
 module.exports = {serveur, signatureValide, reference: B.reference, encoder: B.encoder, analyser: D.analyser};

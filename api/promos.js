@@ -68,6 +68,15 @@ async function basculer(req, res) {
   p.actif = !!d.actif; sauver(codes); repondre(res, 200, {ok: true, codes});
 }
 
+// Suppression définitive d'un code (les dossiers qui l'ont utilisé gardent leur prix et la mention du code).
+async function supprimer(req, res) {
+  const qui = admin(req, res); if (!qui) return;
+  const d = await lireJson(req) || {}; const c = normal(d.code), codes = tous();
+  if (!codes.some(x => x.code === c)) return repondre(res, 404, {erreur: 'Code introuvable.'});
+  const reste = codes.filter(x => x.code !== c); sauver(reste); journal('code promo supprimé', c, 'par', qui);
+  repondre(res, 200, {ok: true, codes: reste});
+}
+
 // Code créé par le service lui-même (plan de masse déduit du dossier complet).
 function creerCode({code, type, valeur, max, expire, note}) {
   const c = normal(code); if (!CODE_RE.test(c)) throw new Error('code invalide');
@@ -78,4 +87,4 @@ function creerCode({code, type, valeur, max, expire, note}) {
 
 function desactiver(code) { const c = normal(code), codes = tous(), p = codes.find(x => x.code === c); if (p && p.actif) { p.actif = false; sauver(codes); journal('code promo désactivé par le service', c); } }
 
-module.exports = {appliquer, compterUtilisation, liste, enregistrer, basculer, normal, creerCode, desactiver};
+module.exports = {appliquer, compterUtilisation, liste, enregistrer, basculer, supprimer, normal, creerCode, desactiver};
