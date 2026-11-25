@@ -470,12 +470,13 @@ async function acompteDossier(s, m, email, nomClient) {
 async function soldeRecu(s, m) {
   const cmd = lireCmd(m.ref); if (!cmd || cmd.paiements.solde) return;
   cmd.paiements.solde = {montant: s.amount_total / 100, date: new Date().toISOString(), session: s.id, pi: s.payment_intent || null};
-  cmd.statut = 'livre'; histo(cmd, `Solde reçu : ${euro(s.amount_total / 100)}. Dossier livré.`);
+  const offert = !(s.amount_total > 0);
+  cmd.statut = 'livre'; histo(cmd, offert ? 'Dossier livré (offert, rien à régler).' : `Solde reçu : ${euro(s.amount_total / 100)}. Dossier livré.`);
   sauver(cmd);
   journal('solde payé', cmd.ref, s.amount_total / 100 + ' €');
   const u = C.lireUser(cmd.uid);
-  await envoyerMail(CONF.mailA, `Solde payé ${cmd.ref} : ${cmd.nom}`, `Le client a réglé le solde (${euro(s.amount_total / 100)}). Il peut télécharger son dossier.\n\n${CONF.site}/admin/#${cmd.ref}\n`, cmd.email);
-  if (u) await envoyerMail(cmd.email, `Dossier ${cmd.ref} : prêt à télécharger`, `Bonjour,\n\nMerci, le solde est bien reçu. Votre dossier complet est prêt à télécharger, sans filigrane :\n${C.lienLong(u, '/espace/dossier/?ref=' + cmd.ref)}\n\n${String(cmd.options).includes('depot') ? 'Vous avez choisi le dépôt et le suivi : nous déposons le dossier pour vous, nous vous envoyons le numéro d\'enregistrement et nous répondons à la mairie si elle demande une pièce, jusqu\'à sa réponse.' : 'Il ne vous reste qu\'à signer le formulaire et à le déposer en mairie, ou en ligne si votre commune le permet.'}${signature}`, CONF.mailA);
+  await envoyerMail(CONF.mailA, `${offert ? 'Dossier livré' : 'Solde payé'} ${cmd.ref} : ${cmd.nom}`, `${offert ? 'Le client a validé ses plans (dossier offert, pas de solde)' : 'Le client a réglé le solde (' + euro(s.amount_total / 100) + ')'}. Il peut télécharger son dossier.\n\n${CONF.site}/admin/#${cmd.ref}\n`, cmd.email);
+  if (u) await envoyerMail(cmd.email, `Dossier ${cmd.ref} : prêt à télécharger`, `Bonjour,\n\n${offert ? 'Merci, vos plans sont validés' : 'Merci, le solde est bien reçu'}. Votre dossier complet est prêt à télécharger, sans filigrane :\n${C.lienLong(u, '/espace/dossier/?ref=' + cmd.ref)}\n\n${String(cmd.options).includes('depot') ? 'Vous avez choisi le dépôt et le suivi : nous déposons le dossier pour vous, nous vous envoyons le numéro d\'enregistrement et nous répondons à la mairie si elle demande une pièce, jusqu\'à sa réponse.' : 'Il ne vous reste qu\'à signer le formulaire et à le déposer en mairie, ou en ligne si votre commune le permet.'}${signature}`, CONF.mailA);
 }
 
 // GET /api/commande?ref=cs_... : page « Commande reçue »
