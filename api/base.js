@@ -126,7 +126,9 @@ function reference(sessionId) {
 // ---------- e-mail (SMTP : port 587 + STARTTLS, ou 465 en TLS direct) ----------
 function envoyerMail(a, sujet, texte, repondreA) {
   const {hote, port, user, pass} = CONF.smtp;
-  if (!hote || !user || !pass) { journal('mail non envoyé (SMTP non configuré) :', sujet); noterMail(a, sujet, false, 'SMTP non configuré', 0); return Promise.resolve(false); }
+  // Sans identifiant ni mot de passe : relais SMTP autorisé par IP (smtp-relay.gmail.com), on n'envoie pas d'AUTH.
+  const auth = !!(user || pass);
+  if (!hote || (auth && !(user && pass))) { journal('mail non envoyé (SMTP non configuré) :', sujet); noterMail(a, sujet, false, 'SMTP non configuré', 0); return Promise.resolve(false); }
   const debut = Date.now(); let derniere = '';
   const b64 = s => Buffer.from(s, 'utf8').toString('base64');
   const message = [
@@ -148,9 +150,10 @@ function envoyerMail(a, sujet, texte, repondreA) {
     // [code attendu, ce qu'on envoie alors, nom de l'étape pour le journal]
     const etapes = [
       ...(direct ? [] : [[220, () => 'EHLO bonpermis.fr', 'connexion'], [250, () => 'STARTTLS', 'EHLO'], [220, 'TLS', 'STARTTLS']]),
-      [direct ? 220 : 0, () => 'EHLO bonpermis.fr', direct ? 'connexion' : 'passage en TLS'], [250, () => 'AUTH LOGIN', 'EHLO'],
-      [334, () => b64(user), 'AUTH'], [334, () => b64(pass), 'identifiant'],
-      [235, () => `MAIL FROM:<${CONF.mailDe}>`, 'mot de passe'], [250, () => `RCPT TO:<${a}>`, 'expéditeur'], [250, () => 'DATA', 'destinataire'],
+      [direct ? 220 : 0, () => 'EHLO bonpermis.fr', direct ? 'connexion' : 'passage en TLS'],
+      ...(auth ? [[250, () => 'AUTH LOGIN', 'EHLO'], [334, () => b64(user), 'AUTH'], [334, () => b64(pass), 'identifiant'],
+        [235, () => `MAIL FROM:<${CONF.mailDe}>`, 'mot de passe']] : [[250, () => `MAIL FROM:<${CONF.mailDe}>`, 'EHLO']]),
+      [250, () => `RCPT TO:<${a}>`, 'expéditeur'], [250, () => 'DATA', 'destinataire'],
       [354, () => message + '\r\n.', 'DATA'], [250, () => 'QUIT', 'envoi du message']
     ];
     let minuterie = null;
