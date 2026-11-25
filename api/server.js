@@ -167,7 +167,7 @@ const ROUTES = {
     const ok = await envoyerMail(a, 'Test d\'envoi Le Bon Permis', `Ceci est un e-mail de test envoyé depuis l'espace équipe par ${qui}, le ${new Date().toLocaleString('fr-FR', {timeZone: 'Europe/Paris'})}.\n\nS'il est arrivé, l'envoi vers cette adresse fonctionne.${B.signature}`);
     repondre(res, 200, {ok, dernier: B.lireJournalMails(1)[0] || null});
   },
-  'GET /api/sante': (req, res) => repondre(res, 200, {ok: true, stripe: !!CONF.stripeCle, mode: CONF.stripeCle.includes('_live_') ? 'reel' : 'test', webhook: !!CONF.stripeWebhook, mail: !!(CONF.smtp.hote && CONF.smtp.pass), images: !!B.OUTILS.magick, pdf: !!B.OUTILS.pdftoppm, dernierMail: dernierMail()})
+  'GET /api/sante': (req, res) => repondre(res, 200, {ok: true, stripe: !!CONF.stripeCle, mode: CONF.stripeCle.includes('_live_') ? 'reel' : 'test', webhook: !!CONF.stripeWebhook, mail: !!CONF.smtp.hote && (!!CONF.smtp.pass || !CONF.smtp.user), images: !!B.OUTILS.magick, pdf: !!B.OUTILS.pdftoppm, dernierMail: dernierMail()})
 };
 
 const serveur = http.createServer(async (req, res) => {

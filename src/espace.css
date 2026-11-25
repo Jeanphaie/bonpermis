@@ -208,7 +208,7 @@ body[data-page=admin] header.top nav{display:none}
   .ana{padding:20px}
   .bo-g{grid-template-columns:1fr;grid-template-areas:"ana" "vis" "rep" "cmd" "ter" "liv" "msg" "his"}
   .ana-g{grid-template-columns:1fr;gap:22px}.lettre{position:static}.rep-g,.grp-ok{grid-template-columns:1fr}}
-@media (max-width:760px){.bo{grid-template-columns:1fr}.bo-nav{flex-direction:row;overflow-x:auto;padding:8px}.bo-main{padding:18px 14px}}
+@media (max-width:900px){.bo{grid-template-columns:1fr}.bo-nav{flex-direction:row;overflow-x:auto;padding:8px}.bo-main{padding:18px 14px}}
 /* ---------- connexion / création de compte ---------- */
 .esp .wrap.a-large{max-width:1080px}
 .a-grille{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,.92fr);gap:28px;align-items:stretch;margin-top:8px}

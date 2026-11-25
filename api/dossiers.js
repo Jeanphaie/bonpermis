@@ -138,7 +138,7 @@ function vueCmd(cmd, pourEquipe) {
     lignes: cmd.lignes || null, promo: cmd.promo || null
   };
   if (pourEquipe) { try { o.relances = require('./relances').resume(cmd); } catch (e) { o.relances = null; } }
-  if (pourEquipe) Object.assign(o, {archive: !!cmd.archive, email: cmd.email, client: cmd.nom_client || '', reponses: cmd.reponses, reponsesLisibles: lisibles(cmd), projet: cmd.projet, regul: cmd.regul, historique: cmd.historique, lignes: cmd.lignes || null, session: cmd.session, analyse: cmd.analyse || null, aFaire: aFaire(cmd), liensStripe: [cmd.paiements.acompte && cmd.paiements.acompte.pi, cmd.paiements.solde && cmd.paiements.solde.pi].filter(Boolean)});
+  if (pourEquipe) Object.assign(o, {archive: !!cmd.archive, email: cmd.email, client: nomClient(cmd), reponses: cmd.reponses, reponsesLisibles: lisibles(cmd), projet: cmd.projet, regul: cmd.regul, historique: cmd.historique, lignes: cmd.lignes || null, session: cmd.session, analyse: cmd.analyse || null, aFaire: aFaire(cmd), liensStripe: [cmd.paiements.acompte && cmd.paiements.acompte.pi, cmd.paiements.solde && cmd.paiements.solde.pi].filter(Boolean)});
   return o;
 }
 // Réponses au simulateur avec les intitulés des questions, pour l'équipe
@@ -147,10 +147,16 @@ function lisibles(cmd) {
   let qs = []; try { qs = P[cmd.projet] ? PRIX.flow(P, cmd.projet) : []; } catch {}
   return Object.entries(a).map(([k, v]) => { const q = qs.find(x => x.id === k); const c = q && q.c.find(x => x[0] === v); return [q ? q.t : k, c ? c[1] : v]; });
 }
+// Nom affiché à l'équipe : celui de Stripe, sinon celui donné pour le formulaire de la mairie, sinon l'e-mail.
+function nomClient(cmd) {
+  if (cmd.nom_client) return cmd.nom_client;
+  const p = (cmd.pieces || []).find(x => x.id === 'cerfa-nom'), t = p && p.texte ? String(p.texte).split('\n')[0].trim().slice(0, 60) : '';
+  return t || '';
+}
 function resume(cmd) {
   const r = recues(cmd), commune = (cmd.adresse || '').split(',').pop().trim();
   const retard = ['verification', 'preparation'].includes(cmd.statut) && cmd.echeance && new Date(cmd.echeance) < new Date();
-  return {ref: cmd.ref, nom: cmd.nom, client: cmd.nom_client || cmd.email, email: cmd.email, commune, statut: cmd.statut, recues: r,
+  return {ref: cmd.ref, nom: cmd.nom, client: nomClient(cmd) || cmd.email, email: cmd.email, commune, statut: cmd.statut, recues: r,
     echeance: cmd.echeance || null, retard: !!retard, total: cmd.total, solde: cmd.solde, paiement: cmd.paiements.solde ? 'solde' : cmd.paiements.acompte ? (cmd.paiements.acompte.gratuit ? 'offert' : 'acompte') : 'aucun',
     aFaire: aFaire(cmd), aRelire: !!(cmd.analyse && !cmd.analyse.appliquee),
     archive: !!cmd.archive, relances: (cmd.relances && cmd.relances.n) || 0, relanceStop: !!(cmd.relances && cmd.relances.stop), date: cmd.date, dernierMessage: cmd.messages.length ? cmd.messages[cmd.messages.length - 1] : null,

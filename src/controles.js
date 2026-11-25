@@ -24,6 +24,7 @@
       if (surf > 20 && d.kind === 'dp') B(`Le plan donne ${nb(surf)} m² : construction séparée de plus de 20 m², il faut un permis. La commande est une déclaration : modifier la commande.`);
       if (surf <= 20 && d.kind === 'pc') A(`Le plan donne ${nb(surf)} m² : une déclaration suffit peut-être. La commande est un permis : vérifier et ajuster le prix.`);
     }
+    if (d.adresse && !/^\s*\d/.test(d.adresse)) A('Adresse sans numéro : la parcelle retenue est peut-être celle d\'un voisin. Confirmer la parcelle avec le client.');
     const tx = id => ((pieces.find(p => p.id === id) || {}).texte || '').trim();
     if (tx('cerfa-naissance') && !/[a-zà-ü]{3,}/i.test(tx('cerfa-naissance').replace(MOIS, ''))) A('Lieu de naissance absent (demandé par le Cerfa).');
     if (tx('cerfa-adresse') && !/(\+33|0)\s*[1-9](?:[\s.-]*\d{2}){4}/.test(tx('cerfa-adresse'))) A('Téléphone absent de l\'adresse postale (demandé par le Cerfa).');

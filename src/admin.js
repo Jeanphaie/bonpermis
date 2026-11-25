@@ -104,7 +104,7 @@
     if (!sel || !items.some(x => x.k === sel.k && x.id === sel.id)) sel = items[0] ? {k: items[0].k, id: items[0].id, n: 1} : null;
     const strip = d.fichiers.map(f => `<button class="vig${sel && sel.k === 'f' && sel.id === f.id ? ' sel' : ''}" type="button" data-s="f:${f.id}" title="${esc(f.nom)}" aria-label="${esc(f.nom)}">${f.vue ? `<img src="/api/admin/voir?ref=${R()}&id=${f.id}&taille=mini" alt="" loading="lazy">` : f.type.toUpperCase()}</button>`).join('')
       + d.livrables.map(l => `<button class="vig${sel && sel.k === 'l' && sel.id === l.id ? ' sel' : ''}" type="button" data-s="l:${l.id}" title="${esc(l.code)}" style="background:#EAEDFB;color:#2340D9">${esc(l.code)}</button>`).join('');
-    if (!sel) return `<div class="vis"><div class="vis-c"><p class="vis-vide">Aucun fichier pour l'instant.</p></div></div>`;
+    if (!sel) return '<p class="note" style="margin:0 0 4px">Aucun fichier envoyé pour l\'instant.</p>';
     let tete = '', centre = '', pied = '';
     if (sel.k === 'f') {
       const f = d.fichiers.find(x => x.id === sel.id), p = d.pieces.find(x => x.id === f.piece) || {nom: f.piece};
@@ -220,8 +220,8 @@
             ${p.texte ? `<span class="rang" style="gap:12px"><button class="lien" type="button" data-tv="${p.id}">Valider</button><button class="lien" type="button" data-tr="${p.id}" style="color:#8A1C1C">À refaire</button></span>` : ''}</div>`).join('')}</div></section>
         </div>
         <div class="z-rep pile">
-          <section class="carte"><h3>Pièces demandées <span class="cpt">${d.recues.n} sur ${d.recues.sur}</span></h3>
-            ${d.pieces.map(p => { const n = d.fichiers.filter(f => f.piece === p.id).length; const cur = sel && sel.k === 'f' && (d.fichiers.find(f => f.id === sel.id) || {}).piece === p.id;
+          <section class="carte"><h3>Photos et fichiers <span class="cpt">${d.pieces.filter(p => p.type !== 'texte' && !p.facultatif && p.etat !== 'manquant').length} sur ${d.pieces.filter(p => p.type !== 'texte' && !p.facultatif).length}</span></h3>
+            ${d.pieces.filter(p => p.type !== 'texte').map(p => { const n = d.fichiers.filter(f => f.piece === p.id).length; const cur = sel && sel.k === 'f' && (d.fichiers.find(f => f.id === sel.id) || {}).piece === p.id;
               return `<div class="pl${cur ? ' sel' : ''}"><button class="nm" type="button" data-pp="${p.id}">${esc(p.nom)}${n ? ` · ${n}` : ''}${p.facultatif ? ' <small class="note" style="display:inline">(facult.)</small>' : ''}</button><span class="pill st-${p.etat}">${p.plusTard ? 'On en reparle' : EP[p.etat]}</span></div>`; }).join('')}
             <details style="margin-top:10px"><summary class="lien" style="display:inline">+ Demander une pièce</summary>
               <form id="fpiece" class="pile" style="margin-top:8px"><label class="field" style="margin:0"><span>Nom</span><input name="nom" placeholder="Ex. : Accord de la copropriété"></label>
@@ -239,7 +239,7 @@
             <dt>Options</dt><dd>${esc((d.options || '').replace(/,/g, ', '))}</dd>
             ${d.depot ? (() => { const m = d.pieces.find(x => x.id === 'cerfa-mandat'), f = d.depot.fait; return `<dt>Dépôt</dt><dd><b style="color:${f ? '#3E5A38' : '#B3261E'}">${f ? 'Déposé le ' + jour(f.date) + ', numéro ' + esc(f.numero) : 'À faire par nous'}</b><br><small class="note">Accord du client : ${m && m.texte ? '« ' + esc(m.texte) + ' »' : f ? 'non enregistré' : 'pas encore donné, ne pas déposer'}</small>${f ? '' : '<br><button class="btn petit ghost" type="button" data-depot style="margin-top:6px">Dossier déposé, prévenir le client</button>'}</dd>`; })() : ''}
             <dt>Dossier</dt><dd>${esc(KIND[d.kind] || d.kind || '-')}</dd>
-            <dt>Prix</dt><dd>${euro(d.total)}</dd><dt>Acompte</dt><dd style="color:#3E5A38">${d.paiements.acompte ? euro(d.paiements.acompte.montant) + ' le ' + jour(d.paiements.acompte.date) : '-'}</dd>
+            <dt>Prix</dt><dd>${euro(d.total)}${d.promo ? `<br><small class="note">code promo ${esc(d.promo)}</small>` : ''}</dd><dt>Acompte</dt><dd style="color:#3E5A38">${d.paiements.acompte ? euro(d.paiements.acompte.montant) + ' le ' + jour(d.paiements.acompte.date) : '-'}</dd>
             <dt>Solde</dt><dd>${d.paiements.solde ? `<span style="color:#3E5A38">payé le ${jour(d.paiements.solde.date)}</span>` : euro(d.solde) + ' à l\'aperçu'}</dd>
             <dt>Échéance</dt><dd>${d.echeance ? jour(d.echeance) : `${d.delai === 1 ? '24 h' : d.delai === 2 ? '48 h' : d.delai + ' jours'} ouvrés après validation`}</dd></dl>
             ${d.paiements.solde ? '' : `<details style="margin-top:8px"><summary class="lien" style="display:inline">Changer le type de dossier ou le prix</summary>
@@ -393,7 +393,7 @@
       </form>
       ${msg ? `<p class="${msg.ok ? 'ok-msg' : 'form-err'}">${esc(msg.t)}</p>` : ''}
       <div class="tbl"><table><thead><tr><th>Date</th><th>Destinataire</th><th>Sujet</th><th>Résultat</th><th>Réponse du serveur</th></tr></thead><tbody>
-      ${L.length ? L.map(m => `<tr><td><small>${dt(m.date)}</small></td><td>${esc(m.a)}</td><td>${esc(m.sujet)}</td>
+      ${L.length ? L.map(m => `<tr><td><small>${dt(m.date)}</small></td><td>${esc(m.a)}</td><td>${esc(m.sujet).replace(/BP-[A-Z0-9]{6}/, r => `<a href="#${r}">${r}</a>`)}</td>
         <td><span class="pill ${m.ok ? 'st-valide' : 'st-a_refaire'}">${m.ok ? 'Remis au serveur' : 'Échec : ' + esc(m.etape)}</span></td>
         <td><small style="word-break:break-word">${esc(m.reponse)}</small></td></tr>`).join('') : '<tr><td colspan="5">Aucun envoi enregistré depuis la mise en place du journal.</td></tr>'}
       </tbody></table></div>`, 'mails');
