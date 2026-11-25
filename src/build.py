@@ -286,7 +286,7 @@ def page(k):
         f'<section id="exemple" class="page-sec alt"><div class="wrap"><h2>{e(ex["titre"])}</h2>'
         + ''.join(f'<p class="lead">{e(x)}</p>' for x in ex['intro'])
         + '<div class="planches">' + ''.join(
-            f'<figure><a href="../img/{ex["dossier"]}/{f}.webp" target="_blank" rel="noopener"><img src="../img/{ex["dossier"]}/{f}-p.webp" alt="{e(code)} : {e(nom_p)}, exemple réel" loading="lazy" width="720" height="509"></a>'
+            f'<figure><a href="../img/{ex["dossier"]}/{f}.webp" target="_blank" rel="noopener"><img src="../img/{ex["dossier"]}/{f}-p.webp" alt="{e(code)} : {e(nom_p)}, {e(ex.get("alt", "exemple réel"))}" loading="lazy" width="720" height="509"></a>'
             f'<figcaption><b>{e(code)}</b> {e(nom_p)}<span>{e(leg)}</span></figcaption></figure>' for f, code, nom_p, leg in ex['planches'])
         + f'</div><p class="rules-src">{e(ex["note"])}</p></div></section>')
     blocs_sup = '' if not (blocs_html or etapes_html or erreurs_html) else f'<section class="page-sec"><div class="wrap narrow">{blocs_html}{etapes_html}{erreurs_html}</div></section>'
