@@ -626,6 +626,12 @@ function equipeVoir(req, res, url) {
   if (url.searchParams.get('livrable')) { const l = cmd.livrables.find(x => x.id === url.searchParams.get('livrable')); if (!l) return repondre(res, 404, {}); return envoyerFichier(res, path.join(dDir(cmd.ref), 'livrables', l.id + '.pdf'), 'application/pdf'); }
   return voirFichier(res, cmd, url.searchParams.get('id'), url.searchParams.get('taille'));
 }
+// Une pièce demandée ou à refaire remet le dossier en attente du client. Si les plans étaient lancés,
+// l'échéance est suspendue : elle repart quand l'équipe relance, une fois la pièce reçue.
+function attendreClient(cmd) {
+  if (cmd.statut === 'preparation') { cmd.echeance = null; histo(cmd, 'Délai suspendu : pièce demandée au client'); }
+  if (['verification', 'preparation'].includes(cmd.statut)) cmd.statut = 'elements';
+}
 async function equipePiece(req, res, url) {
   const cmd = cmdEquipe(req, res, url); if (!cmd) return;
   const d = await lireJson(req); if (!d) return repondre(res, 400, {erreur: 'Demande illisible.'});
@@ -633,8 +639,7 @@ async function equipePiece(req, res, url) {
     const nom = texte(d.nom, 80); if (!nom) return repondre(res, 400, {erreur: 'Donnez un nom à la pièce.'});
     const p = {id: 'p' + B.id(4), nom, aide: texte(d.aide, 300), type: d.type === 'texte' ? 'texte' : 'fichier', ajoutee: true};
     cmd.pieces.splice(cmd.pieces.findIndex(x => x.id === 'autre'), 0, p); histo(cmd, `Pièce demandée : ${nom}${p.type === 'texte' ? ' (réponse écrite)' : ''}`);
-    // Une pièce demandée remet le dossier en attente du client.
-    if (cmd.statut === 'verification') cmd.statut = 'elements';
+    attendreClient(cmd);
     sauver(cmd);
     repondre(res, 200, vueCmd(cmd, true));
     const u = C.lireUser(cmd.uid);
@@ -652,7 +657,7 @@ async function equipePiece(req, res, url) {
   p.statut = d.statut === 'attente' ? null : d.statut; p.motif = d.statut === 'a_refaire' ? texte(d.motif, 400) : '';
   if (d.statut === 'a_refaire' && !p.motif) return repondre(res, 400, {erreur: 'Indiquez ce qu\'il faut refaire : le client le lira.'});
   histo(cmd, `${p.nom} : ${d.statut === 'valide' ? 'validé' : d.statut === 'a_refaire' ? 'à refaire' : 'remis en attente'}`);
-  if (d.statut === 'a_refaire' && cmd.statut === 'verification') cmd.statut = 'elements';
+  if (d.statut === 'a_refaire') attendreClient(cmd);
   sauver(cmd); repondre(res, 200, vueCmd(cmd, true));
   const u = C.lireUser(cmd.uid);
   if (d.statut === 'a_refaire' && u) await envoyerMail(cmd.email, `Dossier ${cmd.ref} : une pièce à refaire`, `Bonjour,\n\n« ${p.nom} » : ${p.motif}\n\nL'envoyer de nouveau depuis votre espace : ${C.lienLong(u, '/espace/dossier/?ref=' + cmd.ref)}${signature}`, CONF.mailA);

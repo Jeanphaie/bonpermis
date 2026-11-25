@@ -171,6 +171,9 @@
       if (surf > 20 && d.kind === 'dp') out.push(`Le plan donne ${nb(surf)} m² : construction séparée de plus de 20 m², il faut un permis. La commande est une déclaration : modifier la commande.`);
       if (surf <= 20 && d.kind === 'pc') out.push(`Le plan donne ${nb(surf)} m² : une déclaration suffit peut-être. La commande est un permis : vérifier et ajuster le prix.`);
     }
+    const tx = id => ((d.pieces.find(p => p.id === id) || {}).texte || '').trim();
+    if (tx('cerfa-naissance') && !/[a-zà-ü]{3,}/i.test(tx('cerfa-naissance').replace(/janv|févr|fevr|mars|avr|mai|juin|juil|août|aout|sept|oct|nov|déc|dec/gi, ''))) out.push('Lieu de naissance absent (demandé par le Cerfa).');
+    if (tx('cerfa-adresse') && !/(\+33|0)\s*[1-9](?:[\s.-]*\d{2}){4}/.test(tx('cerfa-adresse'))) out.push('Téléphone absent de l\'adresse postale (demandé par le Cerfa).');
     if (d.regul === 'true') out.push('Travaux déjà faits : la prescription de 10 ans ne joue pas si un permis était exigé (L.421-9 5°). Le dossier doit respecter le PLU actuel.');
     const t = terr.ref === d.ref && terr.v; if (t && Array.isArray(t.prescriptions)) for (const p of t.prescriptions.filter(x => x.alerte)) out.push(`Prescription du PLU sur la parcelle : ${p.libelle}. Lire la règle correspondante.`);
     return out;
@@ -276,7 +279,8 @@
       const r = await api('POST', '/depot?ref=' + R(), {numero, guichet}); if (!r.ok) return alert(r.j.erreur || 'Erreur.'); maj(r.j);
     });
     const lc = $('[data-lancer]'); if (lc) lc.addEventListener('click', async () => {
-      if (!confirm('Valider les pièces reçues et lancer les plans ? Le client est prévenu et l\'échéance démarre.')) return;
+      const c = controles();
+      if (!confirm((c.length ? `${c.length} point${c.length > 1 ? 's' : ''} à vérifier :\n- ${c.join('\n- ')}\n\n` : '') + 'Valider les pièces reçues et lancer les plans ? Le client est prévenu et l\'échéance démarre.')) return;
       const r = await api('POST', '/lancer?ref=' + R()); if (!r.ok) return alert(r.j.erreur || 'Erreur.'); maj(r.j);
     });
     const ap = $('[data-apercu]'); if (ap) ap.addEventListener('click', async () => {
