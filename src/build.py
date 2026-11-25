@@ -45,7 +45,7 @@ def maj(k):
     return PAGES.get(k, {}).get('maj', MAJ)
 
 # Prix de base par projet (pour les données structurées). Même grille que le simulateur.
-BASE = {'petits': 149, 'ext': 149, 'agrandir': 349, 'garage': 319, 'toit': 149, 'maison': 590,
+BASE = {'petits': 149, 'ext': 149, 'agrandir': 349, 'garage': 319, 'toit': 149, 'maison': 690,
         'usage': 349, 'demol': 149, 'cu': 89, 'modif': 249, 'daact': 49}
 
 e = lambda s: html.escape(s, quote=True)
@@ -719,7 +719,7 @@ def page_tarifs():
 </main>
 """
     h = head('Tarifs : déclaration préalable dès 149 € | Le Bon Permis',
-             f"Tous les prix du Bon Permis : plan de masse {PRIX_PLAN} €, plan vérifié {PRIX_ETUDE} €, déclaration préalable dès 149 €, permis de construire dès 490 €. Options et garantie.",
+             f"Tous les prix du Bon Permis : plan de masse {PRIX_PLAN} €, plan vérifié {PRIX_ETUDE} €, déclaration préalable dès 149 €, permis de construire dès 249 €. Options et garantie.",
              'tarifs/', base, ld)
     return h + '<body data-page="legal">\n\n' + entete(base, False) + '\n' + corps + '\n' + pied(base) + OVERLAY + scripts(base)
 

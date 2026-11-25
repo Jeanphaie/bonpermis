@@ -80,7 +80,7 @@
     ]
    ],
    "note": "La surface qui compte est l'emprise au sol, le toit et ses débords compris. Avant de dessiner, on lit le règlement de votre mairie : distance aux limites, hauteur, couleur. Si votre abri ne passe pas tel quel, on vous le dit avant de commencer.",
-   "prix": "149 €",
+   "prix": "149 € (249 € si un permis est nécessaire)",
    "delai": "48 h",
    "sources": [
     "ANNEXE",
@@ -114,7 +114,7 @@
     ]
    ],
    "note": "Collée à la maison, l'annexe devient une extension : le seuil de la déclaration préalable peut monter à 40 m² en zone urbaine. Avant de dessiner, on lit le règlement de votre mairie, stationnement et raccordements compris si l'annexe sert de logement. Si le projet ne passe pas tel quel, on vous le dit avant de commencer.",
-   "prix": "149 € (490 € si un permis est nécessaire)",
+   "prix": "149 € (249 € si un permis est nécessaire)",
    "delai": "48 h",
    "sources": [
     "ANNEXE",
@@ -133,7 +133,7 @@
      "Déclaration préalable, prête en 48 h"
     ],
     [
-     "490 €",
+     "249 €",
      "Permis de construire, prêt en 5 jours"
     ]
    ]
@@ -163,7 +163,7 @@
     ]
    ],
    "note": "Même sans murs, un carport a une emprise au sol : la surface couverte par son toit, poteaux compris. Avant de dessiner, on lit le règlement de votre mairie : distance à la rue et aux voisins, hauteur, matériaux. Si le projet ne passe pas tel quel, on vous le dit avant de commencer.",
-   "prix": "149 €",
+   "prix": "149 € (249 € si un permis est nécessaire)",
    "delai": "48 h",
    "sources": [
     "ANNEXE",
@@ -201,7 +201,7 @@
     ]
    ],
    "note": "Bioclimatique, à lames, à toile ou en bois : la règle est la même, c'est la surface au sol qui compte, pas le type de toit. Avant de dessiner, on lit le règlement de votre mairie : distance aux voisins, hauteur, couleur. Si le projet ne passe pas tel quel, on vous le dit avant de commencer.",
-   "prix": "149 €",
+   "prix": "149 € (249 € si un permis est nécessaire)",
    "delai": "48 h",
    "sources": [
     "ANNEXE",
@@ -304,7 +304,7 @@
     ]
    ],
    "note": "La surface qui compte est celle de l'eau, sans les plages. Une piscine hors-sol suit la même règle si elle reste en place plus de 3 mois par an. Avant de dessiner, on lit le règlement de votre mairie : distance aux limites surtout. Si le projet ne passe pas tel quel, on vous le dit avant de commencer.",
-   "prix": "149 €",
+   "prix": "149 € (249 € si un permis est nécessaire)",
    "delai": "48 h",
    "sources": [
     "PISC",
@@ -1111,8 +1111,8 @@
   },
   "maison": {
    "slug": "permis-de-construire-maison",
-   "titre": "Permis de construire une maison neuve : dossier dès 590 €",
-   "desc": "Permis de construire d'une maison jusqu'à 150 m², à partir de vos plans ou de ceux du constructeur. Dossier complet prêt en 5 jours pour 590 €.",
+   "titre": "Permis de construire une maison neuve : dossier dès 690 €",
+   "desc": "Permis de construire d'une maison jusqu'à 150 m², à partir de vos plans ou de ceux du constructeur. Dossier complet prêt en 5 jours pour 690 €.",
    "h1": "Maison neuve : faut-il un permis de construire ?",
    "chapo": "Oui, toujours. Jusqu'à 150 m², vous n'êtes pas obligé de passer par un architecte. La mairie a deux mois pour répondre.",
    "regles": [
@@ -1130,7 +1130,7 @@
     ]
    ],
    "note": "Avant de dessiner, on lit le règlement de votre mairie : implantation, hauteur, emprise, toiture, stationnement. Si votre maison ne passe pas telle quelle, on vous le dit avant de commencer. L'attestation énergétique (RE2020), obligatoire avec le permis, n'est pas comprise : elle vient d'un bureau d'études thermiques, en général celui de votre constructeur. On vous dit où la glisser dans le dossier.",
-   "prix": "590 €",
+   "prix": "690 €",
    "delai": "5 jours",
    "sources": [
     "PC"

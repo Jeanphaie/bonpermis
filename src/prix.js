@@ -69,12 +69,12 @@
     else if (c==='cu') v = (a.cutype==='b') ? {kind:'svc',base:149,label:'Certificat d\'urbanisme pour votre projet',title:'Certificat d\'urbanisme',h3:'On demande à la mairie si votre projet est possible.'} : {kind:'svc',base:89,label:'Certificat d\'urbanisme',title:'Certificat d\'urbanisme',h3:'On demande à la mairie les règles de votre terrain.'};
     else if (c==='modif') v = {kind:'svc',base:249,label:'Permis modificatif',title:'Permis modificatif',h3:'On prépare la modification de votre permis.'};
     else if (c==='daact') v = {kind:'svc',base:49,label:'Déclaration de fin de travaux',title:'Fin de travaux',h3:'On prépare votre déclaration de fin de travaux.'};
-    if (v) {} else if (c==='petits') v = (a.size==='pc') ? {kind:'pc',base:490,label:'Permis de construire'} : {kind:'dp',base:149,label:'Petits travaux'};
+    if (v) {} else if (c==='petits') v = (a.size==='pc') ? {kind:'pc',base:249,label:'Petits travaux, permis de construire'} : {kind:'dp',base:149,label:'Petits travaux'};
     if (c==='agrandir') v = (a.size==='pc') ? {kind:'pc',base:490,label:'Permis d\'extension'} : {kind:'dp',base:349,label:'Agrandissement'};
     if (c==='toit') v = p.n==='Lucarne' ? (a.size==='pc' ? {kind:'pc',base:490,label:'Lucarne et combles, permis de construire'} : (a.size==='dp' || a.size==='nsp') ? {kind:'dp',base:349,label:'Lucarne et combles aménagés'} : {kind:'dp',base:149,label:'Lucarne'}) : {kind:'dp',base:149,label:'Toiture'};
     if (c==='toit' && p.n==='Lucarne' && a.size==='nsp') v.note = ['Si les combles ne sont pas aménagés, le dossier revient à 149 €.'];
     if (c==='garage') v = {kind:'dp',base:319,label:'Garage transformé'};
-    if (c==='maison') v = {kind:'pc',base:590,label:'Maison neuve'};
+    if (c==='maison') v = {kind:'pc',base:690,label:'Maison neuve'};
     if (a.qui === 'societe' && v.kind === 'pc') return {kind:'archi', raison:'societe'};
     v.note = v.note || [];
     if (a.qui === 'societe') v.note.push('Pour une société, une déclaration préalable se dépose sans architecte. Si un permis de construire s\'avère nécessaire, la loi impose un architecte : on vous prévient avant de commencer.');
@@ -86,7 +86,7 @@
     if (c==='combles' || p.n==='Combles aménagés') v.note.push('Les fenêtres de toit sont comprises dans le dossier.');
     if (regul) v.note.unshift('Travaux déjà faits : le dossier décrit ce qui existe. Vous nous envoyez des photos de ce qui est construit.');
     if (a.size==='nsp') v.note.push('Pas de souci si vous ne connaissez pas la surface : on la calcule avec vos mesures. S\'il faut un permis plutôt qu\'une déclaration, on vous prévient avant de commencer.');
-    if (a.size==='dp40') v.note.push('Entre 20 et 40 m², une déclaration suffit si votre terrain est en zone urbaine. Sinon, il faut un permis à 490 €. On le vérifie avec votre adresse et on vous prévient avant de commencer.');
+    if (a.size==='dp40') v.note.push('Entre 20 et 40 m², une déclaration suffit si votre terrain est en zone urbaine. Sinon, il faut un permis à ' + (c==='petits' ? 249 : 490) + ' €. On le vérifie avec votre adresse et on vous prévient avant de commencer.');
     if (a.total==='oui' && c==='agrandir' && v.kind==='dp') v.note.push('Comme la maison dépassera 150 m², un architecte devra signer si un permis s\'avère nécessaire. On vous prévient avant de commencer.');
     if (a.total==='nsp') v.note.push('Si la maison dépasse 150 m² après les travaux, un architecte devient obligatoire. On le vérifie et on vous prévient.');
     v.abf = a.abf==='oui' ? 149 : 0;
