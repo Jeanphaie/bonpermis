@@ -140,6 +140,7 @@ const ROUTES = {
   'GET /api/admin/brief': D.equipeBrief,
   'POST /api/admin/analyse': D.equipeAnalyse,
   'POST /api/admin/appliquer': D.equipeAppliquer,
+  'POST /api/admin/generer': D.equipeGenerer,
   'POST /api/admin/classer': D.equipeClasser,
   'POST /api/admin/fichier': D.equipeFichier,
   'POST /api/admin/message': D.equipeMessage,
