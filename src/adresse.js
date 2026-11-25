@@ -33,7 +33,7 @@
     inp.addEventListener('input', () => { repris = null; });
     inp.addEventListener('input', chercher);
     inp.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); if (liste[0]) choisir(liste[0]); } });
-    btn.onclick = () => { if (repris && inp.value === repris.label) choisir(repris); else if (liste[0]) choisir(liste[0]); else { inp.focus(); chercher(); } };
+    btn.onclick = () => { if (repris && inp.value === repris.label) choisir(repris); else if (liste[0]) choisir(liste[0]); else { inp.focus(); if (inp.value.trim().length < 4) sug.innerHTML = '<p class="adr-rien">Tapez d\'abord votre adresse : le numéro, la rue et la commune.</p>'; else chercher(); } };
   }
   window.BPLieu = {lire, garder, brancher};
   document.addEventListener('click', e => { const a = e.target.closest('[data-adresse]'); if (!a) return; const i = document.querySelector('.adr input'); if (!i) return; e.preventDefault(); i.scrollIntoView({behavior: 'smooth', block: 'center'}); setTimeout(() => i.focus({preventScroll: true}), 450); });

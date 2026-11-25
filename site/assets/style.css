@@ -249,6 +249,7 @@ footer a{color:var(--muted)}
 .total{display:flex;justify-content:space-between;align-items:baseline;margin-top:18px;font-size:16px}
 .total b{font-size:30px;letter-spacing:-.02em}
 .small-note{font-size:13px;color:var(--muted);margin-top:8px}
+.vprix{display:flex;align-items:baseline;gap:10px;margin:10px 0 2px}.vprix b{font-size:22px;letter-spacing:-.01em}.vprix span{font-size:13px;color:var(--muted)}
 .panel .btn{width:100%;margin-top:20px}
 .field{display:block;margin-top:16px}
 .field span{display:block;font-size:14px;font-weight:500;margin-bottom:6px}

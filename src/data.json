@@ -17,13 +17,13 @@
    "n": "Carport",
    "img": "11-carport",
    "cat": "petits",
-   "size": "annexe"
+   "size": "petit"
   },
   "pergola": {
    "n": "Pergola",
    "img": "12-pergola",
    "cat": "petits",
-   "size": "annexe"
+   "size": "petit"
   },
   "piscine": {
    "n": "Piscine",

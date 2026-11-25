@@ -10,7 +10,9 @@
   let S = {}, lastFocus = null;
 
   const pimg = document.getElementById('projImg');
-  function showPanel(title, img){ if (img) { pimg.src = `${BASE}img/${img}.webp`; pimg.hidden = false; } else { pimg.removeAttribute('src'); pimg.hidden = true; } document.getElementById('panelTitle').textContent = title; ov.hidden = false; document.body.style.overflow = 'hidden'; }
+  function showPanel(title, img){ if (img) { pimg.src = `${BASE}img/${img}.webp`; pimg.hidden = false; } else { pimg.removeAttribute('src'); pimg.hidden = true; } document.getElementById('panelTitle').textContent = title; const etaitFerme = ov.hidden; ov.hidden = false; document.body.style.overflow = 'hidden';
+    // Une entrée d'historique par ouverture : le bouton Retour ferme le simulateur au lieu de quitter la page.
+    if (etaitFerme) { try { const h = decodeURIComponent(location.hash.slice(1)); if (P[h] || h === 'regul') history.replaceState(null, '', location.pathname + location.search); history.pushState({bpSimu: 1}, ''); } catch (e) {} } }
   function openRegul(opener){
     lastFocus = opener || lastFocus;
     showPanel('Travaux déjà faits', '38-regularisation');
@@ -23,13 +25,14 @@
   function open(p, opener, regul){
     if (p==='regul') return openRegul(opener);
     if (opener) lastFocus = opener;
-    S = {p, a:{}, i:0, q:X.flow(P, p), opt:{depot:false, express:false, visio:false, concept:false, d3:false, amenag:false}, regul:!!regul, stage:'a'};
+    S = {p, a:{}, i:0, q:X.flow(P, p, {}), opt:{depot:false, express:false, visio:false, concept:false, d3:false, amenag:false}, regul:!!regul, stage:'a'};
     // L'adresse déjà donnée sur le site (accueil, page projet, plan de situation) est reprise : on ne la redemande pas.
     const l = window.BPLieu && window.BPLieu.lire(); if (l) { S.adresse = l.label; S.lieu = {lon: l.lon, lat: l.lat}; }
     showPanel((regul?'Travaux déjà faits · ':'') + P[p].n, P[p].img);
     render();
   }
-  function close(){ ov.hidden = true; document.body.style.overflow = ''; const h = location.hash.slice(1); if (P[h] || h==='regul') { try { history.replaceState(null, '', location.pathname + location.search); } catch(e){} } if (lastFocus) lastFocus.focus(); }
+  function close(parRetour){ if (ov.hidden) return; ov.hidden = true;
+    if (parRetour !== true && history.state && history.state.bpSimu) { try { history.back(); } catch (e) {} } document.body.style.overflow = ''; if (lastFocus) lastFocus.focus(); }
 
   function progress(){
     const total = (S.q||[]).length + 3;
@@ -37,14 +40,23 @@
     bar.style.width = Math.round(at / total * 100) + '%';
   }
 
+  // Liste des questions, recalculée à chaque étape : elle dépend des réponses déjà données et de ce que l'adresse a appris.
+  function questions(){
+    let q = X.flow(P, S.p, S.a);
+    if (S.abfConnu) q = q.filter(x => x.id !== 'abf');
+    const ids = q.map(x => x.id);
+    Object.keys(S.a).forEach(k => { if (!ids.includes(k) && !(k === 'abf' && S.abfConnu)) delete S.a[k]; });
+    return q;
+  }
   function render(){
+    if (S.stage !== 'a') { S.q = questions(); if (S.stage === 'q' && S.i >= S.q.length) S.stage = 'v'; }
     if (S.i < S.q.length && !['a','v','c','done'].includes(S.stage)) S.stage = 'q';
     progress();
     if (S.stage==='a') return renderAdresse();
     if (S.stage==='q'){
       const q = S.q[S.i];
       body.innerHTML = `<div class="qtitle" tabindex="-1">${q.t}</div><p class="qhelp">${q.h}</p><div class="choices">${q.c.map(([v,l]) => `<button class="choice" type="button" data-v="${v}">${l}<span aria-hidden="true">→</span></button>`).join('')}</div><button class="back" type="button" data-back>← ${S.i>0?'Question précédente':'Adresse'}</button>`;
-      body.querySelectorAll('.choice').forEach(b => b.addEventListener('click', () => { S.a[q.id] = b.dataset.v; S.i++; if (S.i >= S.q.length) S.stage = 'v'; render(); }));
+      body.querySelectorAll('.choice').forEach(b => b.addEventListener('click', () => { S.a[q.id] = b.dataset.v; S.i++; if (S.i >= questions().length) S.stage = 'v'; render(); }));
       const bk = body.querySelector('[data-back]'); if (bk) bk.addEventListener('click', () => { if (S.i > 0) S.i--; else S.stage = 'a'; render(); });
       body.querySelector('.qtitle').focus();
       return;
@@ -80,7 +92,7 @@
     };
     async function analyser(x) {
       const k = ++n; S.adresse = x.label; S.lieu = {lon: x.lon, lat: x.lat}; S.terrain = null; suite.hidden = true;
-      S.q = X.flow(P, S.p); delete S.a.abf;
+      S.abfConnu = false; delete S.a.abf; S.q = questions();
       const vals = {adresse: {c: 'ok', t: esc(x.label)}}; dessiner(vals);
       let t; try { t = await (await fetch(API + `/terrain?lon=${x.lon}&lat=${x.lat}`)).json(); } catch (e) { t = {erreurs: ['reseau'], protections: [], batiments: []}; }
       if (k !== n) return;
@@ -96,19 +108,17 @@
       for (let i = 0; i < cles.length; i++) { await new Promise(r => setTimeout(r, 220)); if (k !== n) return; vals[cles[i]] = final[cles[i]]; dessiner(vals); }
       S.terrain = t;
       if (!P[S.p].svc) {
-        const qa = S.q.findIndex(q => q.id === 'abf');
         if (t.secteurProtege === true || t.secteurProtege === false) {
-          S.a.abf = t.secteurProtege ? 'oui' : 'nsp';
-          if (qa >= 0) S.q.splice(qa, 1);
+          S.a.abf = t.secteurProtege ? 'oui' : 'nsp'; S.abfConnu = true; S.q = questions();
         }
         if (t.secteurProtege) an.insertAdjacentHTML('beforeend', '<p class="an-n">Votre terrain est en secteur protégé : l\'architecte des Bâtiments de France donnera son avis. On prépare le dossier en conséquence (supplément de 149 €).</p>');
       }
       if ((t.risques || []).length) an.insertAdjacentHTML('beforeend', '<p class="an-n">On tient compte de ces risques dans les plans (cotes, matériaux, pièces demandées par la mairie).</p>');
       suite.hidden = false; suite.focus();
     }
-    const aller = () => { S.i = 0; S.stage = S.q.length ? 'q' : 'v'; render(); };
+    const aller = () => { S.i = 0; S.q = questions(); S.stage = S.q.length ? 'q' : 'v'; render(); };
     suite.addEventListener('click', aller);
-    body.querySelector('[data-sans]').addEventListener('click', () => { n++; S.lieu = null; S.terrain = null; S.q = X.flow(P, S.p); aller(); });
+    body.querySelector('[data-sans]').addEventListener('click', () => { n++; S.lieu = null; S.terrain = null; S.abfConnu = false; delete S.a.abf; aller(); });
     if (S.lieu && S.adresse) analyser({lon: S.lieu.lon, lat: S.lieu.lat, label: S.adresse}); else adr.focus();
   }
 
@@ -118,9 +128,13 @@
 
   function renderVerdict(){
     const v = X.verdict(P, S.p, S.a, S.regul); S.v = v;
+    const T = S.terrain;
+    if (v.note && T) v.note = v.note.map(n =>
+      (T.secteurProtege === false && n.indexOf('On vérifie avec votre adresse si vous êtes en quartier protégé') === 0) ? 'Aucun secteur protégé trouvé à votre adresse : pas de supplément prévu. On le confirme en préparant votre dossier.'
+      : n);
     const back = '<button class="back" type="button" data-back>← Changer mes réponses</button>';
     if (v.kind==='none'){
-      body.innerHTML = `<div class="verdict"><span class="kind">Bonne nouvelle</span><h3>Vous n'avez aucune démarche à faire.</h3><p class="qhelp">Pour des travaux de cette taille, la loi ne demande pas d'autorisation, sauf dans un quartier protégé ou si votre commune a une règle particulière. Vous ne nous devez rien.</p></div>${back}`;
+      body.innerHTML = `<div class="verdict"><span class="kind">Bonne nouvelle</span><h3>Vous n'avez aucune démarche à faire.</h3><p class="qhelp">Pour des travaux de cette taille, la loi ne demande pas d'autorisation, sauf dans un quartier protégé ou si votre commune a une règle particulière. Vous ne nous devez rien.</p></div><p class="small-note">Pour en être sûr avant de construire : avec le plan vérifié, on lit le règlement de votre mairie et on vous dit si votre projet passe.</p><a class="btn ghost" href="${BASE}plan-de-masse/">Faire vérifier mon projet, 79 €</a>${back}`;
     } else if (v.kind==='call'){
       body.innerHTML = `<div class="verdict"><span class="kind">On s'en occupe</span><h3>${v.title}</h3><p class="qhelp">${v.text}</p></div><button class="btn" type="button" data-call>Être rappelé</button>${back}`;
       body.querySelector('[data-call]').addEventListener('click', () => { S.stage='c'; S.call=true; render(); });
@@ -143,6 +157,7 @@
         : 'On vérifie que votre projet respecte les règles de votre commune, à l\'emplacement que vous avez choisi, et on trace tous les plans.';
       const KIND = {dp:['Déclaration de travaux','Une déclaration de travaux suffit.'], pc:['Permis de construire','Il vous faut un permis de construire.'], pd:['Permis de démolir','Il vous faudra peut-être un permis de démolir.'], svc:[v.title, v.h3]}[v.kind];
       body.innerHTML = `<div class="verdict"><span class="kind">${S.regul?'Travaux déjà faits · ':''}${KIND[0]}</span><h3>${KIND[1]}</h3><p class="qhelp">${S.opt.concept ? 'Vous recevez une première proposition sous 5 jours. Une fois validée, votre dossier est prêt en ' + delay + '.' : (v.kind==='svc'?'Prêt':'Votre dossier est prêt') + ' en ' + delay + ' après réception de vos photos.'}</p>
+        <p class="vprix"><b>${euro(total(v))} TTC</b><span>dont ${euro(acompte(v))} aujourd'hui</span></p>
         <div class="need"><b>Ce qu'on vous demandera</b><small>Votre projet tel que vous l'avez, même en croquis à main levée. Après le paiement, depuis votre téléphone, avec un guide pas à pas.</small>
           <ul><li><i>Le projet</i>${ndP}</li><li><i>Les mesures</i>${nd[1]}</li><li><i>Les photos</i>${nd[2]}</li></ul>
           ${['agrandir','garage','toit','usage'].includes(c)?'<p>Vous n\'avez encore qu\'une idée, sans croquis ni devis ? La conception du projet se fait sur devis : appelez-nous.</p>':''}
@@ -161,13 +176,13 @@
         </div>
         <div class="total"><span>Total TTC</span><b>${euro(total(v))}</b></div>
         <div class="lines acompte-l"><div><span>Aujourd'hui, acompte de 30 %</span><span>${euro(acompte(v))}</span></div><div><span>Après l'aperçu de vos plans, le solde</span><span>${euro(Math.round((total(v) - acompte(v)) * 100) / 100)}</span></div></div>
-        <p class="small-note">Tout compris : plans, formulaire, relecture, pièces demandées par la mairie. Refus de notre fait : on redépose sans frais.</p>
+        <p class="small-note">Compris : la vérification des règles de votre mairie, tous les plans et pièces du dossier, le formulaire rempli, la relecture. Si la mairie refuse à cause de nous, on corrige sans frais.</p>
         </div><button class="btn blue-btn" type="button" data-next>Continuer</button>
         <button class="btn ghost" type="button" data-save style="margin-top:10px">Enregistrer dans mon espace</button><p class="small-note" data-saved aria-live="polite"></p>${back}`;
       body.querySelectorAll('[data-o]').forEach(cb => cb.addEventListener('change', () => { S.opt[cb.dataset.o] = cb.checked; renderVerdict(); }));
       body.querySelector('[data-next]').addEventListener('click', () => { S.stage='c'; S.call=false; render(); });
       body.querySelector('[data-save]').addEventListener('click', async e => {
-        const b = e.currentTarget, out = body.querySelector('[data-saved]'), proj = {p:S.p, a:S.a, regul:S.regul, opt:S.opt, adresse:''};
+        const b = e.currentTarget, out = body.querySelector('[data-saved]'), proj = {p:S.p, a:S.a, regul:S.regul, opt:S.opt, adresse:S.adresse || '', lieu:S.lieu || null};
         b.disabled = true;
         try {
           const r = await fetch(API + '/projets', {method:'POST', headers:{'Content-Type':'application/json'}, credentials:'same-origin', body:JSON.stringify(proj)});
@@ -257,8 +272,8 @@
     const v = S.v, call = S.call;
     body.innerHTML = `<div class="qtitle" tabindex="-1">${call?'Comment vous joindre ?':'Créez votre dossier'}</div><p class="qhelp">${call?'On vous rappelle dans la journée, ou le lendemain matin au plus tard.':'Gratuit et sans engagement. Vous voyez tout de suite les pièces à fournir et vous pouvez commencer à les envoyer. L\'acompte de '+euro(acompte(v))+' (30 %) se règle quand vous validez le dossier.'}</p>
       <form id="co" novalidate>
-        <div class="field adr-wrap"><label for="co-adr"><span>L'adresse des travaux</span></label>
-          <input id="co-adr" name="adr" autocomplete="off" placeholder="Tapez le début : 12 rue des Lilas, Saint-Herblain" required role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="co-sug">
+        <div class="field adr-wrap"><label for="co-adr"><span>L'adresse des travaux${call?' (facultatif)':''}</span></label>
+          <input id="co-adr" name="adr" autocomplete="off" placeholder="Tapez le début : 12 rue des Lilas, Saint-Herblain" ${call?'':'required'} role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="co-sug">
           <ul class="sugs" id="co-sug" role="listbox" data-sug></ul></div>
         <div class="mini-carte" data-carte hidden></div>
         <p class="terrain-info" data-terrain hidden></p>
@@ -266,7 +281,7 @@
         ${call?'':`<div class="co-code" data-code hidden><label class="field"><span data-code-lab>Code reçu par e-mail</span><input name="code" inputmode="numeric" autocomplete="one-time-code" maxlength="7" placeholder="000000"></label><button type="button" class="more-btn" data-code-renvoi>Renvoyer le code</button></div>`}
         <p class="form-err" role="alert" hidden></p>
         <button class="btn blue-btn" type="submit">${call?'Me faire rappeler':'Créer mon dossier'}</button>
-        ${call?'':'<div class="reassure"><svg width="14" height="14" viewBox="0 0 14 14"><rect x="2.5" y="6" width="9" height="6.5" rx="1.5" fill="none" stroke="currentColor"/><path d="M4.5 6V4.5a2.5 2.5 0 015 0V6" fill="none" stroke="currentColor"/></svg>Rien à payer maintenant · acompte réglé plus tard, par Stripe</div>'}
+        ${call?'':'<div class="reassure"><svg width="14" height="14" viewBox="0 0 14 14"><rect x="2.5" y="6" width="9" height="6.5" rx="1.5" fill="none" stroke="currentColor"/><path d="M4.5 6V4.5a2.5 2.5 0 015 0V6" fill="none" stroke="currentColor"/></svg>Rien à payer maintenant · acompte réglé plus tard, par Stripe</div><p class="small-note">En créant votre dossier, vous acceptez nos <a href="'+BASE+'cgv/" target="_blank" rel="noopener">conditions de vente</a> et notre <a href="'+BASE+'confidentialite/" target="_blank" rel="noopener">politique de confidentialité</a>.</p>'}
       </form><button class="back" type="button" data-back>← Retour</button>`;
     // Adresse : suggestions de la Base Adresse Nationale, puis lecture du terrain (parcelle, PLU, secteur protégé).
     const fo = body.querySelector('#co'), adr = fo.adr, sug = body.querySelector('[data-sug]'), info = body.querySelector('[data-terrain]');
@@ -312,7 +327,7 @@
     }
     body.querySelector('#co').addEventListener('submit', async e => {
       e.preventDefault(); const f = e.target;
-      if (!f.adr.value.trim() || !f.mail.value.trim()) { (f.adr.value.trim()?f.mail:f.adr).focus(); return; }
+      if ((!call && !f.adr.value.trim()) || !f.mail.value.trim()) { ((call || f.adr.value.trim())?f.mail:f.adr).focus(); return; }
       const btn = f.querySelector('button[type=submit]'), err = f.querySelector('.form-err'), label = btn.textContent;
       if (attendCode && f.code.value.length !== 6) { f.code.focus(); return; }
       btn.disabled = true; btn.textContent = call ? 'Envoi…' : 'Création du dossier…'; err.hidden = true;
@@ -346,7 +361,7 @@
 
   function renderDone(){
     body.innerHTML = `<div class="done"><div class="seal"><svg width="30" height="30" viewBox="0 0 30 30"><path d="M8 15.5l4.5 4.5L22 10" fill="none" stroke="var(--good)" stroke-width="3"/></svg></div><div class="qtitle" tabindex="-1">C'est noté, on vous rappelle.</div><p class="qhelp" style="max-width:420px;margin:10px auto 0">Dans la journée, ou le lendemain matin au plus tard. Rien ne vous a été facturé.</p></div><button class="btn ghost" type="button" data-close>Fermer</button>`;
-    body.querySelector('[data-close]').addEventListener('click', close);
+    body.querySelector('[data-close]').addEventListener('click', () => close());
     bar.style.width = '100%';
     body.querySelector('.qtitle').focus();
   }
@@ -361,7 +376,8 @@
   // Accès direct : bonpermis.fr/#extension ouvre directement le projet
   const fromHash = () => { const k = decodeURIComponent(location.hash.slice(1)); if (P[k] || k==='regul') open(k, null); };
   window.addEventListener('hashchange', fromHash); fromHash();
-  document.getElementById('closeBtn').addEventListener('click', close);
+  window.addEventListener('popstate', () => { if (!ov.hidden) close(true); });
+  document.getElementById('closeBtn').addEventListener('click', () => close());
   ov.addEventListener('click', e => { if (e.target === ov) close(); });
   document.addEventListener('keydown', e => { if (e.key==='Escape' && !ov.hidden) close(); });
 })();

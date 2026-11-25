@@ -8,6 +8,7 @@
   const QUESTIONS = {
     abri:{id:'size',t:'Quelle taille fera votre abri ?',h:'La surface au sol, toit compris. Une estimation suffit.',c:[['moins5','Moins de 5 m²'],['dp','Entre 5 et 20 m²'],['pc','Plus de 20 m²'],['nsp','Je ne sais pas']]},
     piscine:{id:'size',t:'Quelle taille fera le bassin ?',h:'La surface de l\'eau seulement, sans les plages autour.',c:[['moins10','Moins de 10 m²'],['dp','Entre 10 et 100 m²'],['pc','Plus de 100 m², ou couverte haute'],['nsp','Je ne sais pas']]},
+    petit:{id:'size',t:'Quelle surface au sol ?',h:'Toit compris. Une estimation suffit.',c:[['moins5','Moins de 5 m², sans toucher la maison'],['dp','Jusqu\'à 20 m²'],['pc','Plus de 20 m²'],['nsp','Je ne sais pas']]},
     annexe:{id:'size',t:'Quelle surface au sol ?',h:'Toit compris. Une estimation suffit.',c:[['dp','Jusqu\'à 20 m²'],['pc','Plus de 20 m²'],['nsp','Je ne sais pas']]},
     agrandir:{id:'size',t:'Combien de mètres carrés ajoutez-vous ?',h:'Une estimation suffit, on affinera avec vos mesures.',c:[['dp','Moins de 20 m²'],['dp40','Entre 20 et 40 m²'],['pc','Plus de 40 m²'],['nsp','Je ne sais pas']]},
     total150:{id:'total',t:'Une fois les travaux faits, la maison fera-t-elle plus de 150 m² ?',h:'Toute la maison, extension comprise. C\'est la limite au-delà de laquelle la loi impose un architecte.',c:[['non','Non'],['oui','Oui'],['nsp','Je ne sais pas']]},
@@ -26,7 +27,17 @@
   // Projets qui peuvent aboutir à un permis de construire : on demande alors si le demandeur est une société.
   const PC_POSSIBLE = (P, p) => ['agrandir','maison','usage'].includes(P[p].cat) || p === 'lucarne' || (P[p].cat === 'petits' && !!P[p].size);
 
-  function flow(P, p){
+  // Réponses déjà données qui excluent un permis de construire : inutile alors de demander si c'est une société.
+  function permisExclu(P, p, a){
+    if (!a) return false;
+    const c = P[p].cat;
+    if (c === 'petits' && P[p].size) return ['moins5', 'moins10', 'dp'].includes(a.size);
+    if (p === 'lucarne') return a.size === 'seule';
+    if (c === 'agrandir') return a.size === 'dp';
+    if (c === 'usage') return a.facade === 'non';
+    return false;
+  }
+  function flow(P, p, a){
     const c = P[p].cat, q = [];
     if (c==='petits' && P[p].size) q.push(QUESTIONS[P[p].size]);
     if (c==='agrandir'){ q.push(QUESTIONS.agrandir); q.push(QUESTIONS.total150); }
@@ -36,7 +47,7 @@
     if (c==='usage') q.push(QUESTIONS.usage);
     if (c==='cu') q.push(QUESTIONS.cu);
     if (c==='modif') q.push(QUESTIONS.modif);
-    if (PC_POSSIBLE(P, p)) q.push(QUESTIONS.qui);
+    if (PC_POSSIBLE(P, p) && !permisExclu(P, p, a)) q.push(QUESTIONS.qui);
     if (!P[p].svc) q.push(QUESTIONS.abf);
     if (P[p].copro) q.push(QUESTIONS.copro);
     return q;
@@ -49,7 +60,7 @@
     if (c==='modif' && a.accorde==='non') return {kind:'call', title:'Tant que la mairie étudie votre dossier, on peut encore le modifier.', text:'Pas besoin de permis modificatif. On reprend les pièces concernées. Laissez-nous votre numéro, on vous rappelle pour voir ce qui change.'};
     if (c==='maison' && (a.size==='archi')) return {kind:'archi'};
     if (c==='maison' && a.plans==='non') return {kind:'conception'};
-    if (c==='agrandir' && a.total==='oui' && a.size==='pc') return {kind:'archi'};
+    if (c==='agrandir' && a.total==='oui' && (a.size==='pc' || a.size==='dp40')) return {kind:'archi'};
     let v;
     if (small) v = {kind:'dp',base:149,label:'Petits travaux en quartier protégé'};
     else if (c==='ext') v = {kind:'dp',base:149,label:'Terrasse, mur ou climatisation'};
@@ -134,7 +145,7 @@
   function reponsesValides(P, pk, a){
     if (!P[pk] || !a || typeof a !== 'object') return null;
     const propre = {};
-    for (const q of flow(P, pk)) {
+    for (const q of flow(P, pk, a)) {
       const r = a[q.id];
       if (!q.c.some(([val]) => val === r)) return null;
       propre[q.id] = r;

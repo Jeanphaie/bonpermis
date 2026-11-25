@@ -292,7 +292,12 @@ def page(k):
     blocs_sup = '' if not (blocs_html or etapes_html or erreurs_html) else f'<section class="page-sec"><div class="wrap narrow">{blocs_html}{etapes_html}{erreurs_html}</div></section>'
     gar_t, gar_p = c.get('garantie', ["Si la mairie dit non à cause de nous, on reprend tout, sans frais.",
                                       "Un refus ou une pièce manquante à cause d'une erreur dans le dossier ? On corrige et on redépose, sans rien vous facturer."])
-    cta_txt = c.get('cta_txt', f"Dossier prêt en {c['delai']} après réception de vos photos. Près d'un monument : + 149 €. En copropriété : + 99 €.")
+    # Démarches sans plan (certificat, modificatif, fin de travaux) : ni photos ni suppléments à annoncer.
+    svc = k in P and P[k].get('svc')
+    cta_txt = c.get('cta_txt', f"Prêt en {c['delai']} après réception de vos documents." if svc else f"Dossier prêt en {c['delai']} après réception de vos photos. Près d'un monument : + 149 €. En copropriété : + 99 €.")
+    etape1 = ("Vous envoyez vos documents", "Ce que vous avez déjà : l'arrêté de la mairie, vos plans, quelques lignes sur votre projet. Depuis votre téléphone, après le paiement.") if svc else ("Vous envoyez un croquis", "Avec vos mesures et quelques photos. Depuis votre téléphone, après le paiement.")
+    etape2 = ("On prépare la demande", "On remplit le formulaire officiel et on réunit les pièces à joindre.") if svc else ("On vérifie les règles de votre mairie", "Si une règle bloque votre projet, on vous le dit avant de dessiner.")
+    etape3 = ("Vous recevez la demande prête à déposer", f"Le formulaire rempli et ses pièces, relus par une deuxième personne. En {e(c['delai'])}.") if svc else ("Vous recevez le dossier prêt à déposer", f"Tous les plans, le formulaire rempli, relus par une deuxième personne. En {e(c['delai'])}.")
     # Plusieurs cas de prix (déclaration ou permis...) : une case par cas, jamais deux prix dans la même phrase
     offres = c.get('offres')
     if offres:
@@ -349,9 +354,9 @@ def page(k):
   <div class="wrap">
     <h2>Comment ça marche</h2>
     <div class="steps trois" style="margin-top:28px">
-      <article class="step"><img src="../img/41-etape-croquis.webp" alt="Un plan dessiné à la main, photographié avec un téléphone" loading="lazy" width="640" height="640"><div class="body"><span class="n">1</span><h3>Vous envoyez un croquis</h3><p>Avec vos mesures et quelques photos. Depuis votre téléphone, après le paiement.</p></div></article>
-      <article class="step"><img src="../img/{plu_img}.webp" alt="Un terrain vu du dessus, avec la maison, le projet en bleu et les limites" loading="lazy" width="640" height="640"><div class="body"><span class="n">2</span><h3>On vérifie les règles de votre mairie</h3><p>Si une règle bloque votre projet, on vous le dit avant de dessiner.</p></div></article>
-      <article class="step"><img src="../img/43-etape-dossier.webp" alt="Un dossier de plans imprimés : plan de masse, façades, coupe" loading="lazy" width="640" height="640"><div class="body"><span class="n">3</span><h3>Vous recevez le dossier prêt à déposer</h3><p>Tous les plans, le formulaire rempli, relus par une deuxième personne. En {e(c['delai'])}.</p></div></article>
+      <article class="step"><img src="../img/41-etape-croquis.webp" alt="Un plan dessiné à la main, photographié avec un téléphone" loading="lazy" width="640" height="640"><div class="body"><span class="n">1</span><h3>{etape1[0]}</h3><p>{etape1[1]}</p></div></article>
+      <article class="step"><img src="../img/{plu_img}.webp" alt="Un terrain vu du dessus, avec la maison, le projet en bleu et les limites" loading="lazy" width="640" height="640"><div class="body"><span class="n">2</span><h3>{etape2[0]}</h3><p>{etape2[1]}</p></div></article>
+      <article class="step"><img src="../img/43-etape-dossier.webp" alt="Un dossier de plans imprimés : plan de masse, façades, coupe" loading="lazy" width="640" height="640"><div class="body"><span class="n">3</span><h3>{etape3[0]}</h3><p>{etape3[1]}</p></div></article>
     </div>
     {need_html}
     <div class="cta-box">

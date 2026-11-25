@@ -514,7 +514,7 @@
    "faq": [
     [
      "Quelle autorisation pour une extension de maison ?",
-     "Une déclaration préalable jusqu'à 20 m² créés, et jusqu'à 40 m² si la maison est en zone urbaine d'un plan local d'urbanisme. Au-delà, un permis de construire. En dessous de 5 m², aucune démarche en général."
+     "Une déclaration préalable jusqu'à 20 m² créés, et jusqu'à 40 m² si la maison est en zone urbaine d'un plan local d'urbanisme. Au-delà, un permis de construire. Même pour 5 m² ou moins, une extension collée à la maison demande une déclaration préalable, car elle change l'aspect extérieur."
     ],
     [
      "Est-ce qu'une extension de 20 m² nécessite un permis de construire ?",
@@ -680,7 +680,7 @@
    "faq": [
     [
      "Est-il possible de construire une véranda sans autorisation ?",
-     "En général seulement en dessous de 5 m². Au-delà, il faut une déclaration préalable ou un permis de construire."
+     "Non, si elle est collée à la maison : même petite, elle change l'aspect extérieur et demande une déclaration préalable. Au-delà de 20 m² (40 m² en zone urbaine), il faut un permis de construire."
     ],
     [
      "Quelle taille de véranda sans permis de construire ?",
@@ -826,8 +826,8 @@
      "Permis de construire"
     ],
     [
-     "Aucun changement extérieur",
-     "En général aucune démarche"
+     "Aucun changement extérieur, plus de 5 m² transformés",
+     "Déclaration préalable"
     ]
    ],
    "note": "Le règlement de votre mairie impose souvent un nombre de places de stationnement : supprimer le garage peut poser problème. On le vérifie avant de dessiner, et si ça ne passe pas, on vous le dit avant de commencer.",
@@ -872,7 +872,7 @@
    "faq": [
     [
      "Est-il possible de transformer un garage en chambre sans autorisation ?",
-     "Non, dès que la façade change. Remplacer la porte de garage par une fenêtre ou un mur demande une déclaration préalable. Sans aucun changement extérieur, il n'y a en général pas de démarche d'urbanisme, mais la déclaration aux impôts reste due."
+     "Non, dès que la façade change. Remplacer la porte de garage par une fenêtre ou un mur demande une déclaration préalable. Même sans changement extérieur, une déclaration préalable est due dès que plus de 5 m² deviennent habitables, et la déclaration aux impôts reste due."
     ],
     [
      "Quel permis pour transformer un garage en habitation ?",
@@ -1210,7 +1210,7 @@
      "Demandée dans le même permis de construire"
     ]
    ],
-   "note": "On vérifie avec votre adresse si votre commune impose le permis de démolir, et on lit le règlement de votre mairie, qui protège parfois certains bâtiments. Si la démolition n'est pas possible, on vous le dit avant de commencer. La mairie a deux mois pour répondre.",
+   "note": "On vérifie avec votre adresse si votre commune impose le permis de démolir, et on lit le règlement de votre mairie, qui protège parfois certains bâtiments. Si la démolition n'est pas possible, on vous le dit avant de commencer. La mairie a deux mois pour répondre, trois en secteur protégé.",
    "prix": "149 €",
    "delai": "48 h",
    "sources": [
