@@ -397,7 +397,7 @@
     const L = (r.j || {}).codes || [];
     const TY = {pourcent: v => `-${v} %`, montant: v => `-${euro(v)}`, prix: v => `Prix final ${euro(v)}`};
     el.innerHTML = cadre(`<h1>Codes promo</h1>
-      <p class="note">Le client saisit le code au moment de payer (« J'ai un code promo »). Le prix est recalculé par le serveur. Prix minimum après remise : 1 € (payé 0,50 € d'acompte + 0,50 € de solde). Un code est compté comme utilisé quand l'acompte est payé.</p>
+      <p class="note">Le client saisit le code au moment de payer (« J'ai un code promo »). Le prix est recalculé par le serveur. Prix minimum après remise : 1 € (payé 0,50 € d'acompte + 0,50 € de solde). Pour un dossier 100 % gratuit : « Prix final fixe » à 0 (ou remise de 100 %) ; le client valide alors son dossier sans paiement, depuis son espace. Un code est compté comme utilisé quand l'acompte est payé.</p>
       <form class="carte" id="fp" style="margin:16px 0" novalidate>
         <div class="rang" style="align-items:flex-end">
           <label class="field" style="margin:0;flex:1;min-width:140px"><span>Code</span><input name="code" required placeholder="TEST1" style="text-transform:uppercase"></label>

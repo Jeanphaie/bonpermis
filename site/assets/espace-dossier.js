@@ -244,7 +244,7 @@
         : `<div class="livr-tabs" role="group" aria-label="Pièces du dossier">${d.livrables.map(x => `<button type="button" data-l="${x.id}" aria-pressed="${x.id === l.id}">${esc(x.code)}</button>`).join('')}</div>
           <p style="margin:12px 0 0"><b>${esc(l.code)}</b> ${esc(l.nom)}${l.pages ? ` <span class="note">· ${l.pages} page${l.pages > 1 ? 's' : ''}</span>` : ''}</p>${pages}
           ${d.statut === 'corrections' ? '<p class="ok-msg" style="margin-top:14px">Corrections demandées : nous revenons vers vous avec une nouvelle version.</p>' : `
-          <div class="rang" style="margin-top:16px"><button class="btn ghost" type="button" data-corr>Demander une correction</button><button class="btn blue-btn" type="button" data-valider>C'est bon pour moi : payer le solde de ${euro(d.solde)}</button></div>
+          <div class="rang" style="margin-top:16px"><button class="btn ghost" type="button" data-corr>Demander une correction</button><button class="btn blue-btn" type="button" data-valider>${d.solde > 0 ? 'C\'est bon pour moi : payer le solde de ' + euro(d.solde) : 'C\'est bon pour moi : recevoir mon dossier'}</button></div>
           <p class="note">Les corrections sont comprises jusqu'au dépôt. Après le solde, vous téléchargez le dossier complet sans filigrane.</p>`}`}
       </section>`;
   }
@@ -285,15 +285,16 @@
     return `<section class="dz-valider" id="valider">
       <div class="dz-valider-t">
         <h2>Validez votre dossier pour qu'on commence</h2>
-        <p>Acompte de <b>${euro(acompteAff())}</b>${Math.abs(acompteAff() - total * 0.3) < 0.01 ? ', soit 30 % du prix de ' + euro(total) : ' sur un prix de ' + euro(total)}. Le solde de ${euro(solde)} se règle après l'aperçu de vos plans, quand tout vous convient.${d.recues.n < d.recues.sur ? ' Vous pouvez envoyer vos pièces avant ou après : rien n\'est perdu.' : ''}</p>
+        ${promoOk && total === 0 ? `<p>Avec votre code <b>${esc(promoOk.code)}</b>, ce dossier est <b>gratuit</b> : rien à payer, ni maintenant ni plus tard.${d.recues.n < d.recues.sur ? ' Vous pouvez envoyer vos pièces avant ou après.' : ''}</p>` : `<p>Acompte de <b>${euro(acompteAff())}</b>${Math.abs(acompteAff() - total * 0.3) < 0.01 ? ', soit 30 % du prix de ' + euro(total) : ' sur un prix de ' + euro(total)}. Le solde de ${euro(solde)} se règle après l'aperçu de vos plans, quand tout vous convient.${d.recues.n < d.recues.sur ? ' Vous pouvez envoyer vos pièces avant ou après : rien n\'est perdu.' : ''}</p>`}
         <ul class="dz-garanties">
-          <li>Paiement sécurisé par Stripe : carte, Apple Pay, Google Pay, PayPal</li>
+          ${promoOk && total === 0 ? '' : '<li>Paiement sécurisé par Stripe : carte, Apple Pay, Google Pay, PayPal</li>'}
           <li>Corrections des plans comprises jusqu'au dépôt</li>
           <li>Refus dû à une erreur de notre part : on corrige et on redépose gratuitement</li>
         </ul>
       </div>
       <div class="dz-valider-a">
-        <button class="btn blue-btn dz-payer" type="button" data-payer>Valider et payer ${euro(acompteAff()).replace(' ', '\u00a0')}</button>
+        <button class="btn blue-btn dz-payer" type="button" data-payer>${promoOk && total === 0 ? 'Valider mon dossier, gratuit' : 'Valider et payer ' + euro(acompteAff()).replace(' ', '\u00a0')}</button>
+        ${promoOk && total === 0 ? '<p class="note">En validant, vous acceptez nos <a href="/cgv/" target="_blank" rel="noopener">conditions générales de vente</a> et vous demandez que votre dossier soit commencé tout de suite.</p>' : ''}
         <div class="promo dz-promo">${promoOk ? `<p class="promo-msg ok">Code ${esc(promoOk.code)} appliqué : -${euro(promoOk.remise)}. <button type="button" class="lien" data-promo-retirer>Retirer</button></p>` : `<button type="button" class="more-btn" data-promo-ouvrir>J'ai un code promo</button>
           <div class="promo-l" data-promo hidden><input name="promo" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Code promo" aria-label="Code promo"><button type="button" class="btn ghost" data-promo-ok>Appliquer</button></div>
           <p class="promo-msg err" data-promo-msg aria-live="polite"></p>`}</div>
@@ -303,12 +304,12 @@
   }
   function barrePayer() {
     if (d.statut !== 'brouillon') return '';
-    return `<div class="dz-barre-payer" role="region" aria-label="Valider le dossier"><span><b>Dossier non validé</b><small>Acompte de ${euro(acompteAff())}, solde après l'aperçu</small></span><button class="btn blue-btn" type="button" data-payer>Valider et payer</button></div>`;
+    return `<div class="dz-barre-payer" role="region" aria-label="Valider le dossier"><span><b>Dossier non validé</b><small>${promoOk && promoOk.total === 0 ? 'Gratuit avec votre code promo' : 'Acompte de ' + euro(acompteAff()) + ', solde après l\'aperçu'}</small></span><button class="btn blue-btn" type="button" data-payer>${promoOk && promoOk.total === 0 ? 'Valider mon dossier' : 'Valider et payer'}</button></div>`;
   }
   function brancherPaiement() {
     el.querySelectorAll('[data-payer]').forEach(b => b.addEventListener('click', async () => {
       const err = el.querySelector('[data-payer-err]');
-      el.querySelectorAll('[data-payer]').forEach(x => { x.disabled = true; }); const lab = b.textContent; b.textContent = 'Ouverture du paiement sécurisé…';
+      el.querySelectorAll('[data-payer]').forEach(x => { x.disabled = true; }); const lab = b.textContent; b.textContent = promoOk && promoOk.total === 0 ? 'Validation…' : 'Ouverture du paiement sécurisé…';
       const r = await api('POST', '/espace/dossier/payer?ref=' + R, {promo: promoOk ? promoOk.code : undefined}).catch(() => ({j: {}}));
       if (r.ok && r.j.url) { location.href = r.j.url; return; }
       el.querySelectorAll('[data-payer]').forEach(x => { x.disabled = false; }); b.textContent = lab;
@@ -369,6 +370,8 @@
     if (q.get('paye') === 'acompte') return d.statut === 'brouillon'
       ? '<div class="dz-bandeau attente" role="status"><b>Paiement reçu, validation en cours.</b> Cela prend quelques secondes.</div>'
       : `<div class="dz-bandeau ok" role="status"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><span><b>Paiement accepté : votre dossier est validé.</b> ${d.statut === 'verification' ? 'Toutes vos pièces sont là : nous les vérifions sous 24 h ouvrées.' : `Il reste ${d.recues.sur - d.recues.n} pièce${d.recues.sur - d.recues.n > 1 ? 's' : ''} à envoyer, ci-dessous.`} Un e-mail de confirmation vous est envoyé.</span></div>`;
+    if (q.get('valide') && d.statut !== 'brouillon') return '<div class="dz-bandeau ok" role="status"><b>Votre dossier est validé.</b> Rien à payer avec votre code. ' + (d.recues.n < d.recues.sur ? 'Envoyez vos pièces : nous commençons dès qu\'elles sont là.' : 'Nous vérifions vos pièces.') + '</div>';
+    if (q.get('paye') && !(d.total > 0)) return '<div class="dz-bandeau ok" role="status"><b>Merci, vos plans sont validés.</b> Votre dossier est prêt à télécharger.</div>';
     if (q.get('paye')) return '<div class="dz-bandeau ok" role="status"><b>Merci, le solde est réglé.</b> Votre dossier est prêt à télécharger (la confirmation peut prendre quelques secondes).</div>';
     if (q.get('nouveau') && d.statut === 'brouillon') return '<div class="dz-bandeau info" role="status"><b>Votre dossier est créé.</b> Voici tout ce qu\'il nous faut. Envoyez vos pièces quand vous voulez, puis validez le dossier en réglant l\'acompte : nous commençons à ce moment-là.</div>';
     return '';
@@ -450,7 +453,7 @@
     if (corr) corr.addEventListener('click', () => { const f = el.querySelector('#fmsg'); f.corr.checked = true; f.t.placeholder = 'Quelle pièce, et que faut-il changer ?'; f.t.focus(); f.scrollIntoView({block: 'center'}); });
     const val = el.querySelector('[data-valider]');
     if (val) val.addEventListener('click', async () => {
-      val.disabled = true; val.textContent = 'Ouverture du paiement sécurisé…';
+      val.disabled = true; val.textContent = d.solde > 0 ? 'Ouverture du paiement sécurisé…' : 'Validation…';
       const r = await api('POST', '/espace/dossier/valider?ref=' + R).catch(() => ({j: {}}));
       if (r.ok && r.j.url) { location.href = r.j.url; return; }
       alert(r.j.erreur || 'Le paiement n\'a pas pu s\'ouvrir.'); val.disabled = false; val.textContent = 'Réessayer';

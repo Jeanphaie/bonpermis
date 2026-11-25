@@ -92,7 +92,8 @@ function norm(cmd) {
   cmd.acompte = cmd.acompte != null ? +cmd.acompte : cmd.total;
   cmd.solde = Math.round((cmd.total - cmd.acompte) * 100) / 100;
   cmd.paiements = cmd.paiements || {acompte: {montant: cmd.montant, date: cmd.date, session: cmd.session}};
-  if (cmd.solde <= 0 && !cmd.paiements.solde) cmd.paiements.solde = {montant: 0, date: cmd.date, ancien: true};
+  // (pas pour un dossier offert par code promo : son solde nul se « règle » quand le client valide ses plans)
+  if (cmd.solde <= 0 && !cmd.paiements.solde && !(cmd.paiements.acompte && cmd.paiements.acompte.gratuit)) cmd.paiements.solde = {montant: 0, date: cmd.date, ancien: true};
   cmd.kind = cmd.kind || 'dp';
   cmd.pieces = cmd.pieces || piecesInitiales(cmd.kind, cmd.projet, {regul: cmd.regul, reponses: cmd.reponses, options: cmd.options});
   if (aDepot(cmd.options) && cmd.pieces.some(x => /^cerfa-/.test(x.id)) && !cmd.pieces.some(x => x.id === 'cerfa-mandat')) { const i = cmd.pieces.findIndex(x => x.id === 'autre'); cmd.pieces.splice(i < 0 ? cmd.pieces.length : i, 0, Object.assign({}, MANDAT)); }
@@ -186,9 +187,9 @@ function partAcompte(total) {
   return a;
 }
 // Code promo : ajoute une ligne négative et recalcule le total. Renvoie une erreur si le code n'est pas valable.
-function avecPromo(x, code) {
+function avecPromo(x, code, gratuitPermis) {
   if (!code) return x;
-  const r = PROMOS.appliquer(code, x.total);
+  const r = PROMOS.appliquer(code, x.total, gratuitPermis);
   if (!r) return x;
   if (r.erreur) return {erreur: r.erreur};
   return {...x, total: r.total, promo: r.code, lignes: [...x.lignes, {label: r.libelle, prix: -r.remise}]};
@@ -242,13 +243,13 @@ async function verifierPromo(req, res) {
   if (d.ref) { // dossier créé avant paiement
     const u = C.sessionClient(req), cmd = lireCmd(d.ref);
     if (!u || !cmd || cmd.uid !== u.id) return repondre(res, 404, {erreur: 'Dossier introuvable.'});
-    x = {total: cmd.total, lignes: cmd.lignes};
+    x = {total: cmd.total, lignes: cmd.lignes, gratuitPermis: true};
   } else if (d.projet) { // simulation enregistrée (espace client)
     const u = C.sessionClient(req), s = lireProjet(d.projet);
     if (!u || !s || s.uid !== u.id) return repondre(res, 404, {erreur: 'Projet introuvable.'});
     x = {total: s.total, lignes: s.lignes};
   } else { x = analyser(d); if (x.erreur) return repondre(res, 400, x); }
-  const r = PROMOS.appliquer(d.code, x.total);
+  const r = PROMOS.appliquer(d.code, x.total, !!x.gratuitPermis);
   if (!r) return repondre(res, 400, {erreur: 'Indiquez un code.'});
   if (r.erreur) return repondre(res, 400, r);
   repondre(res, 200, {code: r.code, remise: r.remise, total: r.total, acompte: partAcompte(r.total), solde: Math.round((r.total - partAcompte(r.total)) * 100) / 100});
@@ -396,10 +397,33 @@ async function payerDossier(req, res, url) {
   let a = {}; try { a = JSON.parse(cmd.reponses || '{}'); } catch {}
   const opt = {}; String(cmd.options || '').split(',').filter(k => k && k !== 'aucune').forEach(k => { opt[k] = true; });
   let x = {p: cmd.projet, regul: cmd.regul === 'true', a, v: {kind: cmd.kind}, opt, lignes: (cmd.lignes || [[cmd.nom, cmd.total]]).map(([label, prix]) => ({label, prix})), total: cmd.total, nom: cmd.nom};
-  x = avecPromo(x, d.promo); if (x.erreur) return repondre(res, 400, {erreur: x.erreur, champ: 'promo'});
+  x = avecPromo(x, d.promo, true); if (x.erreur) return repondre(res, 400, {erreur: x.erreur, champ: 'promo'});
+  // Code promo à 100 % : rien à payer, le dossier est validé tout de suite, sans passer par Stripe.
+  if (x.promo && x.total === 0) {
+    try { await validerGratuit(cmd, x); } catch (e) { journal('validation gratuite', cmd.ref, e.message); }
+    return repondre(res, 200, {url: `/espace/dossier/?ref=${cmd.ref}&valide=1`, gratuit: true});
+  }
   const lieu = cmd.lieu ? `${(+cmd.lieu.lon).toFixed(6)},${(+cmd.lieu.lat).toFixed(6)}` : '';
   try { const s = await ouvrirPaiementAcompte(x, cmd.email, cmd.adresse, cmd.uid, null, lieu, cmd.ref); repondre(res, 200, {url: s.url}); }
   catch (e) { journal('erreur Stripe :', e.message); repondre(res, 502, {erreur: 'Le paiement n\'a pas pu s\'ouvrir. Réessayez dans un instant.'}); }
+}
+
+// Dossier offert par un code promo à 100 % : validé sans paiement (acompte et solde à 0 €).
+async function validerGratuit(cmd, x) {
+  if (cmd.paiements.acompte) return;
+  cmd.lignes = x.lignes.map(l => [String(l.label).slice(0, 60), l.prix]);
+  cmd.total = 0; cmd.acompte = 0; cmd.solde = 0; cmd.promo = x.promo;
+  cmd.paiements.acompte = {montant: 0, date: new Date().toISOString(), session: null, pi: null, gratuit: true};
+  const r = recues(cmd);
+  cmd.statut = r.n >= r.sur ? 'verification' : 'elements';
+  histo(cmd, `Dossier validé sans paiement : code promo ${x.promo} (100 %)${cmd.statut === 'verification' ? ', toutes les pièces sont déjà là' : ''}`);
+  sauver(cmd);
+  PROMOS.compterUtilisation(x.promo);
+  journal('dossier validé gratuitement', cmd.ref, cmd.projet, x.promo);
+  await envoyerMail(CONF.mailA, `Dossier validé ${cmd.ref} : ${cmd.nom} (gratuit, code ${x.promo})`,
+    `Dossier validé sans paiement, avec le code promo ${x.promo}.\n\nProjet : ${cmd.nom}\nAdresse : ${cmd.adresse}\nClient : ${cmd.email}\nPièces reçues : ${r.n} sur ${r.sur}\n\n${CONF.site}/admin/#${cmd.ref}\n`, cmd.email);
+  await envoyerMail(cmd.email, `Dossier ${cmd.ref} validé`,
+    `Bonjour,\n\nVotre dossier « ${cmd.nom} » est validé. Avec votre code ${x.promo}, vous n'avez rien à payer.\n\n${r.n >= r.sur ? 'Toutes vos pièces sont là : nous les vérifions.' : 'Il nous manque encore des pièces : envoyez-les depuis votre espace.'}\n${CONF.site}/espace/dossier/?ref=${cmd.ref}\n${B.signature}`);
 }
 
 // Webhook : acompte réglé pour un dossier déjà créé.
@@ -568,6 +592,12 @@ async function clientValider(req, res, url) { // le client valide l'aperçu : pa
   const cmd = cmdClient(req, res, url); if (!cmd) return;
   if (cmd.paiements.solde) return repondre(res, 409, {erreur: 'Le solde est déjà réglé.'});
   if (cmd.statut !== 'apercu') return repondre(res, 409, {erreur: 'Vos plans ne sont pas encore prêts à valider.'});
+  // Dossier offert (code promo à 100 %) : pas de solde, le dossier est livré dès que le client valide ses plans.
+  if (!(cmd.solde > 0)) {
+    histo(cmd, 'Plans validés par le client'); sauver(cmd);
+    try { await soldeRecu({amount_total: 0, id: null, payment_intent: null}, {ref: cmd.ref}); } catch (e) { journal('livraison gratuite', cmd.ref, e.message); }
+    return repondre(res, 200, {url: `/espace/dossier/?ref=${cmd.ref}&paye=1`});
+  }
   try {
     const s = await stripe('POST', '/v1/checkout/sessions', {
       mode: 'payment', locale: 'fr', customer_email: cmd.email,
