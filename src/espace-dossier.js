@@ -29,7 +29,7 @@
     const pos = {brouillon: 0, elements: 1, verification: 2, preparation: 3, apercu: 3, corrections: 3, livre: 5}[d.statut] ?? 1;
     const delai = d.delai === 1 ? '24 h ouvrées' : d.delai === 2 ? '48 h ouvrées' : `${d.delai} jours ouvrés`;
     const L = [
-      d.paiements.acompte ? ['Acompte payé', new Date(d.paiements.acompte.date).toLocaleDateString('fr-FR', {day: 'numeric', month: 'short'})] : ['Validation', `Acompte de ${euro(acompteAff())} à régler`],
+      d.paiements.acompte ? [d.total > 0 ? 'Acompte payé' : 'Dossier validé', new Date(d.paiements.acompte.date).toLocaleDateString('fr-FR', {day: 'numeric', month: 'short'})] : ['Validation', `Acompte de ${euro(acompteAff())} à régler`],
       ['Vos pièces', pos <= 1 ? `${pos === 1 ? 'En cours · ' : ''}${d.recues.n} sur ${d.recues.sur}` : `${d.recues.n} sur ${d.recues.sur} reçues`],
       ['Vérification', pos === 2 ? 'En cours, sous 24 h ouvrées' : 'sous 24 h ouvrées'],
       ['Aperçu des plans', d.statut === 'preparation' && d.echeance ? 'Au plus tard le ' + jour(d.echeance) : d.statut === 'apercu' ? 'À relire' : d.statut === 'corrections' ? 'Corrections en cours' : delai],
@@ -190,10 +190,11 @@
     const x = S[ouv], n = S.length, tete = `<p class="dz-et-n">Étape ${ouv + 1} sur ${n}${x.facult ? ' · facultative' : ''}</p>`;
     if (x.id === 'valider') return `<section class="dz-carte dz-et" id="etape">${tete}${blocValider()}</section>`;
     if (x.id === 'envoyer') {
-      const manque = d.pieces.filter(p => !p.facultatif && p.etat === 'manquant').length;
+      const manquantes = d.pieces.filter(p => !p.facultatif && p.etat === 'manquant' && !p.plusTard), manque = d.pieces.filter(p => !p.facultatif && p.etat === 'manquant').length;
       return `<section class="dz-carte dz-et" id="etape">${tete}<h2 class="dz-h2">${manque ? 'Envoyez ce que vous avez' : 'Vous avez tout envoyé ?'}</h2>
         <p>${manque ? 'Pas besoin que tout y soit : on regarde, et on vous écrit s\'il nous manque quelque chose.' : 'Prévenez-nous : on vérifie et le délai de préparation démarre.'}</p>
-        <p class="form-err" role="alert" hidden id="errfin"></p><div class="dz-act"><button class="btn blue-btn" type="button" data-fin>${manque ? 'C\'est envoyé, regardez' : 'J\'ai tout envoyé'}</button></div></section>`;
+        ${manquantes.length ? `<p class="note" style="margin:6px 0 0">Il manque encore : ${manquantes.map(p => esc(p.nom)).join(', ')}. Vous pouvez les ajouter maintenant ou plus tard.</p>` : ''}
+        <p class="form-err" role="alert" hidden id="errfin"></p><div class="dz-act"><button class="btn blue-btn" type="button" data-fin>${manque ? 'Envoyer mon dossier à l\'équipe' : 'J\'ai tout envoyé'}</button></div></section>`;
     }
     if (x.id === 'plan') return `<section class="dz-carte dz-et" id="etape">${tete}${carteplan(x.pieces[0])}<div class="dz-act"><button class="lien" type="button" data-suite>${x.fait ? 'Étape suivante →' : 'Passer cette étape →'}</button></div></section>`;
     if (x.pieces.every(p => p.type === 'texte')) return `<section class="dz-carte dz-et" id="etape">${tete}<h2 class="dz-h2">${esc(x.titre)}</h2>
@@ -245,7 +246,7 @@
           <p style="margin:12px 0 0"><b>${esc(l.code)}</b> ${esc(l.nom)}${l.pages ? ` <span class="note">· ${l.pages} page${l.pages > 1 ? 's' : ''}</span>` : ''}</p>${pages}
           ${d.statut === 'corrections' ? '<p class="ok-msg" style="margin-top:14px">Corrections demandées : nous revenons vers vous avec une nouvelle version.</p>' : `
           <div class="rang" style="margin-top:16px"><button class="btn ghost" type="button" data-corr>Demander une correction</button><button class="btn blue-btn" type="button" data-valider>${d.solde > 0 ? 'C\'est bon pour moi : payer le solde de ' + euro(d.solde) : 'C\'est bon pour moi : recevoir mon dossier'}</button></div>
-          <p class="note">Les corrections sont comprises jusqu'au dépôt. Après le solde, vous téléchargez le dossier complet sans filigrane.</p>`}`}
+          <p class="note">Les corrections sont comprises jusqu'au dépôt. ${d.solde > 0 ? 'Après le solde' : 'Dès que vous validez'}, vous téléchargez le dossier complet sans filigrane.</p>`}`}
       </section>`;
   }
 
@@ -354,7 +355,7 @@
             ${prochaine ? `<a class="dz-prochaine" href="#p-${prochaine.id}"><span><small>Prochaine étape</small><b>${esc(prochaine.nom)}</b></span><span class="dz-go">Y aller ↓</span></a>` : ''}
             <p class="note">${d.statut === 'brouillon' ? 'Vous pouvez les envoyer dès maintenant, avant de valider. ' : ''}Tout est enregistré au fur et à mesure : vous pouvez arrêter et revenir plus tard, ou continuer sur votre téléphone.</p></section>
           ${pieces()}`}
-          ${false ? `<section class="dz-carte dz-fin"><div><h3 style="margin:0">${manque ? 'Envoyez ce que vous avez' : 'Vous avez tout envoyé ?'}</h3><p class="note">${manque ? 'Pas besoin que tout y soit : on regarde, et on vous écrit s\'il nous manque quelque chose.' : 'Prévenez-nous : on vérifie et le délai de préparation démarre.'}</p><p class="form-err" role="alert" hidden id="errfin"></p></div><button class="btn blue-btn" type="button" data-fin>${manque ? 'C\'est envoyé, regardez' : 'J\'ai tout envoyé'}</button></section>` : ''}
+          ${false ? `<section class="dz-carte dz-fin"><div><h3 style="margin:0">${manque ? 'Envoyez ce que vous avez' : 'Vous avez tout envoyé ?'}</h3><p class="note">${manque ? 'Pas besoin que tout y soit : on regarde, et on vous écrit s\'il nous manque quelque chose.' : 'Prévenez-nous : on vérifie et le délai de préparation démarre.'}</p><p class="form-err" role="alert" hidden id="errfin"></p></div><button class="btn blue-btn" type="button" data-fin>${manque ? 'Envoyer mon dossier à l\'équipe' : 'J\'ai tout envoyé'}</button></section>` : ''}
         </div>
       </div>
       ${barrePayer()}
