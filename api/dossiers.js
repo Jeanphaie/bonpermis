@@ -828,6 +828,48 @@ async function equipeLivrable(req, res, url) {
   sauver(frais);
   repondre(res, 200, {...vueCmd(frais, true), avertissement: a.erreur ? `Aperçu non généré (${a.erreur}). Le client verra la liste des pièces sans image.` : null});
 }
+// Fabrication des pièces sur le serveur (gen/run.py). Claude envoie ses décisions (projet, notice, Cerfa : du texte),
+// le serveur dessine avec les photos du client qu'il a déjà, puis range les PDF dans « Pièces à livrer ».
+// Les pièces fabriquées remplacent les précédentes pièces fabriquées ; un PDF déposé à la main n'est jamais touché.
+const GEN = path.join(B.RACINE, 'gen');
+const lancerPython = (args, ms) => new Promise(ok => require('child_process').execFile('python3', args, {timeout: ms, maxBuffer: 4e6}, (e, so, se) => ok({e, so: String(so || ''), se: String(se || '')})));
+async function equipeGenerer(req, res, url) {
+  const cmd = cmdEquipe(req, res, url); if (!cmd) return;
+  if (cmd.statut === 'livre') return repondre(res, 409, {erreur: 'Dossier déjà livré.'});
+  const d = await lireJson(req, 200000); if (!d || !d.projet || !d.notice || !d.cerfa) return repondre(res, 400, {erreur: 'Il faut projet, notice et cerfa.'});
+  const t0 = await lancerPython(['-c', 'import matplotlib, shapely, reportlab, pypdf, PIL'], 30000);
+  if (t0.e) return repondre(res, 503, {erreur: 'Le générateur de planches n\'est pas installé sur le serveur (image à reconstruire).', detail: t0.se.slice(-400)});
+  const job = path.join(dDir(cmd.ref), 'gen'); fs.mkdirSync(path.join(job, 'images'), {recursive: true}); fs.rmSync(path.join(job, 'sortie'), {recursive: true, force: true});
+  for (const [nom, fid] of Object.entries(d.photos || {})) {
+    const f = cmd.fichiers.find(x => x.id === fid), cible = path.join(job, 'images', path.basename(String(nom)));
+    if (!f || !/^[\w.-]+\.(jpe?g|png)$/i.test(path.basename(String(nom)))) return repondre(res, 400, {erreur: `Photo inconnue : ${nom}`});
+    // Photo HEIC : on prend la vue JPEG préparée par le serveur.
+    fs.copyFileSync(['jpg', 'jpeg', 'png'].includes(f.type) ? path.join(dDir(cmd.ref), 'fichiers', f.id + '.' + f.type) : path.join(dDir(cmd.ref), 'vues', f.id + '.jpg'), cible);
+  }
+  if (!cmd.lieu) return repondre(res, 400, {erreur: 'Dossier sans point sur la carte : pas de fiche terrain.'});
+  const t = await require('./terrain').lireTerrain(+cmd.lieu.lon, +cmd.lieu.lat);
+  if (!t || !t.parcelle) return repondre(res, 502, {erreur: 'Fiche terrain indisponible (cadastre).'});
+  for (const [nom, v] of [['terrain.json', t], ['projet.json', d.projet], ['notice.json', d.notice], ['cerfa.json', d.cerfa]]) fs.writeFileSync(path.join(job, nom), JSON.stringify(v));
+  const r = await lancerPython([path.join(GEN, 'run.py'), job], 240000);
+  let sortie = null; try { sortie = JSON.parse(r.so.trim().split('\n').pop()); } catch {}
+  if (r.e || !sortie || !sortie.pieces.length) { journal('generer', cmd.ref, r.se.slice(-600)); return repondre(res, 500, {erreur: 'La fabrication des planches a échoué.', detail: (r.se || r.so).slice(-1200)}); }
+  const frais = lireCmd(cmd.ref);
+  for (const l of frais.livrables.filter(x => x.auto)) {
+    fs.rmSync(path.join(dDir(cmd.ref), 'livrables', l.id + '.pdf'), {force: true});
+    for (let n = 1; n <= l.pages; n++) fs.rmSync(path.join(dDir(cmd.ref), 'apercu', `${l.id}-${n}.jpg`), {force: true});
+  }
+  frais.livrables = frais.livrables.filter(x => !x.auto);
+  fs.mkdirSync(path.join(dDir(cmd.ref), 'livrables'), {recursive: true});
+  for (const p of sortie.pieces) {
+    const lid = 'l' + B.id(6), dest = path.join(dDir(cmd.ref), 'livrables', lid + '.pdf');
+    fs.copyFileSync(p.fichier, dest);
+    const a = await B.apercuPdf(dest, path.join(dDir(cmd.ref), 'apercu'), lid);
+    frais.livrables.push({id: lid, code: p.code, nom: p.nom, pages: a.pages, taille: fs.statSync(dest).size, date: new Date().toISOString(), auto: true});
+  }
+  frais.livrables.sort((x, y) => x.code.localeCompare(y.code, 'fr', {numeric: true}));
+  histo(frais, `Pièces fabriquées : ${sortie.pieces.map(p => p.code).join(', ')}`);
+  sauver(frais); repondre(res, 200, {...vueCmd(frais, true), chiffres: sortie.chiffres});
+}
 async function equipeSupprimerLivrable(req, res, url) {
   const cmd = cmdEquipe(req, res, url); if (!cmd) return;
   if (cmd.paiements.solde && cmd.statut === 'livre') return repondre(res, 409, {erreur: 'Dossier déjà livré.'});
@@ -861,6 +903,6 @@ module.exports = {
   verifierPromo, creerDossier, payerDossier,
   REF_RE, lireCmd, sauver, vueCmd, commande, etatCommande, paiementRecu, enregistrerProjet, supprimerProjet, commanderProjet, espace,
   clientDossier, clientTexte, clientPlusTard, clientPlan, clientFichier, clientSupprimerFichier, clientMessage, clientTerminer, clientValider, clientVoir, clientTelecharger,
-  equipeListe, equipeDossier, equipeVoir, equipePiece, equipeCommande, equipeBrief, equipeAnalyse, equipeAppliquer, equipeClasser, equipeFichier, equipeMessage, equipeLancer, equipeDepot, equipeLivrable,
+  equipeListe, equipeDossier, equipeVoir, equipePiece, equipeCommande, equipeBrief, equipeAnalyse, equipeAppliquer, equipeGenerer, equipeClasser, equipeFichier, equipeMessage, equipeLancer, equipeDepot, equipeLivrable,
   equipeSupprimerLivrable, equipeEnvoyerApercu, equipeZip, analyser, partAcompte, piecesInitiales, listePieces
 };
