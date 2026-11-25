@@ -43,7 +43,7 @@ for bloc in n['blocs']:
         f.append(Paragraph(p, P))
     if 'note' in bloc:
         f += [Paragraph(bloc['note'], S), Spacer(1, 2 * mm)]
-data = [[Paragraph(c, CB if i == 0 else C) for c in r] for i, r in enumerate([['Règle du PLUi', 'Page', 'Construction']] + n['plu'])]
+data = [[Paragraph(c, CB if i == 0 else C) for c in r] for i, r in enumerate([[n.get('plu_titre', 'Règle du PLU'), 'Page', 'Construction']] + n['plu'])]
 t = Table(data, colWidths=[78 * mm, 17 * mm, 79 * mm], repeatRows=1)
 t.setStyle(TableStyle([('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#eef0f3')), ('LINEBELOW', (0, 0), (-1, -1), 0.3, colors.HexColor('#c9ced4')),
                        ('LINEABOVE', (0, 0), (-1, 0), 0.8, colors.HexColor(E)), ('VALIGN', (0, 0), (-1, -1), 'TOP'), ('TOPPADDING', (0, 0), (-1, -1), 4),

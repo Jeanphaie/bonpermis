@@ -34,11 +34,28 @@ SEGS = list(zip(SPARC.exterior.coords[:-1], SPARC.exterior.coords[1:]))
 DIST = sorted([(SAB.distance(LineString(s)), s) for s in SEGS], key=lambda t: t[0])
 EMPRISE = L * l
 BATI = sum(b['emprise'] for b, _ in BATS if b['surParcelle'])
+# Rien de propre à un dossier n'est écrit en dur : tout vient de projet.json, avec des valeurs par défaut neutres.
+REGUL = bool(d.get('regularisation', 'annee' in A))
+ETAT = 'à régulariser' if REGUL else 'projetée'
+REG = d.get('regles', {})                    # {emprise_max_pct, emprise_ref, implantation, hauteur} : lignes écrites seulement si fournies
+MAT = {'murs': 'Murs : madriers bois horizontaux, lasure noire mate', 'portes': 'Portes : bois à lames verticales, lasure noire',
+       'couverture': 'Couverture : bac acier nervuré gris', 'rives': 'Rives et bandeaux : bois, lasure noire', 'soubassement': 'Soubassement : dalle béton brut',
+       'teinte_murs': BOIS, 'teinte_toit': TOLE, 'plancher': 'Plancher bois sur dalle béton',
+       'coupe': ['Murs en madriers de bois emboîtés (45 mm), lasure noire.', 'Charpente bois, couverture en bac acier nervuré gris.', 'Dalle béton, plancher bois.'],
+       'note': 'Aucune gouttière : égouts libres, eaux infiltrées sur la parcelle.'}
+MAT.update(d.get('materiaux', {}))
+BOIS, TOLE = MAT['teinte_murs'], MAT['teinte_toit']
+CARD = ['nord', 'nord-est', 'est', 'sud-est', 'sud', 'sud-ouest', 'ouest', 'nord-ouest']
+card = lambda dx, dy: CARD[int(((math.degrees(math.atan2(dx, dy)) + 22.5) % 360) // 45)]     # (est, nord) -> point cardinal
+face = lambda u, v: card(u * ca - v * sa, u * sa + v * ca)                                   # orientation d'une face de l'abri
+def cote_limite(seg):
+    p = nearest_points(SAB.centroid, LineString(seg))[1]
+    return card(p.x - SAB.centroid.x, p.y - SAB.centroid.y)
 PDFS = []
 SOUS = {'PCMI1': 'Localisation du terrain dans la commune',
-        'PCMI2': 'Construction à régulariser cotée dans les trois dimensions, distances aux limites, coupes et prises de vue',
-        'PCMI3': 'Profil du terrain naturel, construction à régulariser, limites de propriété',
-        'PCMI5': 'Aspect extérieur de la construction à régulariser, matériaux et teintes, plan de toiture',
+        'PCMI2': f'Construction {ETAT} cotée dans les trois dimensions, distances aux limites, coupes et prises de vue',
+        'PCMI3': f'Profil du terrain naturel, construction {ETAT}, limites de propriété',
+        'PCMI5': f'Aspect extérieur de la construction {ETAT}, matériaux et teintes, plan de toiture',
         'PCMI6': "La construction dans son environnement, depuis le point de vue de la photographie proche",
         'PCMI7-8': 'Environnement proche et paysage lointain, angles reportés sur le plan de masse'}
 
@@ -158,7 +175,7 @@ def masse():
     # colonne de droite
     x = x1 - col + 6; y = y1 - 4
     pl.texte(x, y, 'LÉGENDE', 2.2, gras=True); y -= 7
-    for fc, ec, ha, t in [('#b9bfc6', ENCRE, None, 'Construction existante conservée'), ('#f9e3e0', ROUGE, '////', 'Abri de jardin à régulariser (construit en 2013)'),
+    for fc, ec, ha, t in [('#b9bfc6', ENCRE, None, 'Construction existante conservée'), ('#f9e3e0', ROUGE, '////', (f"Abri de jardin à régulariser (construit en {A['annee']})" if REGUL and A.get('annee') else f'Abri de jardin {ETAT[:-1] if not REGUL else ETAT}')),
                           ('#e3e5e8', GRIS, None, 'Bâti voisin (IGN BD TOPO)')]:
         pl.rect(x, y - 1, 9, 4.5, fc=fc, ec=ec, lw=LW_VUE, hatch=ha); pl.texte(x + 12, y, t, 1.8); y -= 7
     pl.ligne([(x, y + 1.2), (x + 9, y + 1.2)], lw=LW_COUPE, ls=(0, (10, 2.5, 2, 2.5))); pl.texte(x + 12, y, 'Limite de la parcelle (cadastre)', 1.8); y -= 7
@@ -168,16 +185,17 @@ def masse():
     pl.texte(x, y, 'SURFACES', 2.2, gras=True); y -= 6
     tot = BATI + EMPRISE; S = d['surface_terrain']
     for a, b in [('Terrain', f"{S:,} m²".replace(',', ' ')), ('Emprise existante (IGN BD TOPO)', f'{fr(BATI, 0)} m²'), ('Emprise de l\'abri', f'{fr(EMPRISE)} m²'),
-                 ('Emprise totale', f'{fr(tot, 0)} m², soit {fr(tot / S * 100, 1)} % du terrain'), ('Emprise maximale (PLUi, 40 %)', f'{fr(S * 0.4, 0)} m²'),
+                 ('Emprise totale', f'{fr(tot, 0)} m², soit {fr(tot / S * 100, 1)} % du terrain'), ] + ([(f"Emprise maximale ({REG.get('emprise_ref') or 'règlement, ' + fr(REG['emprise_max_pct'], 0) + ' %'})", f"{fr(S * REG['emprise_max_pct'] / 100, 0)} m²")] if REG.get('emprise_max_pct') else []) + [
                  ('Surface de plancher de l\'abri', f'{fr(SDP)} m²')]:
         pl.texte(x, y, a, 1.7, couleur=GRIS); pl.texte(x + col - 10, y, b, 1.7, ha='right')
         pl.ligne([(x, y - 1.6), (x + col - 10, y - 1.6)], lw=LW_TRES_FIN, c='#d5d9de'); y -= 5
     y -= 6
     pl.texte(x, y, 'IMPLANTATION', 2.2, gras=True); y -= 6
-    notes = [f"Distances aux limites séparatives : {fr(DIST[0][0])} m (nord-ouest) et {fr(DIST[1][0])} m (nord-est). PLUi zone U40.9 : implantation non réglementée (p.122).",
+    notes = [f"Distances aux limites séparatives : {fr(DIST[0][0])} m ({cote_limite(DIST[0][1])}) et {fr(DIST[1][0])} m ({cote_limite(DIST[1][1])}).{' ' + REG['implantation'] if REG.get('implantation') else ''}",
              f"Hauteurs depuis le terrain naturel : égout +{fr(EG)}, faîtage +{fr(FA)}. Terrain naturel à {fr(TN_NGF, 1)} m NGF (IGN RGE ALTI), non modifié.",
-             "Accès par la rue des Écureuils, inchangé. Aucun raccordement aux réseaux : abri de rangement non alimenté en eau usée.",
-             "Eaux de toiture infiltrées sur la parcelle. Aucun arbre abattu."] + d['hypotheses']
+             d.get('acces') or f"Accès depuis la voie publique ({d['voie']['texte']}), inchangé.",
+             d.get('reseaux') or "Aucun raccordement aux réseaux : abri de rangement.",
+             d.get('eaux') or "Eaux de toiture infiltrées sur la parcelle."] + d.get('hypotheses', [])
     for n in notes:
         for i, ll in enumerate(textwrap.wrap(n, 70)):
             pl.texte(x, y, ('- ' if i == 0 else '  ') + ll, 1.55); y -= 3.5
@@ -279,16 +297,15 @@ def coupes():
     coupe(pl, *COUPES[1], x0 + 40, y0 + 32, k)
     x = x1 - 118; y = y1 - 30
     pl.texte(x, y, 'HAUTEURS', 2.2, gras=True); y -= 6
-    for t in [f"Hauteur à l'égout : {fr(EG)} m depuis le terrain naturel.", f"Hauteur au faîtage : {fr(FA)} m.", "Hauteur maximale du PLUi en zone U40.9 : 9 m à l'égout (p.122).",
-              f"Pente de toiture : {fr(PENTE * 100, 0)} % ({fr(math.degrees(math.atan(PENTE)), 0)}°).", f"Plancher bois sur dalle béton, à +{fr(PL)} m du terrain naturel.",
+    for t in [f"Hauteur à l'égout : {fr(EG)} m depuis le terrain naturel.", f"Hauteur au faîtage : {fr(FA)} m."] + ([REG['hauteur']] if REG.get('hauteur') else []) + [
+              f"Pente de toiture : {fr(PENTE * 100, 0)} % ({fr(math.degrees(math.atan(PENTE)), 0)}°).", f"{MAT['plancher']}, à +{fr(PL)} m du terrain naturel.",
               "Le terrain naturel n'a pas été modifié : ni déblai, ni remblai."]:
         for i, ll in enumerate(textwrap.wrap(t, 64)):
             pl.texte(x, y, ('- ' if i == 0 else '  ') + ll, 1.7); y -= 4
         y -= 1
     y -= 5
     pl.texte(x, y, 'CONSTRUCTION', 2.2, gras=True); y -= 6
-    for t in ["Murs en madriers de bois emboîtés (45 mm), lasure noire.", "Charpente bois, couverture en bac acier nervuré gris.", "Dalle béton, plancher bois.",
-              "Construction à régulariser dessinée en rouge."]:
+    for t in MAT['coupe'] + [f"Construction {ETAT} dessinée en rouge."]:
         pl.texte(x, y, '- ' + t, 1.7); y -= 4.5
     fin(pl, 'PCMI3')
 
@@ -376,10 +393,10 @@ def facades():
     k = 20.0
     ya, yb = y0 + 150, y0 + 52
     xa = x0 + 6; xb = xa + (L + 2 * DR) * k + 40
-    facade_long(pl, xa, ya, k, 'Façade sud-ouest (côté jardin)')
-    pignon(pl, xb, ya, k, 'Pignon sud-est (accès)', True)
-    facade_long(pl, xa, yb, k, 'Façade nord-est (côté limite)')
-    pignon(pl, xb, yb, k, 'Pignon nord-ouest', False)
+    facade_long(pl, xa, ya, k, f'Façade {face(0, -1)}')
+    pignon(pl, xb, ya, k, f'Pignon {face(1, 0)} (accès)', True)
+    facade_long(pl, xa, yb, k, f'Façade {face(0, 1)}')
+    pignon(pl, xb, yb, k, f'Pignon {face(-1, 0)}', False)
     # plan de toiture 1/100
     kt = 10.0
     tx = xb + (l + 2 * DE) * k + 34; ty = ya + 4
@@ -402,11 +419,10 @@ def facades():
     # matériaux
     x = tx; y = yb + 44
     pl.texte(x, y, 'MATÉRIAUX ET TEINTES', 2.2, gras=True); y -= 7
-    for fc, t in [(BOIS, 'Murs : madriers bois horizontaux, lasure noire mate'), (BOIS, 'Portes : bois à lames verticales, lasure noire'),
-                  (TOLE, 'Couverture : bac acier nervuré gris'), (BOIS, 'Rives et bandeaux : bois, lasure noire'), (DALLE, 'Soubassement : dalle béton brut')]:
+    for fc, t in [(BOIS, MAT['murs']), (BOIS, MAT['portes']), (TOLE, MAT['couverture']), (BOIS, MAT['rives']), (DALLE, MAT['soubassement'])]:
         pl.rect(x, y - 0.8, 6, 3.6, fc=fc, ec=ENCRE, lw=LW_FIN); pl.texte(x + 9, y, t, 1.6); y -= 6
-    pl.texte(x, y - 2, "Aucune ouverture autre que les portes du pignon\nsud-est. Aucune gouttière : égouts libres, eaux\ninfiltrées sur la parcelle.", 1.6, couleur=GRIS, va='top', linespacing=1.5)
-    pl.texte(x0 + 6, y0 + 3, "Construction existante, à régulariser : les façades décrivent l'abri tel qu'il est construit. " + d['hypotheses'][0], 1.6, couleur=GRIS)
+    pl.texte(x, y - 2, "\n".join(textwrap.wrap(f"Aucune ouverture autre que les portes du pignon {face(1, 0)}. {MAT['note']}", 48)), 1.6, couleur=GRIS, va='top', linespacing=1.5)
+    pl.texte(x0 + 6, y0 + 3, ("Construction existante, à régulariser : les façades décrivent l'abri tel qu'il est construit. " if REGUL else '') + (d.get('hypotheses') or [''])[0], 1.6, couleur=GRIS)
     fin(pl, 'PCMI5')
 
 
@@ -440,5 +456,5 @@ def photos():
 
 
 situation(); masse(); coupes(); facades(); insertion(); photos()
-json.dump({'emprise': EMPRISE, 'sdp': SDP, 'bati': BATI, 'dist': [round(x[0], 2) for x in DIST[:2]], 'tn_ngf': round(TN_NGF, 2), 'pente_pct': PENTE * 100}, open(os.path.join(OUT, 'chiffres.json'), 'w'))
+json.dump({'emprise': EMPRISE, 'sdp': SDP, 'bati': BATI, 'dist': [round(x[0], 2) for x in DIST[:2]], 'tn_ngf': round(TN_NGF, 2), 'pente_pct': PENTE * 100, 'hors_parcelle': not SPARC.contains(SAB)}, open(os.path.join(OUT, 'chiffres.json'), 'w'))
 print(json.dumps(json.load(open(os.path.join(OUT, 'chiffres.json')))))
