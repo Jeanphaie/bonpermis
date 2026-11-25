@@ -9,6 +9,7 @@ const C = require('./comptes');
 const PROMOS = require('./promos');
 const {fs, path, CONF, P, NEED, PIECES, PAGES, PRIX, lire, ecrire, creer, repondre, lireJson, texte, texteLong, MAIL_RE, journal, euro, envoyerMail, signature, stripe, reference, envoyerFichier, TYPES} = B;
 
+const CONTROLES = require('../src/controles.js');
 const REF_RE = /^BP-[2-9A-HJ-NP-Z]{6}$/;
 const LIM = {fichier: 25 * 1048576, nb: 60, total: 500 * 1048576, livrable: 60 * 1048576};
 const STATUTS = {
@@ -135,7 +136,7 @@ function vueCmd(cmd, pourEquipe) {
     telechargeable: !!cmd.paiements.solde, demandes: NEED[cmd.projet] || NEED.extension,
     lignes: cmd.lignes || null, promo: cmd.promo || null
   };
-  if (pourEquipe) Object.assign(o, {email: cmd.email, client: cmd.nom_client || '', reponses: cmd.reponses, reponsesLisibles: lisibles(cmd), projet: cmd.projet, regul: cmd.regul, historique: cmd.historique, lignes: cmd.lignes || null, session: cmd.session, liensStripe: [cmd.paiements.acompte && cmd.paiements.acompte.pi, cmd.paiements.solde && cmd.paiements.solde.pi].filter(Boolean)});
+  if (pourEquipe) Object.assign(o, {email: cmd.email, client: cmd.nom_client || '', reponses: cmd.reponses, reponsesLisibles: lisibles(cmd), projet: cmd.projet, regul: cmd.regul, historique: cmd.historique, lignes: cmd.lignes || null, session: cmd.session, analyse: cmd.analyse || null, aFaire: aFaire(cmd), liensStripe: [cmd.paiements.acompte && cmd.paiements.acompte.pi, cmd.paiements.solde && cmd.paiements.solde.pi].filter(Boolean)});
   return o;
 }
 // Réponses au simulateur avec les intitulés des questions, pour l'équipe
@@ -149,6 +150,7 @@ function resume(cmd) {
   const retard = cmd.statut === 'preparation' && cmd.echeance && new Date(cmd.echeance) < new Date();
   return {ref: cmd.ref, nom: cmd.nom, client: cmd.nom_client || cmd.email, email: cmd.email, commune, statut: cmd.statut, recues: r,
     echeance: cmd.echeance || null, retard: !!retard, total: cmd.total, solde: cmd.solde, paiement: cmd.paiements.solde ? 'solde' : 'acompte',
+    aFaire: aFaire(cmd), aRelire: !!(cmd.analyse && !cmd.analyse.appliquee),
     date: cmd.date, dernierMessage: cmd.messages.length ? cmd.messages[cmd.messages.length - 1] : null,
     aVerifier: cmd.pieces.filter(p => etatPiece(p, cmd) === 'a_verifier').length, plusTard: cmd.pieces.filter(p => p.plusTard && etatPiece(p, cmd) === 'manquant').length};
 }
@@ -665,26 +667,118 @@ async function equipePiece(req, res, url) {
 // Changement de type de dossier ou de prix (ex. une déclaration qui devient un permis après les mesures du client).
 // Possible tant que le solde n'est pas payé. Le solde est recalculé : prix total moins l'acompte déjà payé.
 const KINDS = {dp: 'Déclaration préalable', pc: 'Permis de construire', pd: 'Permis de démolir', svc: 'Service'};
-async function equipeCommande(req, res, url) {
-  const cmd = cmdEquipe(req, res, url); if (!cmd) return;
-  if (cmd.paiements.solde) return repondre(res, 409, {erreur: 'Le solde est déjà payé : la commande ne change plus.'});
-  const d = await lireJson(req, 5000) || {};
-  const kind = KINDS[d.kind] ? d.kind : cmd.kind, total = Math.round(+d.total * 100) / 100, motif = texte(d.motif, 300);
+// Renvoie {erreur} ou {texte} (phrase pour le client). Ne sauve pas et n'envoie rien.
+function changerCommande(cmd, kindVoulu, totalVoulu, motifBrut) {
+  if (cmd.paiements.solde) return {erreur: 'Le solde est déjà payé : la commande ne change plus.'};
+  const kind = KINDS[kindVoulu] ? kindVoulu : cmd.kind, total = Math.round(+totalVoulu * 100) / 100, motif = texte(motifBrut, 300);
   const paye = cmd.paiements.acompte ? cmd.paiements.acompte.montant : 0;
-  if (!Number.isFinite(total) || total < paye || total > 20000) return repondre(res, 400, {erreur: `Prix invalide : au moins ${euro(paye)} (acompte déjà payé).`});
-  if (!motif) return repondre(res, 400, {erreur: 'Indiquez la raison : le client la lira.'});
-  if (kind === cmd.kind && total === cmd.total) return repondre(res, 400, {erreur: 'Rien ne change.'});
+  if (!Number.isFinite(total) || total < paye || total > 20000) return {erreur: `Prix invalide : au moins ${euro(paye)} (acompte déjà payé).`};
+  if (!motif) return {erreur: 'Indiquez la raison : le client la lira.'};
+  if (kind === cmd.kind && total === cmd.total) return {erreur: 'Rien ne change.'};
   const avant = {kind: cmd.kind, total: cmd.total}, ecart = Math.round((total - cmd.total) * 100) / 100;
   cmd.kind = kind; cmd.total = total; cmd.solde = Math.round((total - paye) * 100) / 100;
   if (ecart) cmd.lignes = [...(cmd.lignes || [[cmd.nom, avant.total]]), [`Ajustement : ${motif}`, ecart]];
   // Le délai suit le type de dossier ; une échéance déjà lancée est recalculée depuis aujourd'hui.
   if (cmd.echeance && avant.kind !== kind) { const e = B.plusJoursOuvres(new Date(), delaiJours(cmd)); e.setHours(19, 0, 0, 0); cmd.echeance = e.toISOString(); }
   histo(cmd, `Commande modifiée : ${KINDS[avant.kind] || avant.kind} ${euro(avant.total)} -> ${KINDS[kind]} ${euro(total)} (${motif})`);
-  const txt = `${avant.kind !== kind ? `Votre projet relève d'un${kind === 'pc' || kind === 'pd' ? '' : 'e'} ${KINDS[kind].toLowerCase()}. ` : ''}${motif}\nNouveau prix : ${euro(total)}. Déjà réglé : ${euro(paye)}. Reste à régler après l'aperçu des plans : ${euro(cmd.solde)}.`;
-  if (d.prevenir !== false) cmd.messages.push({de: 'equipe', texte: txt, date: new Date().toISOString()});
+  return {texte: `${avant.kind !== kind ? `Votre projet relève d'un${kind === 'pc' || kind === 'pd' ? '' : 'e'} ${KINDS[kind].toLowerCase()}. ` : ''}${motif}\nNouveau prix : ${euro(total)}. Déjà réglé : ${euro(paye)}. Reste à régler après l'aperçu des plans : ${euro(cmd.solde)}.`};
+}
+async function equipeCommande(req, res, url) {
+  const cmd = cmdEquipe(req, res, url); if (!cmd) return;
+  const d = await lireJson(req, 5000) || {};
+  const r = changerCommande(cmd, d.kind, d.total, d.motif); if (r.erreur) return repondre(res, r.erreur.startsWith('Le solde') ? 409 : 400, r);
+  if (d.prevenir !== false) cmd.messages.push({de: 'equipe', texte: r.texte, date: new Date().toISOString()});
   sauver(cmd); repondre(res, 200, vueCmd(cmd, true));
   const u = C.lireUser(cmd.uid);
-  if (u && d.prevenir !== false) await envoyerMail(cmd.email, `Dossier ${cmd.ref} : votre commande change`, `Bonjour,\n\n${txt}\n\nUne question ? Répondez depuis votre dossier : ${C.lienLong(u, '/espace/dossier/?ref=' + cmd.ref)}${signature}`, CONF.mailA);
+  if (u && d.prevenir !== false) await envoyerMail(cmd.email, `Dossier ${cmd.ref} : votre commande change`, `Bonjour,\n\n${r.texte}\n\nUne question ? Répondez depuis votre dossier : ${C.lienLong(u, '/espace/dossier/?ref=' + cmd.ref)}${signature}`, CONF.mailA);
+}
+
+// ---------- analyse du dossier (faite par Claude depuis l'app, relue par l'équipe) ----------
+// Circuit : l'équipe dit « nouveau dossier » à Claude -> GET /api/admin/brief (tout le dossier en un appel)
+// -> Claude analyse et enregistre (POST /api/admin/analyse) -> l'équipe relit dans l'admin et clique
+// « Appliquer » (POST /api/admin/appliquer) : pièces demandées, pièces à refaire, commande corrigée, UN message au client.
+const dernierClient = cmd => [...cmd.fichiers.filter(f => f.par === 'client').map(f => f.date), ...cmd.messages.filter(m => m.de === 'client').map(m => m.date),
+  ...cmd.historique.filter(h => /client/i.test(h.texte) && !/demandée au client/i.test(h.texte)).map(h => h.date)].filter(Boolean).sort().pop() || cmd.date;
+// Pourquoi un dossier attend Claude (null : rien à faire).
+function aFaire(cmd) {
+  if (!cmd.paiements.acompte || cmd.statut === 'livre' || cmd.statut === 'brouillon') return null;
+  const an = cmd.analyse;
+  if (cmd.statut === 'corrections') return 'Corrections demandées par le client';
+  if (!an) return cmd.statut === 'elements' ? null : 'Nouveau dossier à analyser';
+  if (!an.appliquee) return null; // analyse faite, l'équipe doit la relire
+  if (dernierClient(cmd) > an.date && cmd.statut !== 'elements') return 'Le client a répondu : analyse à reprendre';
+  if (cmd.statut === 'preparation' && !cmd.livrables.length) return 'Plans à produire';
+  return null;
+}
+function fichePlu(t) {
+  if (!t || !t.zone || !t.zone.document) return null;
+  const part = 'DU_' + String(t.zone.document).split('_')[0].replace(/\W/g, ''), zone = String(t.zone.libelle || '').replace(/[^\w.-]/g, '');
+  try { return JSON.parse(fs.readFileSync(path.join(B.RACINE, 'src', 'plu', part, zone + '.json'), 'utf8')); } catch { return null; }
+}
+async function equipeBrief(req, res, url) {
+  if (!C.sessionAdmin(req)) return repondre(res, 401, {erreur: 'Connexion équipe requise.'});
+  const ref = url.searchParams.get('ref');
+  if (!ref) {
+    const L = B.liste('commandes').filter(f => /^BP-\w{6}\.json$/.test(f)).map(f => lireCmd(f.slice(0, -5))).filter(Boolean)
+      .map(c => ({ref: c.ref, nom: c.nom, client: c.nom_client || c.email, adresse: c.adresse, statut: c.statut, echeance: c.echeance || null, raison: aFaire(c), aRelire: !!(c.analyse && !c.analyse.appliquee)}));
+    return repondre(res, 200, {aFaire: L.filter(x => x.raison), aRelireParEquipe: L.filter(x => x.aRelire).map(x => x.ref)});
+  }
+  const cmd = lireCmd(ref); if (!cmd) return repondre(res, 404, {erreur: 'Dossier introuvable.'});
+  const d = vueCmd(cmd, true);
+  let t = null; if (cmd.lieu) { try { t = await require('./terrain').lireTerrain(+cmd.lieu.lon, +cmd.lieu.lat); } catch (e) { journal('brief terrain', e.message); } }
+  const fiche = fichePlu(t);
+  let reglement = null;
+  if (t && t.zone && t.zone.reglement && fiche && fiche.document) reglement = `/api/terrain/reglement?doc=${fiche.document.gpu_doc_id}&part=${fiche.document.partition}&fic=${encodeURIComponent(fiche.document.fichier)}&de=1&a=40`;
+  repondre(res, 200, {
+    raison: aFaire(cmd), dossier: d, terrain: t, fichePlu: fiche, reglement,
+    controles: CONTROLES(d, t, t ? fiche : undefined),
+    fichiers: cmd.fichiers.map(f => ({...fichierPublic(f), voir: `/api/admin/voir?ref=${cmd.ref}&id=${f.id}`})),
+    analyse: cmd.analyse || null, dernierClient: dernierClient(cmd),
+    modeEmploi: 'Enregistrer l\'analyse : POST /api/admin/analyse?ref= {dossier:{kind,total,motif}, resume, points:[{niveau:bloquant|attention|ok, texte, source}], demandes:[{nom, aide, type:texte|fichier}], refaire:[{piece, motif}], message}. Rien ne part au client : l\'équipe relit et applique.'
+  });
+}
+const NIVEAUX = ['bloquant', 'attention', 'ok'];
+async function equipeAnalyse(req, res, url) {
+  const cmd = cmdEquipe(req, res, url); if (!cmd) return;
+  const d = await lireJson(req, 40000); if (!d || typeof d !== 'object') return repondre(res, 400, {erreur: 'Analyse illisible.'});
+  const liste = (x, n) => (Array.isArray(x) ? x : []).slice(0, n);
+  const an = {
+    date: new Date().toISOString(), par: texte(d.par, 40) || 'Claude', resume: texteLong(d.resume, 1500),
+    dossier: d.dossier && KINDS[d.dossier.kind] ? {kind: d.dossier.kind, total: Number.isFinite(+d.dossier.total) && +d.dossier.total > 0 ? Math.round(+d.dossier.total * 100) / 100 : null, motif: texte(d.dossier.motif, 300)} : null,
+    points: liste(d.points, 30).map(p => ({niveau: NIVEAUX.includes(p && p.niveau) ? p.niveau : 'attention', texte: texteLong(p && p.texte, 600), source: texte(p && p.source, 200)})).filter(p => p.texte),
+    demandes: liste(d.demandes, 12).map(p => ({nom: texte(p && p.nom, 80), aide: texte(p && p.aide, 300), type: p && p.type === 'fichier' ? 'fichier' : 'texte'})).filter(p => p.nom),
+    refaire: liste(d.refaire, 12).map(p => ({piece: texte(p && p.piece, 60), motif: texte(p && p.motif, 400)})).filter(p => p.motif && cmd.pieces.some(x => x.id === p.piece)),
+    message: texteLong(d.message, 3000), appliquee: null
+  };
+  if (!an.resume && !an.points.length) return repondre(res, 400, {erreur: 'Analyse vide.'});
+  cmd.analyse = an; histo(cmd, `Analyse enregistrée par ${an.par} : ${an.points.filter(p => p.niveau === 'bloquant').length} point(s) bloquant(s), ${an.demandes.length + an.refaire.length} demande(s) au client`);
+  sauver(cmd); repondre(res, 200, vueCmd(cmd, true));
+}
+// L'équipe a relu : on applique tout d'un coup et le client reçoit un seul message.
+async function equipeAppliquer(req, res, url) {
+  const cmd = cmdEquipe(req, res, url); if (!cmd) return;
+  const an = cmd.analyse; if (!an) return repondre(res, 409, {erreur: 'Pas d\'analyse sur ce dossier.'});
+  if (an.appliquee) return repondre(res, 409, {erreur: 'Analyse déjà appliquée.'});
+  const d = await lireJson(req, 10000) || {}, msg = d.message != null ? texteLong(d.message, 3000) : an.message;
+  let phrase = '';
+  if (d.commande !== false && an.dossier && (an.dossier.kind !== cmd.kind || (an.dossier.total && an.dossier.total !== cmd.total))) {
+    const r = changerCommande(cmd, an.dossier.kind, an.dossier.total || cmd.total, an.dossier.motif || 'Après vérification de votre projet.'); if (r.erreur) return repondre(res, 400, r);
+    phrase = r.texte;
+  }
+  for (const q of an.demandes) {
+    if (cmd.pieces.some(x => x.nom === q.nom)) continue;
+    cmd.pieces.splice(cmd.pieces.findIndex(x => x.id === 'autre'), 0, {id: 'p' + B.id(4), nom: q.nom, aide: q.aide, type: q.type, ajoutee: true});
+  }
+  for (const r of an.refaire) { const p = cmd.pieces.find(x => x.id === r.piece); if (p) { p.statut = 'a_refaire'; p.motif = r.motif; } }
+  const attend = an.demandes.length + an.refaire.length > 0;
+  if (attend) attendreClient(cmd);
+  const txt = [msg, phrase].filter(Boolean).join('\n\n');
+  if (txt) cmd.messages.push({de: 'equipe', texte: txt, date: new Date().toISOString()});
+  an.appliquee = new Date().toISOString();
+  histo(cmd, `Analyse appliquée${attend ? ` : ${an.demandes.length + an.refaire.length} demande(s) au client` : ''}${txt ? ', message envoyé' : ''}`);
+  sauver(cmd); repondre(res, 200, vueCmd(cmd, true));
+  const u = C.lireUser(cmd.uid);
+  if (u && txt) await envoyerMail(cmd.email, `Dossier ${cmd.ref} : ${attend ? 'il nous manque quelques éléments' : 'nouveau message'}`, `Bonjour,\n\n${txt}\n\n${attend ? 'Répondre' : 'Suivre votre dossier'} depuis votre espace : ${C.lienLong(u, '/espace/dossier/?ref=' + cmd.ref)}${signature}`, CONF.mailA);
 }
 async function equipeClasser(req, res, url) {
   const cmd = cmdEquipe(req, res, url); if (!cmd) return;
@@ -767,6 +861,6 @@ module.exports = {
   verifierPromo, creerDossier, payerDossier,
   REF_RE, lireCmd, sauver, vueCmd, commande, etatCommande, paiementRecu, enregistrerProjet, supprimerProjet, commanderProjet, espace,
   clientDossier, clientTexte, clientPlusTard, clientPlan, clientFichier, clientSupprimerFichier, clientMessage, clientTerminer, clientValider, clientVoir, clientTelecharger,
-  equipeListe, equipeDossier, equipeVoir, equipePiece, equipeCommande, equipeClasser, equipeFichier, equipeMessage, equipeLancer, equipeDepot, equipeLivrable,
+  equipeListe, equipeDossier, equipeVoir, equipePiece, equipeCommande, equipeBrief, equipeAnalyse, equipeAppliquer, equipeClasser, equipeFichier, equipeMessage, equipeLancer, equipeDepot, equipeLivrable,
   equipeSupprimerLivrable, equipeEnvoyerApercu, equipeZip, analyser, partAcompte, piecesInitiales, listePieces
 };

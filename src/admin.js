@@ -66,7 +66,7 @@
     const F = {tous: () => true, attente: x => x.statut === 'elements', verifier: x => ['verification', 'corrections'].includes(x.statut), preparation: x => x.statut === 'preparation', retard: x => x.retard, livres: x => x.statut === 'livre'};
     const rq = recherche.toLowerCase();
     const L = liste.dossiers.filter(F[filtre]).filter(x => !rq || [x.ref, x.client, x.email, x.commune, x.nom].join(' ').toLowerCase().includes(rq));
-    el.innerHTML = cadre(`<div class="rang ecart"><h1>Dossiers</h1>
+    el.innerHTML = cadre(`${(() => { const n = liste.dossiers.filter(x => x.aFaire).length, m = liste.dossiers.filter(x => x.aRelire).length; return n || m ? `<p class="carte" style="margin:0 0 14px;font-size:14px;border-color:#0A2FB0">${n ? `<b style="font-weight:500">${n} dossier${n > 1 ? 's' : ''} pour Claude.</b> Dans l'app Claude, projet Bon Permis, écrivez : « nouveau dossier ». ` : ''}${m ? `<b style="font-weight:500">${m} analyse${m > 1 ? 's' : ''} à relire</b> ci-dessous.` : ''}</p>` : ''; })()}<div class="rang ecart"><h1>Dossiers</h1>
         <label class="field" style="margin:0"><span class="sr-only">Rechercher</span><input type="search" id="rq" value="${esc(recherche)}" placeholder="Référence, client, ville" aria-label="Rechercher" style="width:260px"></label></div>
       <div class="kpis">${[['tous', liste.dossiers.length, 'Tous'], ['attente', k.attente, 'En attente du client'], ['verifier', k.verifier, 'À vérifier'], ['preparation', k.preparation, 'En préparation'], ['retard', k.retard, 'En retard'], ['livres', k.livres, 'Livrés ce mois']]
         .map(([id, n, t]) => `<button class="kpi" type="button" data-f="${id}" aria-pressed="${filtre === id}"${id === 'retard' && n ? ' style="border-color:#E6A3A3"' : ''}><b>${n}</b><span>${t}</span></button>`).join('')}</div>
@@ -74,7 +74,7 @@
       ${L.length ? L.map(x => `<tr${x.retard ? ' style="background:#FFF5F5"' : x.statut === 'verification' ? ' style="background:#FFFBF0"' : ''}>
         <td><a href="#${x.ref}">${x.ref}</a></td><td><b style="font-weight:500">${esc(x.client)}</b><br><small>${esc(x.nom)}</small></td><td>${esc(x.commune)}</td>
         <td><span class="barre"><i style="width:${x.recues.sur ? Math.round(x.recues.n / x.recues.sur * 100) : 0}%"></i></span>${x.recues.n} / ${x.recues.sur}${x.aVerifier ? `<br><small>${x.aVerifier} à vérifier</small>` : ''}${x.plusTard ? `<br><small>${x.plusTard} on en reparle</small>` : ''}</td>
-        <td><span class="pill st-${STC[x.statut]}">${ST[x.statut]}</span></td>
+        <td><span class="pill st-${STC[x.statut]}">${ST[x.statut]}</span>${x.aFaire ? `<br><small style="color:#0A2FB0;font-weight:500">Claude : ${esc(x.aFaire.toLowerCase())}</small>` : x.aRelire ? '<br><small style="color:#8A1C1C;font-weight:500">Analyse à relire</small>' : ''}</td>
         <td>${x.retard ? `<b style="color:#8A1C1C;font-weight:500">Dépassée (${jour(x.echeance)})</b>` : x.echeance && x.statut === 'preparation' ? jour(x.echeance) : '-'}</td>
         <td>${euro(x.total)}<br><small>${x.paiement === 'solde' ? 'soldé' : 'acompte payé'}</small></td></tr>`).join('') : '<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:30px">Aucun dossier.</td></tr>'}
       </tbody></table></div>${liste.rappels ? `<p class="note" style="margin-top:12px">${liste.rappels} demande(s) de rappel reçues par e-mail.</p>` : ''}`, 'liste');
@@ -156,31 +156,27 @@
   // Contrôles de cohérence entre le simulateur, le plan du client et ses textes : à lire avant de lancer les plans.
   const KIND = {dp: 'déclaration préalable', pc: 'permis de construire', pd: 'permis de démolir', svc: 'service', none: 'aucune démarche'};
   const nb = x => (Math.round(x * 10) / 10).toLocaleString('fr-FR');
-  function controles() {
-    const out = [], plan = (d.pieces.find(p => p.type === 'plan' && p.plan) || {}).plan;
-    const surf = plan && plan.mesures && plan.mesures.surface, colle = plan && (plan.formes || []).some(f => f.t === 'accole');
-    const separe = ['abri', 'annexe', 'carport'].includes(d.projet);
-    for (const p of d.pieces.filter(x => x.type === 'texte' && x.texte)) {
-      const m = String(p.texte).match(/(\d+(?:[.,]\d+)?)\s*m?\s*[x×*]\s*(\d+(?:[.,]\d+)?)/i); if (!m) continue;
-      const a = parseFloat(m[1].replace(',', '.')) * parseFloat(m[2].replace(',', '.'));
-      if (surf && Math.abs(a - surf) > Math.max(3, surf * .2)) out.push(`« ${p.nom} » donne ${m[0]} soit ${nb(a)} m², le plan donne ${nb(surf)} m². Demander la vraie mesure.`);
-      if (!surf && separe && a > 20 && d.kind === 'dp') out.push(`« ${p.nom} » donne ${nb(a)} m² : au-delà de 20 m², il faut un permis, la commande est une déclaration.`);
-      break;
-    }
-    if (surf && separe && !colle) {
-      if (surf > 20 && d.kind === 'dp') out.push(`Le plan donne ${nb(surf)} m² : construction séparée de plus de 20 m², il faut un permis. La commande est une déclaration : modifier la commande.`);
-      if (surf <= 20 && d.kind === 'pc') out.push(`Le plan donne ${nb(surf)} m² : une déclaration suffit peut-être. La commande est un permis : vérifier et ajuster le prix.`);
-    }
-    const tx = id => ((d.pieces.find(p => p.id === id) || {}).texte || '').trim();
-    if (tx('cerfa-naissance') && !/[a-zà-ü]{3,}/i.test(tx('cerfa-naissance').replace(/janv|févr|fevr|mars|avr|mai|juin|juil|août|aout|sept|oct|nov|déc|dec/gi, ''))) out.push('Lieu de naissance absent (demandé par le Cerfa).');
-    if (tx('cerfa-adresse') && !/(\+33|0)\s*[1-9](?:[\s.-]*\d{2}){4}/.test(tx('cerfa-adresse'))) out.push('Téléphone absent de l\'adresse postale (demandé par le Cerfa).');
-    if (d.regul === 'true') out.push('Travaux déjà faits : la prescription de 10 ans ne joue pas si un permis était exigé (L.421-9 5°). Le dossier doit respecter le PLU actuel.');
-    const t = terr.ref === d.ref && terr.v; if (t && Array.isArray(t.prescriptions)) for (const p of t.prescriptions.filter(x => x.alerte)) out.push(`Prescription du PLU sur la parcelle : ${p.libelle}. Lire la règle correspondante.`);
-    return out;
+  function controles() { return window.BPControles(d, terr.ref === d.ref && terr.v ? terr.v : null).map(x => x.texte); }
+  // Analyse faite par Claude depuis l'app : l'équipe la relit, corrige le message si besoin et applique en un clic.
+  const NV = {bloquant: ['#8A1C1C', 'Bloquant'], attention: ['#8A5A00', 'À voir'], ok: ['#3E5A38', 'Bon']};
+  function blocAnalyse() {
+    const a = d.analyse;
+    if (!a) return d.aFaire ? `<section class="carte" style="border-color:#0A2FB0"><h3>Analyse</h3><p style="margin:0;font-size:14px">${esc(d.aFaire)}.</p><p class="note" style="margin:6px 0 0">Dans l'app Claude, projet Bon Permis : « nouveau dossier ».</p></section>` : '';
+    const n = a.demandes.length + a.refaire.length, chg = a.dossier && (a.dossier.kind !== d.kind || (a.dossier.total && a.dossier.total !== d.total));
+    return `<section class="carte" style="border-color:${a.appliquee ? 'var(--line,#E3E6EE)' : '#0A2FB0'}"><h3>Analyse · ${esc(a.par)} · ${court(a.date)}${a.appliquee ? ' · appliquée' : ''}</h3>
+      ${d.aFaire ? `<p class="form-err" style="margin:0 0 8px">${esc(d.aFaire)} : dites « nouveau dossier » à Claude.</p>` : ''}
+      ${a.resume ? `<p style="margin:0 0 10px;font-size:14px;white-space:pre-wrap">${esc(a.resume)}</p>` : ''}
+      <ul style="margin:0;padding:0;list-style:none;font-size:13px">${a.points.map(p => `<li style="margin-bottom:6px"><b style="color:${NV[p.niveau][0]};font-weight:500">${NV[p.niveau][1]}</b> · ${esc(p.texte)}${p.source ? ` <small class="note" style="display:inline">(${esc(p.source)})</small>` : ''}</li>`).join('')}</ul>
+      ${a.appliquee ? '' : `<form id="fana" class="pile" style="margin-top:10px;border-top:1px solid #E3E6EE;padding-top:10px">
+        ${chg ? `<label style="font-size:13px"><input type="checkbox" name="commande" checked> Passer la commande en <b>${esc(KIND[a.dossier.kind])}</b>${a.dossier.total ? ' à <b>' + euro(a.dossier.total) + '</b>' : ''}${a.dossier.motif ? ' : ' + esc(a.dossier.motif) : ''}</label>` : ''}
+        ${n ? `<p style="margin:0;font-size:13px"><b style="font-weight:500">Demandé au client :</b><br>${[...a.demandes.map(q => esc(q.nom) + (q.type === 'fichier' ? ' (fichier)' : '')), ...a.refaire.map(r => 'À refaire : ' + esc((d.pieces.find(p => p.id === r.piece) || {}).nom || r.piece))].join('<br>')}</p>` : ''}
+        <label class="field" style="margin:0"><span>Message au client (modifiable)</span><textarea name="message" rows="${Math.min(16, Math.max(4, Math.ceil((a.message || '').length / 55)))}">${esc(a.message)}</textarea></label>
+        <button class="btn petit blue-btn" type="submit">${n ? 'Envoyer au client (un seul e-mail)' : 'Valider l\'analyse'}</button>
+        ${n && d.statut === 'preparation' ? '<small class="note">Le dossier repasse en attente du client et le délai est suspendu.</small>' : ''}</form>`}</section>`;
   }
   function blocControles() {
-    const c = controles(); if (!c.length) return '';
-    return `<section class="carte" style="border-color:#B3261E"><h3 style="color:#8A1C1C">À vérifier avant de lancer · ${c.length}</h3><ul style="margin:0;padding-left:18px;font-size:13px">${c.map(x => `<li style="margin-bottom:4px">${esc(x)}</li>`).join('')}</ul></section>`;
+    const c = controles(); if (!c.length || d.analyse) return '';
+    return `<section class="carte" style="border-color:#B3261E"><h3 style="color:#8A1C1C">Contrôles automatiques · ${c.length}</h3><ul style="margin:0;padding-left:18px;font-size:13px">${c.map(x => `<li style="margin-bottom:4px">${esc(x)}</li>`).join('')}</ul></section>`;
   }
 
   function dessinerDossier() {
@@ -194,7 +190,7 @@
       ${!d.outils.images || !d.outils.pdf ? `<p class="form-err" style="margin-top:10px">Outils d'images absents sur le serveur : ${!d.outils.pdf ? 'pas d\'aperçu des PDF livrés' : ''}${!d.outils.images ? ' pas de conversion des photos HEIC ni de filigrane' : ''}.</p>` : ''}
       <div class="bo-d">
         <aside class="pile">
-          <div data-ctl>${blocControles()}</div>
+          ${blocAnalyse()}<div data-ctl>${blocControles()}</div>
           <section class="carte"><h3>Commande</h3><dl class="dl">
             <dt>Projet</dt><dd>${esc(d.nom)}</dd><dt>Client</dt><dd>${esc(d.client)}<br><a href="mailto:${esc(d.email)}">${esc(d.email)}</a></dd>
             <dt>Options</dt><dd>${esc((d.options || '').replace(/,/g, ', '))}</dd>
@@ -279,7 +275,8 @@
       const r = await api('POST', '/depot?ref=' + R(), {numero, guichet}); if (!r.ok) return alert(r.j.erreur || 'Erreur.'); maj(r.j);
     });
     const lc = $('[data-lancer]'); if (lc) lc.addEventListener('click', async () => {
-      const c = controles();
+      const c = d.analyse ? d.analyse.points.filter(p => p.niveau === 'bloquant').map(p => p.texte) : controles();
+      if (!d.analyse && d.aFaire) c.unshift('Dossier pas encore analysé par Claude.');
       if (!confirm((c.length ? `${c.length} point${c.length > 1 ? 's' : ''} à vérifier :\n- ${c.join('\n- ')}\n\n` : '') + 'Valider les pièces reçues et lancer les plans ? Le client est prévenu et l\'échéance démarre.')) return;
       const r = await api('POST', '/lancer?ref=' + R()); if (!r.ok) return alert(r.j.erreur || 'Erreur.'); maj(r.j);
     });
@@ -292,6 +289,11 @@
       const r = await api('DELETE', `/livrable?ref=${R()}&id=${b.dataset.dl}`); sel = null; maj(r.j);
     }));
     const fp = $('#fpiece'); if (fp) fp.addEventListener('submit', async e => { e.preventDefault(); const r = await api('POST', '/piece?ref=' + R(), {ajouter: true, nom: fp.nom.value, aide: fp.aide.value, type: fp.type.value, prevenir: fp.prevenir.checked}); if (!r.ok) return alert(r.j.erreur || 'Erreur.'); maj(r.j); });
+    const fa = $('#fana'); if (fa) fa.addEventListener('submit', async e => {
+      e.preventDefault();
+      const r = await api('POST', '/appliquer?ref=' + R(), {message: fa.message.value, commande: fa.commande ? fa.commande.checked : true});
+      if (!r.ok) return alert(r.j.erreur || 'Erreur.'); maj(r.j);
+    });
     const fc = $('#fcmd'); if (fc) fc.addEventListener('submit', async e => {
       e.preventDefault();
       const total = parseFloat(String(fc.total.value).replace(',', '.'));

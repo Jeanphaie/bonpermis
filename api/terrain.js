@@ -201,21 +201,25 @@ async function analyserTerrain(lon, lat) {
 }
 
 function cheminCache(cle) { return B.chemin('terrain', 'v4-' + cle.replace(/[^\d.,-]/g, '_') + '.json'); }
-async function terrain(req, res, url) {
-  const lon = +url.searchParams.get('lon'), lat = +url.searchParams.get('lat');
-  if (!Number.isFinite(lon) || !Number.isFinite(lat) || lon < -180 || lon > 180 || lat < -90 || lat > 90) return repondre(res, 400, {erreur: 'Coordonnées invalides.'});
+// Fiche terrain avec cache (mémoire puis disque). Sert à la route publique et au brief de l'équipe.
+async function lireTerrain(lon, lat) {
   const cle = lon.toFixed(5) + ',' + lat.toFixed(5);
   const c = cache.get(cle);
-  if (c && Date.now() - c.t < DUREE_CACHE) return repondre(res, 200, c.v);
-  try { const st = fs.statSync(cheminCache(cle)); if (Date.now() - st.mtimeMs < DUREE_CACHE) { const v = JSON.parse(fs.readFileSync(cheminCache(cle), 'utf8')); cache.set(cle, {t: st.mtimeMs, v}); return repondre(res, 200, v); } } catch {}
-  if (B.trop('terrain:' + B.ip(req), 120)) return repondre(res, 429, {erreur: 'Trop de demandes. Réessayez dans quelques minutes.'});
+  if (c && Date.now() - c.t < DUREE_CACHE) return c.v;
+  try { const st = fs.statSync(cheminCache(cle)); if (Date.now() - st.mtimeMs < DUREE_CACHE) { const v = JSON.parse(fs.readFileSync(cheminCache(cle), 'utf8')); cache.set(cle, {t: st.mtimeMs, v}); return v; } } catch {}
   const v = await analyserTerrain(+lon.toFixed(6), +lat.toFixed(6));
   if (!v.erreurs.length && v.parcelle) {
     cache.set(cle, {t: Date.now(), v});
     if (cache.size > 2000) cache.delete(cache.keys().next().value);
     try { fs.mkdirSync(path.dirname(cheminCache(cle)), {recursive: true}); fs.writeFileSync(cheminCache(cle), JSON.stringify(v)); } catch {}
   }
-  repondre(res, 200, v);
+  return v;
+}
+async function terrain(req, res, url) {
+  const lon = +url.searchParams.get('lon'), lat = +url.searchParams.get('lat');
+  if (!Number.isFinite(lon) || !Number.isFinite(lat) || lon < -180 || lon > 180 || lat < -90 || lat > 90) return repondre(res, 400, {erreur: 'Coordonnées invalides.'});
+  if (B.trop('terrain:' + B.ip(req), 120)) return repondre(res, 429, {erreur: 'Trop de demandes. Réessayez dans quelques minutes.'});
+  repondre(res, 200, await lireTerrain(lon, lat));
 }
 
 // ---------- fonds de plan (tuiles IGN relayées par bonpermis.fr : la page n'appelle que son propre site) ----------
@@ -263,4 +267,4 @@ async function reglement(req, res, url) {
   } catch (e) { journal('terrain reglement', e.message); repondre(res, 502, {erreur: 'Lecture du règlement impossible.'}); }
 }
 
-module.exports = {reglement, tuile, adresses, terrain, analyserTerrain, reparer, _geo: {dedans, aire, versMetres, centre}};
+module.exports = {reglement, tuile, adresses, terrain, lireTerrain, analyserTerrain, reparer, _geo: {dedans, aire, versMetres, centre}};
