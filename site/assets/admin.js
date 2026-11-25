@@ -150,7 +150,7 @@
     if (!d.lieu || terr.ref === d.ref) return;
     const ref = d.ref; terr = {ref, v: null};
     fetch(`/api/terrain?lon=${d.lieu.lon}&lat=${d.lieu.lat}`).then(r => r.json()).catch(() => ({erreur: 'Service terrain indisponible.'}))
-      .then(v => { if (terr.ref !== ref) return; terr.v = v; const z = el.querySelector('[data-tq]'); if (z) z.innerHTML = ficheTerrain(); const c = el.querySelector('[data-ctl]'); if (c) c.innerHTML = blocControles(); });
+      .then(v => { if (terr.ref !== ref) return; terr.v = v; const z = el.querySelector('[data-tq]'); if (z) z.innerHTML = ficheTerrain(); const c = el.querySelector('[data-ctl]'); if (c) c.innerHTML = blocControles(); const k = el.querySelector('[data-ct]'); if (k) k.innerHTML = cartouche(); });
   }
 
   // Contrôles de cohérence entre le simulateur, le plan du client et ses textes : à lire avant de lancer les plans.
@@ -158,46 +158,62 @@
   const nb = x => (Math.round(x * 10) / 10).toLocaleString('fr-FR');
   function controles() { return window.BPControles(d, terr.ref === d.ref && terr.v ? terr.v : null).map(x => x.texte); }
   // Analyse faite par Claude depuis l'app : l'équipe la relit, corrige le message si besoin et applique en un clic.
-  const NV = {bloquant: ['#8A1C1C', 'Bloquant'], attention: ['#8A5A00', 'À voir'], ok: ['#3E5A38', 'Bon']};
+  const NV = {bloquant: 'Bloquant', attention: 'À voir', ok: 'Conforme'};
+  const Maj = t => t ? t[0].toUpperCase() + t.slice(1) : '';
   function blocAnalyse() {
     const a = d.analyse;
-    if (!a) return d.aFaire ? `<section class="carte" style="border-color:#0A2FB0"><h3>Analyse</h3><p style="margin:0;font-size:14px">${esc(d.aFaire)}.</p><p class="note" style="margin:6px 0 0">Dans l'app Claude, projet Bon Permis : « nouveau dossier ».</p></section>` : '';
+    if (!a) return d.aFaire ? `<section class="ana ana-vide"><h2 class="ana-v">Ce dossier attend Claude.</h2><p class="ana-r">Dans l'app Claude, projet Bon Permis, écrivez « nouveau dossier ». L'analyse s'affichera ici, avec le message à envoyer au client.</p></section>` : '';
     const n = a.demandes.length + a.refaire.length, chg = a.dossier && (a.dossier.kind !== d.kind || (a.dossier.total && a.dossier.total !== d.total));
-    return `<section class="carte" style="border-color:${a.appliquee ? 'var(--line,#E3E6EE)' : '#0A2FB0'}"><h3>Analyse · ${esc(a.par)} · ${court(a.date)}${a.appliquee ? ' · appliquée' : ''}</h3>
-      <div class="${a.appliquee ? '' : 'ana-g'}"><div>
-      ${d.aFaire ? `<p class="form-err" style="margin:0 0 8px">${esc(d.aFaire)} : dites « nouveau dossier » à Claude.</p>` : ''}
-      ${a.resume ? `<p style="margin:0 0 10px;font-size:14px;white-space:pre-wrap">${esc(a.resume)}</p>` : ''}
-      <ul class="pts">${a.points.map(p => `<li><b style="color:${NV[p.niveau][0]}">${NV[p.niveau][1]}</b><span>${esc(p.texte)}${p.source ? ` <small class="note" style="display:inline">(${esc(p.source)})</small>` : ''}</span></li>`).join('')}</ul></div>
-      ${a.appliquee ? '' : `<form id="fana" class="pile"><h3>Pour le client</h3>
-        ${chg ? `<label style="font-size:13px"><input type="checkbox" name="commande" checked> Passer la commande en <b>${esc(KIND[a.dossier.kind])}</b>${a.dossier.total ? ' à <b>' + euro(a.dossier.total) + '</b>' : ''}${a.dossier.motif ? ' : ' + esc(a.dossier.motif) : ''}</label>` : ''}
-        ${n ? `<p style="margin:0;font-size:13px"><b style="font-weight:500">Demandé au client :</b><br>${[...a.demandes.map(q => esc(q.nom) + (q.type === 'fichier' ? ' (fichier)' : '')), ...a.refaire.map(r => 'À refaire : ' + esc((d.pieces.find(p => p.id === r.piece) || {}).nom || r.piece))].join('<br>')}</p>` : ''}
-        <label class="field" style="margin:0"><span>Message au client (modifiable)</span><textarea name="message" rows="${Math.min(22, Math.max(5, Math.ceil((a.message || '').length / 38)))}">${esc(a.message)}</textarea></label>
-        <button class="btn petit blue-btn" type="submit">${n ? 'Envoyer au client (un seul e-mail)' : 'Valider l\'analyse'}</button>
-        ${n && d.statut === 'preparation' ? '<small class="note">Le dossier repasse en attente du client et le délai est suspendu.</small>' : ''}</form>`}</div></section>`;
+    const G = k => a.points.filter(p => p.niveau === k), nbB = G('bloquant').length;
+    const verdict = `${Maj(KIND[(a.dossier && a.dossier.kind) || d.kind] || 'Dossier')}. ${nbB ? `${nbB} point${nbB > 1 ? 's' : ''} bloquant${nbB > 1 ? 's' : ''} avant de dessiner.` : 'Rien ne bloque.'}`;
+    const groupe = k => G(k).length ? `<div class="grp grp-${k}"><h4>${NV[k]} <span>${G(k).length}</span></h4>${G(k).map(p => `<div class="pt"><p>${esc(p.texte)}</p>${p.source ? `<small>${esc(p.source)}</small>` : ''}</div>`).join('')}</div>` : '';
+    return `<section class="ana${a.appliquee ? ' ana-faite' : ''}">
+      <header class="ana-h"><p class="ana-qui">Analyse de ${esc(a.par)}, ${court(a.date)}${a.appliquee ? `. Envoyée au client le ${court(a.appliquee)}` : ''}</p>
+        ${d.aFaire ? `<p class="ana-alerte">${esc(d.aFaire)}. Dans l'app Claude, écrivez « nouveau dossier ».</p>` : ''}
+        <h2 class="ana-v">${esc(verdict)}</h2>
+        ${a.resume ? `<p class="ana-r">${esc(a.resume)}</p>` : ''}</header>
+      <div class="${a.appliquee ? '' : 'ana-g'}"><div class="pts">${groupe('bloquant')}${groupe('attention')}${groupe('ok')}</div>
+      ${a.appliquee ? '' : `<form id="fana" class="lettre"><h3>${n ? 'À envoyer au client' : 'À valider'}</h3>
+        ${chg ? `<label class="coche"><input type="checkbox" name="commande" checked><span>Passer la commande en <b>${esc(KIND[a.dossier.kind])}</b>${a.dossier.total ? ' à <b>' + euro(a.dossier.total) + '</b>' : ''}${a.dossier.motif ? '. ' + esc(a.dossier.motif) : ''}</span></label>` : ''}
+        ${n ? `<ul class="dem">${[...a.demandes.map(q => `<li>${esc(q.nom)}<small>${q.type === 'fichier' ? 'fichier' : 'réponse écrite'}</small></li>`), ...a.refaire.map(r => `<li>${esc((d.pieces.find(p => p.id === r.piece) || {}).nom || r.piece)}<small>à refaire</small></li>`)].join('')}</ul>` : ''}
+        <label class="field" style="margin:0"><span>Message, modifiable</span><textarea name="message" rows="${Math.min(22, Math.max(5, Math.ceil((a.message || '').length / 38)))}">${esc(a.message)}</textarea></label>
+        <button class="btn blue-btn" type="submit">${n ? 'Envoyer au client' : 'Valider l\'analyse'}</button>
+        <small class="note" style="margin:0">${n ? `Un seul e-mail part à ${esc(d.email)}.${d.statut === 'preparation' ? ' Le dossier repasse en attente et le délai est suspendu.' : ''}` : 'Rien n\'est envoyé au client.'}</small></form>`}</div></section>`;
+  }
+  // Cartouche du dossier, comme en bas d'une planche : qui, quoi, où, quel dossier, combien, pour quand.
+  function cartouche() {
+    const t = terr.ref === d.ref && terr.v && !terr.v.erreur ? terr.v : null;
+    const C = (k, v, s) => `<div class="ct-c"><span>${k}</span><b>${v}</b>${s ? `<small>${s}</small>` : ''}</div>`;
+    return `<div class="ct-ref"><span>${esc(d.ref)}</span><b>${esc(d.client || d.email)}</b><i class="pill st-${STC[d.statut]}">${ST[d.statut]}</i></div>
+      ${C('Projet', esc(d.nom), d.regul === 'true' ? 'Régularisation' : '')}
+      ${C('Terrain', esc(d.adresse), t && t.parcelle ? `Parcelle ${esc(t.parcelle.section)} ${esc(String(t.parcelle.numero).replace(/^0+/, ''))}, ${t.parcelle.contenance || t.parcelle.surfaceCalculee} m²${t.zone ? ', zone ' + esc(t.zone.libelle) : ''}` : '')}
+      ${C('Dossier', esc(Maj(KIND[d.kind] || d.kind || '-')), `${d.delai === 1 ? '24 h' : d.delai === 2 ? '48 h' : d.delai + ' jours'} ouvrés`)}
+      ${C('Prix', euro(d.total), d.paiements.solde ? 'Soldé' : `Reste ${euro(d.solde)} à l'aperçu`)}
+      ${C('Échéance', d.echeance ? jour(d.echeance) : 'Pas lancée', d.echeance ? '' : d.statut === 'elements' ? 'En attente du client' : '')}`;
   }
   function blocControles() {
     const c = controles(); if (!c.length || d.analyse) return '';
-    return `<section class="carte" style="border-color:#B3261E"><h3 style="color:#8A1C1C">Contrôles automatiques · ${c.length}</h3><ul style="margin:0;padding-left:18px;font-size:13px">${c.map(x => `<li style="margin-bottom:4px">${esc(x)}</li>`).join('')}</ul></section>`;
+    return `<section class="ana-auto"><h3>Contrôles automatiques <span class="cpt">${c.length}</span></h3><div class="pts"><div class="grp grp-bloquant">${c.map(x => `<div class="pt"><p>${esc(x)}</p></div>`).join('')}</div></div></section>`;
   }
 
   function dessinerDossier() {
     const textes = d.pieces.filter(p => p.type === 'texte');
     const lancer = ['elements', 'verification'].includes(d.statut), envoyer = d.livrables.length && !['livre'].includes(d.statut);
-    el.innerHTML = cadre(`<a href="#" style="font-size:13px">‹ Tous les dossiers</a>
-      <div class="rang ecart" style="margin-top:4px"><h1>${esc(d.ref)} · ${esc(d.client || d.email)} <span class="pill st-${STC[d.statut]}" style="font-family:var(--f-body);vertical-align:middle;font-size:13px">${ST[d.statut]}</span></h1>
+    el.innerHTML = cadre(`<div class="rang ecart"><a href="#" style="font-size:13px">‹ Tous les dossiers</a>
         <div class="rang"><a class="btn petit ghost" href="/api/admin/dossier.zip?ref=${R()}">Tout télécharger (zip)</a>
         ${lancer ? '<button class="btn petit blue-btn" type="button" data-lancer>Pièces complètes, lancer les plans</button>' : ''}
         ${envoyer ? `<button class="btn petit blue-btn" type="button" data-apercu>${d.statut === 'apercu' ? 'Renvoyer l\'aperçu' : 'Envoyer l\'aperçu au client'}</button>` : ''}</div></div>
+      <div class="ct" data-ct>${cartouche()}</div>
       ${!d.outils.images || !d.outils.pdf ? `<p class="form-err" style="margin-top:10px">Outils d'images absents sur le serveur : ${!d.outils.pdf ? 'pas d\'aperçu des PDF livrés' : ''}${!d.outils.images ? ' pas de conversion des photos HEIC ni de filigrane' : ''}.</p>` : ''}
       <div class="bo-g">
         <div class="z-ana">${blocAnalyse()}<div data-ctl>${blocControles()}</div></div>
         <div class="z-vis pile">${visionneuse()}
-          <section class="carte"><h3>Réponses du client · ${textes.filter(p => p.texte).length} / ${textes.length}</h3><div class="rep-g">
+          <section class="carte"><h3>Réponses du client <span class="cpt">${textes.filter(p => p.texte).length} sur ${textes.length}</span></h3><div class="rep-g">
             ${textes.map(p => `<div class="rep"><small class="note">${esc(p.nom)} <span class="pill st-${p.etat}">${EP[p.etat]}</span></small><p>${esc(p.texte) || '<span class="note">(vide)</span>'}</p>
             ${p.texte ? `<span class="rang" style="gap:12px"><button class="lien" type="button" data-tv="${p.id}">Valider</button><button class="lien" type="button" data-tr="${p.id}" style="color:#8A1C1C">À refaire</button></span>` : ''}</div>`).join('')}</div></section>
         </div>
         <div class="z-rep pile">
-          <section class="carte"><h3>Pièces demandées · ${d.recues.n} / ${d.recues.sur}</h3>
+          <section class="carte"><h3>Pièces demandées <span class="cpt">${d.recues.n} sur ${d.recues.sur}</span></h3>
             ${d.pieces.map(p => { const n = d.fichiers.filter(f => f.piece === p.id).length; const cur = sel && sel.k === 'f' && (d.fichiers.find(f => f.id === sel.id) || {}).piece === p.id;
               return `<div class="pl${cur ? ' sel' : ''}"><button class="nm" type="button" data-pp="${p.id}">${esc(p.nom)}${n ? ` · ${n}` : ''}${p.facultatif ? ' <small class="note" style="display:inline">(facult.)</small>' : ''}</button><span class="pill st-${p.etat}">${p.plusTard ? 'On en reparle' : EP[p.etat]}</span></div>`; }).join('')}
             <details style="margin-top:10px"><summary class="lien" style="display:inline">+ Demander une pièce</summary>
@@ -234,7 +250,7 @@
             <p class="rang" style="font-size:13px;gap:12px"><a href="https://www.geoportail.gouv.fr/carte?q=${encodeURIComponent(d.adresse)}" target="_blank" rel="noopener">Géoportail</a><a href="https://cadastre.data.gouv.fr/" target="_blank" rel="noopener">Cadastre</a><a href="https://www.geoportail-urbanisme.gouv.fr/map/" target="_blank" rel="noopener">PLU</a></p><div data-tq>${ficheTerrain()}</div></section>
         </div>
         <div class="z-liv pile">
-          <section class="carte"><h3>Pièces à livrer · ${d.livrables.length}</h3>
+          <section class="carte"><h3>Pièces à livrer <span class="cpt">${d.livrables.length}</span></h3>
             ${d.livrables.map(l => `<div class="pl"><button class="nm" type="button" data-s="l:${l.id}"><b>${esc(l.code)}</b> ${esc(l.nom)}</button><small class="note">${l.pages ? l.pages + ' p.' : 'sans aperçu'}</small></div>`).join('') || '<p class="note" style="margin:0">Aucun PDF déposé.</p>'}
             ${d.statut !== 'livre' && window.BPCerfa ? '<button class="btn petit ghost" type="button" id="bcerfa" style="margin-top:10px;width:100%">Pré-remplir le formulaire Cerfa</button>' : ''}
             ${d.statut !== 'livre' ? `<form id="flivr" class="pile" style="margin-top:10px">
