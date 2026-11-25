@@ -91,7 +91,37 @@
     "carport",
     "pergola",
     "piscine"
-   ]
+   ],
+   "exemple": {
+    "dossier": "exemple-abri",
+    "alt": "exemple de dossier",
+    "titre": "Un exemple de dossier, tel qu'on le livre",
+    "intro": [
+     "Un abri de jardin en bois de 6 m sur 4, soit 24 m² au sol, séparé de la maison. Au-delà de 20 m², la déclaration préalable ne suffit plus : il faut un permis de construire.",
+     "Avant de dessiner, on vérifie l'emprise au sol autorisée, la hauteur et la distance aux limites du terrain. Les chiffres figurent sur le plan de masse pour que l'instructeur les retrouve tout de suite. Cliquez sur une planche pour l'ouvrir en grand."
+    ],
+    "planches": [
+     [
+      "pcmi2-plan-de-masse",
+      "PCMI2",
+      "Plan de masse",
+      "Le terrain vu du dessus, l'abri coté, les distances aux limites, le tableau des surfaces."
+     ],
+     [
+      "pcmi3-coupe",
+      "PCMI3",
+      "Plan en coupe",
+      "L'abri et le terrain en tranche, avec les hauteurs. Le relief vient des relevés d'altitude de l'IGN."
+     ],
+     [
+      "pcmi5-facades-toiture",
+      "PCMI5",
+      "Façades et toiture",
+      "Les quatre faces de l'abri, le plan du toit, les matériaux et les teintes."
+     ]
+    ],
+    "note": "Exemple préparé par notre équipe sur un terrain réel, pour montrer ce que vous recevez. Il n'a pas été déposé en mairie. Nom, adresse et numéro de parcelle masqués. Le dossier complet contient aussi le formulaire, le plan de situation, la notice, l'insertion dans le paysage et les photos du terrain."
+   }
   },
   "annexe": {
    "slug": "annexe-garage-studio",
