@@ -269,7 +269,7 @@
     return `<section class="dz-carte dz-side"><h3>Votre choix</h3>
       <p class="dz-choix"><b>${esc(d.nom)}</b>${kind ? `<span>${kind}</span>` : ''}</p>
       <div class="prix">${L.map(([lab, px]) => `<span class="gris">${esc(lab)}</span><span class="gris">${euro(px)}</span>`).join('')}
-        <span class="tot">Total</span><span class="tot">${euro(d.total)}</span>
+        ${promoOk ? `<span class="gris">Code promo</span><span class="gris">- ${euro(d.total - promoOk.total)}</span>` : ''}<span class="tot">Total</span><span class="tot">${euro(promoOk ? promoOk.total : d.total)}</span>
         ${!d.paiements.acompte ? `<span>Acompte, à la validation</span><span>${euro(acompteAff())}</span>` : ''}
         ${d.paiements.acompte ? `<span class="vert">Acompte payé le ${new Date(d.paiements.acompte.date).toLocaleDateString('fr-FR', {day: 'numeric', month: 'short'})}</span><span class="vert">${euro(d.paiements.acompte.montant)}</span>` : ''}
         ${d.paiements.solde ? (d.paiements.solde.montant ? `<span class="vert">Solde payé le ${new Date(d.paiements.solde.date).toLocaleDateString('fr-FR', {day: 'numeric', month: 'short'})}</span><span class="vert">${euro(d.paiements.solde.montant)}</span>` : '') : `<span class="gris">Solde, après l'aperçu</span><span class="gris">${euro(promoOk ? promoOk.solde : d.solde)}</span>`}
@@ -285,7 +285,7 @@
     return `<section class="dz-valider" id="valider">
       <div class="dz-valider-t">
         <h2>Validez votre dossier pour qu'on commence</h2>
-        <p>Acompte de <b>${euro(acompteAff())}</b>, soit 30 % du prix de ${euro(total)}. Le solde de ${euro(solde)} se règle après l'aperçu de vos plans, quand tout vous convient.${d.recues.n < d.recues.sur ? ' Vous pouvez envoyer vos pièces avant ou après : rien n\'est perdu.' : ''}</p>
+        <p>Acompte de <b>${euro(acompteAff())}</b>${Math.abs(acompteAff() - total * 0.3) < 0.01 ? ', soit 30 % du prix de ' + euro(total) : ' sur un prix de ' + euro(total)}. Le solde de ${euro(solde)} se règle après l'aperçu de vos plans, quand tout vous convient.${d.recues.n < d.recues.sur ? ' Vous pouvez envoyer vos pièces avant ou après : rien n\'est perdu.' : ''}</p>
         <ul class="dz-garanties">
           <li>Paiement sécurisé par Stripe : carte, Apple Pay, Google Pay, PayPal</li>
           <li>Corrections des plans comprises jusqu'au dépôt</li>
@@ -417,6 +417,7 @@
     brancherPlan();
     // textes : enregistrement automatique
     el.querySelectorAll('[data-texte]').forEach(t => { let m; t.addEventListener('input', () => {
+      const pc = d.pieces.find(x => x.id === t.dataset.texte); if (pc && pc.etat !== 'valide') { pc.texte = t.value; pc.etat = t.value.trim() ? 'a_verifier' : 'manquant'; }
       const s = el.querySelector(`[data-save="${t.dataset.texte}"]`); s.textContent = '…'; clearTimeout(m);
       m = setTimeout(async () => { const r = await api('POST', '/espace/dossier/texte?ref=' + R, {piece: t.dataset.texte, texte: t.value}).catch(() => ({})); s.textContent = r.ok ? 'Enregistré.' : 'Pas enregistré : vérifiez votre connexion.'; const p = d.pieces.find(x => x.id === t.dataset.texte); if (r.ok && p) p.texte = t.value; }, 900);
     }); });
