@@ -342,8 +342,8 @@ async function preparerVue(src, vue, mini) {
 }
 
 // Aperçu d'un PDF livré : chaque page en image, avec un filigrane « APERÇU ».
-// L'aperçu du client sert à montrer que le dossier est prêt, pas à le relire : image de 420 px, floutée, filigrane serré
-// incrusté dans les pixels. Rien n'y est lisible ni réutilisable. Le client relit sur les vrais PDF, après le solde.
+// L'aperçu du client sert à montrer que le dossier est prêt, pas à le relire : image de 640 px, légèrement floutée, filigrane serré
+// incrusté dans les pixels. On reconnaît le plan et ses titres, mais les cotes ne se lisent pas : rien n'est réutilisable. Le client relit sur les vrais PDF, après le solde.
 // L'équipe a sa propre vue nette (fichier « -e »), sans filigrane.
 async function apercuPdf(pdf, dossier, base) {
   if (!OUTILS.pdftoppm) return {pages: 0, erreur: 'outils absents'};
@@ -357,9 +357,9 @@ async function apercuPdf(pdf, dossier, base) {
     const src = path.join(dossier, f), dst = path.join(dossier, `${base}-${n}.jpg`);
     if (OUTILS.magick) {
       await lancer(OUTILS.magick, [src, '-resize', '1600x1600>', '-quality', '80', '-strip', path.join(dossier, `${base}-e${n}.jpg`)]);
-      const args = [src, '-resize', '420x420>', '-blur', '0x1.1', '-fill', 'rgba(35,64,217,0.30)', '-gravity', 'center', '-pointsize', '26'];
+      const args = [src, '-resize', '640x640>', '-blur', '0x0.5', '-fill', 'rgba(35,64,217,0.28)', '-gravity', 'center', '-pointsize', '34'];
       if (OUTILS.police) args.push('-font', OUTILS.police);
-      for (let y = -240; y <= 240; y += 80) args.push('-annotate', `330x330+0${y < 0 ? y : '+' + y}`, 'APERÇU  bonpermis.fr     APERÇU  bonpermis.fr');
+      for (let y = -330; y <= 330; y += 110) args.push('-annotate', `330x330+0${y < 0 ? y : '+' + y}`, 'APERÇU  bonpermis.fr     APERÇU  bonpermis.fr');
       args.push('-quality', '55', '-strip', dst);
       const ok = await lancer(OUTILS.magick, args);
       fs.rmSync(src, {force: true});
