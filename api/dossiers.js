@@ -294,7 +294,7 @@ async function commanderProjet(req, res, url) {
   if (adresse.length < 5) return repondre(res, 400, {erreur: 'Indiquez l\'adresse des travaux.'});
   // Prix figé : celui de la simulation enregistrée, même si la grille a changé depuis.
   // Le dossier est créé tout de suite, au prix figé de la simulation ; l'acompte se règle depuis le dossier.
-  const cmd = nouveauDossier({p: s.p, regul: s.regul, a: s.a, v: {kind: s.kind}, opt: s.opt, lignes: s.lignes, total: s.total, nom: s.nom}, u, adresse, lieuValide(d.lieu));
+  const cmd = nouveauDossier({p: s.p, regul: s.regul, a: s.a, v: {kind: s.kind}, opt: s.opt, lignes: s.lignes, total: s.total, nom: s.nom}, u, adresse, lieuValide(d.lieu)); noterOrigine(cmd, req);
   s.statut = 'commande'; s.ref = cmd.ref; ecrire(s, 'projets', s.id + '.json');
   repondre(res, 200, {url: `/espace/dossier/?ref=${cmd.ref}&nouveau=1`});
   mailsDossierCree(cmd).catch(e => journal('mails dossier', e.message));
@@ -343,6 +343,8 @@ async function paiementRecu(s) {
 
 // ---------- dossier créé avant paiement (statut « brouillon ») ----------
 const ALPHA = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
+// D'où venait le visiteur le jour où il a créé son dossier (Google Ads, recherche, accès direct…), pour savoir ce qui rapporte.
+function noterOrigine(cmd, req) { try { const o = require('./visites').origine(req); if (o) { cmd.origine = o; sauver(cmd); } } catch (e) {} }
 function nouveauDossier(x, u, adresse, lieu) {
   const date = new Date().toISOString(), lignes = x.lignes.map(l => Array.isArray(l) ? l : [l.label, l.prix]);
   const reponses = typeof x.a === 'string' ? x.a : JSON.stringify(x.a || {});
@@ -391,7 +393,7 @@ async function creerDossier(req, res) {
     if (!u.confirme) { u.confirme = true; C.ecrireUser(u); }
     C.ouvrirSession(res, u, true);
   }
-  const cmd = nouveauDossier(x, u, adresse, lieuValide(d.lieu));
+  const cmd = nouveauDossier(x, u, adresse, lieuValide(d.lieu)); noterOrigine(cmd, req);
   repondre(res, 200, {ref: cmd.ref, url: `/espace/dossier/?ref=${cmd.ref}&nouveau=1`});
   mailsDossierCree(cmd).catch(e => journal('mails dossier', e.message));
 }
@@ -977,7 +979,7 @@ function equipeZip(req, res, url) {
 
 module.exports = {
   verifierPromo, creerDossier, payerDossier,
-  REF_RE, lireCmd, sauver, vueCmd, commande, etatCommande, paiementRecu, enregistrerProjet, supprimerProjet, commanderProjet, espace,
+  REF_RE, STATUTS, nomClient, lireCmd, sauver, vueCmd, commande, etatCommande, paiementRecu, enregistrerProjet, supprimerProjet, commanderProjet, espace,
   clientDossier, clientTexte, clientPlusTard, clientPlan, clientFichier, clientSupprimerFichier, clientMessage, clientConfirmer, clientTerminer, clientValider, clientVoir, clientTelecharger,
   equipeListe, equipeArchiver, equipeDossier, equipeVoir, equipePiece, equipeCommande, equipeBrief, equipeAnalyse, equipeAppliquer, equipeGenerer, equipeClasser, equipeFichier, equipeMessage, equipeLancer, equipeDepot, equipeLivrable,
   equipeSupprimerLivrable, equipeEnvoyerApercu, equipeZip, analyser, partAcompte, piecesInitiales, listePieces

@@ -92,13 +92,22 @@ async function signal(req, res) {
     if (Object.keys(j.vus).length >= 50000) return fin();
     v = j.vus[e] = {n: 0};
     j.visiteurs++; if (/Mobi|Android|iPhone/i.test(ua)) j.mobile++;
-    plus(j.entrees, p); plus(j.sources, source(d, hote));
+    v.s = source(d, hote);
+    plus(j.entrees, p); plus(j.sources, v.s);
     const c = String(d.c || '').toLowerCase().replace(/[^a-z0-9_.\- ]/g, '').trim().slice(0, 40);
     if (c) plus(j.campagnes, c);
   }
   if (++v.n > MAX_PAR_VISITEUR) return fin();
   j.vues++; plus(j.pages, p); sale = true;
   fin();
+}
+
+// Source de la visite du jour pour la personne qui fait cette demande (sert à noter l'origine d'un dossier créé).
+function origine(req) {
+  const j = charger(), ua = String(req.headers['user-agent'] || '');
+  const ip = (req.headers['x-forwarded-for'] || req.socket.remoteAddress || '').split(',')[0].trim();
+  const v = j.vus[crypto.createHash('sha256').update(j.sel + '|' + ip + '|' + ua).digest('base64url').slice(0, 12)];
+  return (v && v.s) || null;
 }
 
 // ---------- lecture par l'équipe ----------
@@ -140,4 +149,4 @@ function lecture(req, res, url) {
   repondre(res, 200, {jours: n, premier, serie, total: T, pages: tri(cumul.pages, 25), entrees: tri(cumul.entrees, 15), sources: tri(cumul.sources, 15), campagnes: tri(cumul.campagnes, 15), etapes: cumul.etapes});
 }
 
-module.exports = {signal, lecture, enregistrer, _page: page, _source: source};
+module.exports = {signal, lecture, origine, enregistrer, _page: page, _source: source};

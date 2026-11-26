@@ -46,10 +46,14 @@
 
   function cadre(contenu, actif) {
     return `<div class="bo"><nav class="bo-nav" aria-label="Équipe">
+      <a href="#bord" class="${actif === 'bord' ? 'on' : ''}">Tableau de bord</a>
       <a href="#" class="${actif === 'liste' ? 'on' : ''}">Dossiers</a>
+      <a href="#clients" class="${actif === 'clients' ? 'on' : ''}">Clients</a>
+      <a href="#plans" class="${actif === 'plans' ? 'on' : ''}">Plans vendus</a>
+      <a href="#rappels" class="${actif === 'rappels' ? 'on' : ''}">Demandes de rappel</a>
+      <a href="#visites" class="${actif === 'visites' ? 'on' : ''}">Visites</a>
       <a href="#promos" class="${actif === 'promos' ? 'on' : ''}">Codes promo</a>
       <a href="#relances" class="${actif === 'relances' ? 'on' : ''}">Relances</a>
-      <a href="#visites" class="${actif === 'visites' ? 'on' : ''}">Visites</a>
       <a href="#mails" class="${actif === 'mails' ? 'on' : ''}">E-mails envoyés</a>
       <a href="https://dashboard.stripe.com/payments" target="_blank" rel="noopener">Paiements (Stripe)</a>
       <button type="button" data-out>Se déconnecter</button></nav>
@@ -88,7 +92,7 @@
         <td><span class="pill st-${STC[x.statut]}">${ST[x.statut]}</span>${x.aFaire ? `<br><small style="color:#0A2FB0;font-weight:500">Claude : ${esc(x.aFaire.toLowerCase())}</small>` : x.aRelire ? '<br><small style="color:#8A1C1C;font-weight:500">Analyse à relire</small>' : ''}${x.relances ? `<br><small>${x.relances} relance${x.relances > 1 ? 's' : ''}</small>` : ''}${x.relanceStop ? '<br><small>ne veut plus de rappel</small>' : ''}</td>
         <td>${x.retard ? `<b style="color:#8A1C1C;font-weight:500">Dépassée (${jour(x.echeance)})</b>` : x.echeance && ['verification', 'preparation'].includes(x.statut) ? jour(x.echeance) : '-'}</td>
         <td>${euro(x.total)}<br><small>${{solde: 'soldé', acompte: 'acompte payé', offert: 'offert (code promo)', aucun: 'rien payé'}[x.paiement] || ''}</small></td></tr>`).join('') : '<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:30px">Aucun dossier.</td></tr>'}
-      </tbody></table></div>${liste.rappels ? `<p class="note" style="margin-top:12px">${liste.rappels} demande(s) de rappel reçues par e-mail.</p>` : ''}`, 'liste');
+      </tbody></table></div>${liste.rappels ? `<p class="note" style="margin-top:12px">${liste.rappels} demande(s) de rappel reçues. <a class="lien" href="#rappels">Voir la liste</a></p>` : ''}`, 'liste');
     brancherCadre();
     el.querySelectorAll('[data-f]').forEach(b => b.addEventListener('click', () => { filtre = b.dataset.f; dessinerListe(); }));
     el.querySelectorAll('[data-tri]').forEach(b => b.addEventListener('click', () => { tri = {col: b.dataset.tri, sens: tri.col === b.dataset.tri ? -tri.sens : 1}; dessinerListe(); }));
@@ -447,6 +451,102 @@
     });
   }
 
+  // ---------- tableau de bord ----------
+  let bordJours = 30;
+  const nbf = n => Number(n || 0).toLocaleString('fr-FR');
+  async function vueBord() {
+    const r = await api('GET', '/bord?jours=' + bordJours);
+    if (r.s === 401) return connexion();
+    if (!r.ok) { el.innerHTML = cadre('<h1>Tableau de bord</h1><p class="form-err">Le service ne répond pas.</p>', 'bord'); brancherCadre(); return; }
+    const b = r.j, P = b.periode, A = b.avant, F = b.aFaire;
+    // Évolution par rapport à la période précédente de même durée.
+    const evo = (x, y) => { if (!y) return x ? '<em class="vis-up">nouveau</em>' : ''; const d = Math.round((x - y) / y * 100); return d ? `<em class="${d > 0 ? 'vis-up' : 'vis-down'}">${d > 0 ? '+' : ''}${d} %</em>` : '<em>stable</em>'; };
+    const max = Math.max(1, ...b.serie.map(x => x.encaisse));
+    const jc = j => new Date(j + 'T12:00:00').toLocaleDateString('fr-FR', {day: 'numeric', month: 'short'});
+    const barres = b.serie.map(x => `<div class="vis-b" title="${jc(x.jour)} : ${euro(x.encaisse)} encaissés${x.commandes ? ', ' + x.commandes + ' nouvelle' + (x.commandes > 1 ? 's' : '') + ' commande' + (x.commandes > 1 ? 's' : '') : ''}"><i style="height:${Math.round(x.encaisse / max * 100)}%"></i></div>`).join('');
+    const faire = [[F.messages, 'message', 'messages', 'de client sans réponse', '#'], [F.verifier, 'dossier', 'dossiers', 'à vérifier', '#'], [F.retard, 'dossier', 'dossiers', 'en retard', '#'], [F.corrections, 'correction', 'corrections', 'demandées', '#'],
+      [F.rappels, 'demande', 'demandes', 'de rappel à traiter', '#rappels'], [F.mailsEchec, 'e-mail', 'e-mails', 'en échec', '#mails'], [F.apercu, 'dossier prêt', 'dossiers prêts', 'en attente du solde', '#'], [F.pieces, 'dossier', 'dossiers', 'en attente de pièces du client', '#']].filter(x => x[0]);
+    const tab = (titre, L, vide, col) => `<div class="carte"><h2 class="vis-h">${titre}</h2>${L.length ? `<table class="vis-t"><tbody>${L.map(col).join('')}</tbody></table>` : `<p class="note" style="margin:0">${vide}</p>`}</div>`;
+    el.innerHTML = cadre(`<div class="rang ecart"><h1>Tableau de bord</h1><div class="rang">${[7, 30, 90, 365].map(n => `<button class="btn petit ${n === bordJours ? 'blue-btn' : 'ghost'}" type="button" data-bj="${n}">${n === 365 ? '1 an' : n + ' jours'}</button>`).join('')}</div></div>
+      <p class="note" style="margin:8px 0 16px">Les ${b.jours} derniers jours, comparés aux ${b.jours} jours d'avant. Montants TTC réellement encaissés (acomptes, soldes, plans à l'unité), dossiers offerts exclus.</p>
+      <div class="vis-k">
+        <div class="carte"><span>Encaissé</span><b>${euro(P.encaisse)}</b><small>${evo(P.encaisse, A.encaisse)} ${A.encaisse ? 'contre ' + euro(A.encaisse) : ''}</small></div>
+        <div class="carte"><span>Nouvelles commandes</span><b>${nbf(P.commandes)}</b><small>${evo(P.commandes, A.commandes)} acomptes payés</small></div>
+        <div class="carte"><span>Panier moyen</span><b>${P.commandes ? euro(P.panier) : '-'}</b><small>${evo(P.panier, A.panier)} prix total du dossier</small></div>
+        <div class="carte"><span>Taux de conversion</span><b>${P.conversion == null ? '-' : String(P.conversion).replace('.', ',') + ' %'}</b><small>${nbf(P.visiteurs)} visiteur${P.visiteurs > 1 ? 's' : ''} <a class="lien" href="#visites">détail</a></small></div>
+        <div class="carte"><span>Soldes à venir</span><b>${euro(b.aEncaisser.montant)}</b><small>${b.aEncaisser.n} dossier${b.aEncaisser.n > 1 ? 's' : ''} en cours, acompte payé</small></div>
+        <div class="carte"><span>Paniers abandonnés</span><b>${euro(b.abandons.montant)}</b><small>${b.abandons.n} dossier${b.abandons.n > 1 ? 's' : ''} créé${b.abandons.n > 1 ? 's' : ''}, pas payé${b.abandons.n > 1 ? 's' : ''}</small></div>
+      </div>
+      <div class="vis-2" style="grid-template-columns:2fr 1fr">
+        <div class="carte"><h2 class="vis-h">Encaissé par jour</h2><div class="vis-g">${barres}</div>
+          <div class="rang ecart note" style="margin-top:6px"><span>${jc(b.serie[0].jour)}</span><span>Passez la souris sur une barre pour le détail.</span><span>${jc(b.serie[b.serie.length - 1].jour)}</span></div></div>
+        <div class="carte"><h2 class="vis-h">À faire</h2>${faire.length ? `<ul class="bord-f">${faire.map(x => `<li><a href="${x[4]}"><b>${x[0]}</b> ${x[0] > 1 ? x[2] : x[1]} ${x[3]}</a></li>`).join('')}</ul>` : '<p class="note" style="margin:0">Rien en attente.</p>'}</div>
+      </div>
+      <div class="vis-2">
+        ${tab('Derniers encaissements', b.derniers, 'Aucun encaissement pour l\'instant.', x => `<tr><td>${/^BP-/.test(x.ref) ? `<a class="lien" href="#${esc(x.ref)}">${esc(x.ref)}</a>` : esc(x.ref)} · ${esc(x.type)}<br><span class="note">${esc(x.client || '')} · ${court(x.date)}</span></td><td>${euro(x.montant)}</td></tr>`)}
+        ${tab('Paniers abandonnés', b.abandons.liste, 'Aucun dossier en attente de paiement.', x => `<tr><td><a class="lien" href="#${esc(x.ref)}">${esc(x.ref)}</a> · ${esc(x.nom || '')}<br><span class="note">${esc(x.client || '')} · créé le ${jour(x.date)} · ${x.relances} relance${x.relances > 1 ? 's' : ''}</span></td><td>${euro(x.total)}</td></tr>`)}
+        ${tab('Ventes par projet', b.parProjet, 'Aucune commande payée sur la période.', x => `<tr><td>${esc(x.nom || '')}</td><td>${x.n}</td><td>${euro(x.total)}</td></tr>`)}
+        ${tab('Commandes par origine', b.parSource, 'Aucune commande payée sur la période.', x => `<tr><td>${esc(x.nom)}</td><td>${x.n}</td><td>${euro(x.total)}</td></tr>`)}
+        ${tab('Codes promo utilisés', b.parCode, 'Aucun code utilisé sur la période.', x => `<tr><td>${esc(x.nom)}</td><td>${x.n}</td><td>${euro(x.total)}</td></tr>`)}
+        <div class="carte"><h2 class="vis-h">Exports (tableur, comptable)</h2><div class="pile" style="gap:8px">
+          <a class="btn petit ghost" href="/api/admin/export.csv?quoi=encaissements">Encaissements (CSV)</a>
+          <a class="btn petit ghost" href="/api/admin/export.csv?quoi=dossiers">Dossiers (CSV)</a>
+          <a class="btn petit ghost" href="/api/admin/export.csv?quoi=clients">Clients (CSV)</a></div>
+          <p class="note" style="margin:10px 0 0">Fichiers lisibles par Excel et Numbers. Les montants sont TTC : le relevé Stripe reste la référence pour la comptabilité.</p></div>
+      </div>
+      <p class="note" style="margin-top:14px">« Commandes par origine » : d'où venait le visiteur le jour où il a créé son dossier. Connu seulement pour les dossiers créés à partir du 26 novembre 2026, et si la visite a été comptée.</p>`, 'bord');
+    brancherCadre();
+    el.querySelectorAll('[data-bj]').forEach(x => x.addEventListener('click', () => { bordJours = +x.dataset.bj; vueBord(); }));
+  }
+
+  // ---------- clients ----------
+  let clientsQ = '';
+  async function vueClients() {
+    const r = await api('GET', '/clients');
+    if (r.s === 401) return connexion();
+    const c = r.j || {clients: [], total: {}};
+    const dessiner = () => {
+      const q = clientsQ.toLowerCase(), L = c.clients.filter(x => !q || (x.email + ' ' + x.nom + ' ' + x.commune + ' ' + x.refs.join(' ')).toLowerCase().includes(q));
+      el.querySelector('[data-cl]').innerHTML = L.length ? L.map(x => `<tr><td><b style="font-weight:500">${esc(x.nom || x.email)}</b>${x.nom ? `<br><span class="note">${esc(x.email)}</span>` : ''}</td><td>${esc(x.commune || '')}</td>
+        <td>${x.refs.map(ref => `<a class="lien" href="#${esc(ref)}">${esc(ref)}</a>`).join(' ') || '<span class="note">aucun</span>'}${x.projets ? `<br><span class="note">${x.projets} projet${x.projets > 1 ? 's' : ''} enregistré${x.projets > 1 ? 's' : ''}</span>` : ''}</td>
+        <td>${x.valides}</td><td>${euro(x.encaisse)}</td><td>${jour(x.dernier || x.cree)}</td><td><a class="lien" href="mailto:${esc(x.email)}">Écrire</a></td></tr>`).join('') : '<tr><td colspan="7" class="note">Aucun client ne correspond.</td></tr>';
+    };
+    el.innerHTML = cadre(`<div class="rang ecart"><h1>Clients</h1><a class="btn petit ghost" href="/api/admin/export.csv?quoi=clients">Exporter (CSV)</a></div>
+      <p class="note" style="margin:8px 0 14px">${nbf(c.total.n)} compte${c.total.n > 1 ? 's' : ''}, dont ${nbf(c.total.acheteurs)} qui ${c.total.acheteurs > 1 ? 'ont' : 'a'} payé et ${nbf(c.total.prospects)} sans dossier validé. Classés par montant encaissé.</p>
+      <div class="field" style="max-width:360px;margin-bottom:12px"><input type="search" placeholder="Nom, e-mail, commune, référence" value="${esc(clientsQ)}" data-clq aria-label="Chercher un client"></div>
+      <div class="tbl"><table><thead><tr><th>Client</th><th>Commune</th><th>Dossiers</th><th>Validés</th><th>Encaissé</th><th>Dernière activité</th><th></th></tr></thead><tbody data-cl></tbody></table></div>`, 'clients');
+    brancherCadre(); dessiner();
+    el.querySelector('[data-clq]').addEventListener('input', e => { clientsQ = e.target.value; dessiner(); });
+  }
+
+  // ---------- plans vendus à l'unité ----------
+  async function vuePlans() {
+    const r = await api('GET', '/plans');
+    if (r.s === 401) return connexion();
+    const p = r.j || {plans: []};
+    el.innerHTML = cadre(`<h1>Plans vendus</h1>
+      <p class="note" style="margin:8px 0 14px">Plans de masse et études vendus à l'unité, hors dossiers complets. Sur 30 jours : ${nbf(p.apercus30)} aperçu${p.apercus30 > 1 ? 's' : ''} gratuit${p.apercus30 > 1 ? 's' : ''} généré${p.apercus30 > 1 ? 's' : ''}, ${nbf(p.payes30)} acheté${p.payes30 > 1 ? 's' : ''}${p.apercus30 ? ' (' + (Math.round(p.payes30 / p.apercus30 * 1000) / 10).toLocaleString('fr-FR') + ' %)' : ''}.</p>
+      <div class="tbl"><table><thead><tr><th>Date</th><th>Client</th><th>Adresse</th><th>Projet</th><th>Formule</th><th>Code</th><th>Montant</th></tr></thead><tbody>
+      ${p.plans.length ? p.plans.map(x => `<tr><td>${court(x.date)}</td><td>${esc(x.email || '')}</td><td>${esc(x.adresse || '')}</td><td>${esc(x.projet || '')}</td><td>${x.formule === 'etude' ? 'Étude' + (x.etude && !x.etude.livree ? ' <span class="st st-verification">à livrer</span>' : '') : 'Plan de masse'}</td><td>${esc(x.code || '')}</td><td>${euro(x.total || 0)}</td></tr>`).join('') : '<tr><td colspan="7" class="note">Aucun plan vendu pour l\'instant.</td></tr>'}
+      </tbody></table></div>`, 'plans');
+    brancherCadre();
+  }
+
+  // ---------- demandes de rappel ----------
+  async function vueRappels() {
+    const r = await api('GET', '/rappels');
+    if (r.s === 401) return connexion();
+    const L = (r.j || {}).rappels || [];
+    el.innerHTML = cadre(`<h1>Demandes de rappel</h1>
+      <p class="note" style="margin:8px 0 14px">Les visiteurs qui ont laissé leur numéro depuis le simulateur. ${(r.j || {}).aFaire || 0} à traiter. Cochez une demande une fois la personne rappelée.</p>
+      <div class="tbl"><table><thead><tr><th>Reçue</th><th>Téléphone</th><th>Projet</th><th>Motif</th><th>Adresse des travaux</th><th>Traitée</th></tr></thead><tbody>
+      ${L.length ? L.map(x => `<tr style="${x.traite ? 'opacity:.55' : ''}"><td>${court(x.date)}</td><td><a class="lien" href="tel:${esc(String(x.tel || '').replace(/[^\d+]/g, ''))}">${esc(x.tel || '')}</a></td><td>${esc(x.projet || '')}</td><td>${esc(x.motif || '')}</td><td>${esc(x.adresse || '')}</td>
+        <td><label class="rang" style="gap:6px"><input type="checkbox" data-rt="${esc(x.id)}" ${x.traite ? 'checked' : ''} style="width:18px;height:18px;accent-color:var(--accent)">${x.traite ? `<span class="note">${jour(x.traite.date)}</span>` : ''}</label></td></tr>`).join('') : '<tr><td colspan="6" class="note">Aucune demande de rappel.</td></tr>'}
+      </tbody></table></div>`, 'rappels');
+    brancherCadre();
+    el.querySelectorAll('[data-rt]').forEach(c => c.addEventListener('change', async () => { await api('POST', '/rappels', {id: c.dataset.rt, traite: c.checked}); vueRappels(); }));
+  }
+
   // ---------- suivi des visites ----------
   let visJours = 30;
   async function vueVisites() {
@@ -527,7 +627,7 @@
 
   function route() {
     const h = decodeURIComponent(location.hash.slice(1));
-    if (h === 'promos') vuePromos(); else if (h === 'relances') vueRelances(); else if (h === 'visites') vueVisites(); else if (h === 'mails') vueMails(); else if (/^BP-[A-Z0-9]{6}$/.test(h)) vueDossier(h); else vueListe();
+    if (h === 'promos') vuePromos(); else if (h === 'relances') vueRelances(); else if (h === 'visites') vueVisites(); else if (h === 'bord') vueBord(); else if (h === 'clients') vueClients(); else if (h === 'plans') vuePlans(); else if (h === 'rappels') vueRappels(); else if (h === 'mails') vueMails(); else if (/^BP-[A-Z0-9]{6}$/.test(h)) vueDossier(h); else vueListe();
   }
   window.addEventListener('hashchange', route);
   route();

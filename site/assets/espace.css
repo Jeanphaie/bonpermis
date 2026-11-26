@@ -675,7 +675,7 @@ body[data-page=dossier] .esp{padding-top:20px}
 .cf-brut{margin:0 0 14px;font-size:14px}.cf-brut summary{cursor:pointer;color:var(--accent)}
 
 /* Espace équipe : suivi des visites */
-.vis-k{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+.vis-k{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
 .vis-k .carte + .carte{margin-top:0}
 .vis-k span{display:block;font-size:13px;color:var(--muted)}
 .vis-k b{display:block;font-family:var(--f-display);font-weight:600;font-size:30px;line-height:1.2}
@@ -694,3 +694,13 @@ body[data-page=dossier] .esp{padding-top:20px}
 .vis-t td:first-child{overflow-wrap:anywhere;padding-right:10px}
 .vis-t td:nth-child(2),.vis-t td:nth-child(3){text-align:right;white-space:nowrap;width:1%;padding-left:14px;font-variant-numeric:tabular-nums}
 .vis-t td:nth-child(3){color:var(--muted)}
+
+/* Espace équipe : tableau de bord */
+.vis-k small em{font-style:normal;font-weight:600;color:var(--muted)}
+.vis-k small em.vis-up{color:#3E5A38}.vis-k small em.vis-down{color:#8A1C1C}
+.bord-f{list-style:none;margin:0;padding:0}
+.bord-f li{border-top:1px solid var(--line)}.bord-f li:first-child{border-top:0}
+.bord-f a{display:block;padding:8px 0;color:inherit;text-decoration:none;font-size:14px}
+.bord-f a:hover{color:var(--accent)}
+.bord-f b{display:inline-block;min-width:26px;font-weight:600}
+@media (max-width:900px){.vis-2{grid-template-columns:1fr !important}}
