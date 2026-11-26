@@ -21,7 +21,9 @@ EMAIL = 'contact@bonpermis.fr'
 TEL = '01 84 16 65 53'
 TEL_HREF = 'tel:+33184166553'
 # Identifiant Google Ads (AW-XXXXXXXXXX). Vide = aucune balise, aucun bandeau cookies, politique « pas de cookie publicitaire ».
-ADS_ID = ''
+ADS_ID = 'AW-18568898988'
+# Libellé de l'action de conversion « Achat » du compte Google Ads (envoyée après un paiement, si le visiteur a accepté).
+ADS_ACHAT = 'aRjrCN3mlMAdEKzTq5ZF'
 LEGAL = [('mentions-legales', 'Mentions légales'), ('cgv', 'Conditions générales de vente'), ('confidentialite', 'Politique de confidentialité')]
 
 D = json.loads((SRC / 'data.json').read_text(encoding='utf-8'))
@@ -67,7 +69,7 @@ def head(titre, desc, chemin, base, jsonld):
     url = DOMAINE + '/' + chemin
     ld = '\n'.join(f'<script type="application/ld+json">{json.dumps(j, ensure_ascii=False)}</script>' for j in jsonld)
     return f'''<!DOCTYPE html>
-<html lang="fr" data-base="{base}"{f' data-ads="{ADS_ID}"' if ADS_ID else ''}>
+<html lang="fr" data-base="{base}"{f' data-ads="{ADS_ID}" data-achat="{ADS_ACHAT}"' if ADS_ID else ''}>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -447,7 +449,7 @@ def page_app(chemin, titre, desc, ident, script, large=False):
     h = head(f'{titre} | Le Bon Permis', desc, chemin, base, [])
     h = h.replace('<meta charset="utf-8">', '<meta charset="utf-8">\n<meta name="robots" content="noindex">\n<meta name="referrer" content="same-origin">')
     h = h.replace('</head>', f'<link rel="stylesheet" href="{base}assets/espace.css">\n</head>')
-    return h + f'<body data-page="{ident}">\n\n' + entete(base, False) + '\n' + corps + '\n' + (pied(base) if not large else '') + (f'<script src="{base}assets/plan.js"></script>\n' if script in ('espace-dossier.js', 'admin.js') else '') + (f'<script src="{base}assets/pdf-lib.min.js" defer></script>\n<script src="{base}assets/cerfa.js"></script>\n<script src="{base}assets/controles.js"></script>\n' if script == 'admin.js' else '') + (f'<script src="{base}assets/carte.js"></script>\n' if script == 'espace-dossier.js' else '') + f'<script src="{base}assets/{script}"></script>\n' + ('' if script == 'admin.js' else f'<script src="{base}assets/mesure.js" defer></script>\n') + '</body>\n</html>\n'
+    return h + f'<body data-page="{ident}">\n\n' + entete(base, False) + '\n' + corps + '\n' + (pied(base) if not large else '') + (f'<script src="{base}assets/plan.js"></script>\n' if script in ('espace-dossier.js', 'admin.js') else '') + (f'<script src="{base}assets/pdf-lib.min.js" defer></script>\n<script src="{base}assets/cerfa.js"></script>\n<script src="{base}assets/controles.js"></script>\n' if script == 'admin.js' else '') + (f'<script src="{base}assets/carte.js"></script>\n' if script == 'espace-dossier.js' else '') + (f'<script src="{base}assets/consentement.js"></script>\n' if ADS_ID and script == 'merci.js' else '') + f'<script src="{base}assets/{script}"></script>\n' + ('' if script == 'admin.js' else f'<script src="{base}assets/mesure.js" defer></script>\n') + '</body>\n</html>\n'
 
 
 APPS = [

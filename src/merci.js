@@ -17,7 +17,10 @@
   }
   if (!d.paye) return echec('Le paiement est en cours de validation. Vous recevrez un e-mail dès qu\'il est confirmé.');
   // Client connecté (cas normal : il a payé depuis son dossier) : retour direct au dossier, avec le message de succès en haut.
-  if (d.enregistree && d.connecte) { location.replace(d.espace + '&paye=acompte'); return; }
+  // Vente signalée à Google Ads (si le visiteur a accepté les cookies publicitaires) : valeur = total de la commande.
+  const achat = suite => window.lbpAchat ? window.lbpAchat(d.total || d.montant, sid, suite) : suite && suite();
+  if (d.enregistree && d.connecte) { achat(() => location.replace(d.espace + '&paye=acompte')); return; }
+  achat();
   const mdp = d.compte && !d.compte.motDePasse;
   const kind = {dp: 'déclaration préalable', pc: 'permis de construire', pd: 'permis de démolir'}[d.kind] || '';
   const delai = d.delai === 1 ? '24 h ouvrées' : d.delai === 5 ? '5 jours ouvrés' : d.delai ? `${d.delai === 2 ? '48 h' : d.delai + ' jours'} ouvrées` : '';

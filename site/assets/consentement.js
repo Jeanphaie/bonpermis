@@ -2,7 +2,8 @@
    - Rien ne se passe si aucun identifiant Google Ads n'est configuré (attribut data-ads absent sur <html>).
    - Aucune balise Google n'est chargée avant un clic sur « Accepter » (mode de base).
    - Le choix, accepté ou refusé, est gardé 6 mois (recommandation CNIL), puis redemandé.
-   - Un lien portant l'attribut data-cookies (pied de page) rouvre le bandeau à tout moment. */
+   - Un lien portant l'attribut data-cookies (pied de page) rouvre le bandeau à tout moment.
+   - window.lbpAchat(valeur, identifiant, suite) envoie la vente à Google Ads après un paiement (merci.js, plan-masse.js). */
 (() => {
   const ID = document.documentElement.dataset.ads;
   if (!ID) return;
@@ -47,5 +48,20 @@
 
   document.addEventListener('click', e => { const l = e.target.closest('[data-cookies]'); if (l) { e.preventDefault(); afficher(); } });
   const choix = lire();
-  if (choix === 'oui') chargerGoogle(); else if (choix === null) afficher();
+
+  // Vente : envoyée à Google Ads une seule fois par paiement, et seulement si le visiteur a accepté. « suite » est toujours appelée.
+  window.lbpAchat = (valeur, id, suite) => {
+    const fin = (() => { let f = false; return () => { if (!f) { f = true; if (suite) suite(); } }; })();
+    const LIB = document.documentElement.dataset.achat, cle = 'lbp-achat-' + id;
+    let deja = false; try { deja = !!localStorage.getItem(cle); } catch (e) {}
+    if (!LIB || !id || !(valeur > 0) || deja || lire() !== 'oui') return fin();
+    try { localStorage.setItem(cle, '1'); } catch (e) {}
+    chargerGoogle();
+    gtag('event', 'conversion', {send_to: ID + '/' + LIB, value: valeur, currency: 'EUR', transaction_id: String(id), event_callback: fin});
+    setTimeout(fin, 2000);
+  };
+
+  // Page « Commande reçue » : on ne redemande rien à quelqu'un qui vient de payer.
+  const merci = document.body && document.body.dataset.page === 'merci';
+  if (choix === 'oui') chargerGoogle(); else if (choix === null && !merci) afficher();
 })();

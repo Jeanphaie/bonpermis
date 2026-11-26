@@ -132,7 +132,7 @@
   if (q.get('paye')) {
     zone.innerHTML = '<p class="pm-note">Vérification du paiement…</p>';
     api('GET', '/api/plan-masse/etat?s=' + encodeURIComponent(q.get('paye')))
-      .then(r => r.paye ? pret(r.id, r.t, r) : formulaire('Le paiement n\'a pas abouti. Vous pouvez recommencer.'))
+      .then(r => { if (r.paye && window.lbpAchat) window.lbpAchat(+r.total || 0, q.get('paye')); return r.paye ? pret(r.id, r.t, r) : formulaire('Le paiement n\'a pas abouti. Vous pouvez recommencer.'); })
       .catch(e => formulaire(e.message));
     zone.scrollIntoView();
   } else if (q.get('id') && q.get('t')) { pret(q.get('id'), q.get('t')); zone.scrollIntoView(); }
