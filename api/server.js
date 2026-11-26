@@ -19,6 +19,7 @@ const PR = require('./promos');
 const T = require('./terrain');
 const PV = require('./planvente');
 const RL = require('./relances');
+const V = require('./visites');
 const {crypto, CONF, P, repondre, lireCorps, lireJson, texte, journal, envoyerMail, signatureValide} = B;
 
 // ---------- demande de rappel ----------
@@ -92,6 +93,9 @@ const ROUTES = {
   'POST /api/admin/reglages': RL.ecrireReglages,
   'POST /api/admin/relancer': RL.relancer,
   'GET /api/relance/stop': RL.stop,
+  // suivi des visites (sans cookie, totaux par jour)
+  'POST /api/v': V.signal,
+  'GET /api/admin/visites': V.lecture,
   // terrain (données IGN) : simulateur et plan du projet
   'GET /api/terrain/adresses': T.adresses,
   'GET /api/terrain': T.terrain,

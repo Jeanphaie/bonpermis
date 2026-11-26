@@ -49,6 +49,7 @@
       <a href="#" class="${actif === 'liste' ? 'on' : ''}">Dossiers</a>
       <a href="#promos" class="${actif === 'promos' ? 'on' : ''}">Codes promo</a>
       <a href="#relances" class="${actif === 'relances' ? 'on' : ''}">Relances</a>
+      <a href="#visites" class="${actif === 'visites' ? 'on' : ''}">Visites</a>
       <a href="#mails" class="${actif === 'mails' ? 'on' : ''}">E-mails envoyés</a>
       <a href="https://dashboard.stripe.com/payments" target="_blank" rel="noopener">Paiements (Stripe)</a>
       <button type="button" data-out>Se déconnecter</button></nav>
@@ -446,6 +447,43 @@
     });
   }
 
+  // ---------- suivi des visites ----------
+  let visJours = 30;
+  async function vueVisites() {
+    const r = await api('GET', '/visites?jours=' + visJours);
+    if (r.s === 401) return connexion();
+    if (!r.ok) { el.innerHTML = cadre('<h1>Visites</h1><p class="form-err">Le service ne répond pas.</p>', 'visites'); brancherCadre(); return; }
+    const v = r.j, T = v.total, nb = n => Number(n || 0).toLocaleString('fr-FR');
+    const pct = (a, b) => b ? (Math.round(a / b * 1000) / 10).toLocaleString('fr-FR') + ' %' : '-';
+    const max = Math.max(1, ...v.serie.map(x => x.visiteurs));
+    const jc = j => new Date(j + 'T12:00:00').toLocaleDateString('fr-FR', {day: 'numeric', month: 'short'});
+    const barres = v.serie.map(x => `<div class="vis-b" title="${jc(x.jour)} : ${x.visiteurs} visiteur${x.visiteurs > 1 ? 's' : ''}, ${x.vues} page${x.vues > 1 ? 's' : ''} vue${x.vues > 1 ? 's' : ''}${x.crees ? ', ' + x.crees + ' dossier' + (x.crees > 1 ? 's' : '') + ' créé' + (x.crees > 1 ? 's' : '') : ''}${x.payes ? ', ' + x.payes + ' payé' + (x.payes > 1 ? 's' : '') : ''}"><i style="height:${Math.round(x.visiteurs / max * 100)}%"></i>${x.payes ? '<u></u>' : ''}</div>`).join('');
+    const tab = (titre, L, vide, total) => `<div class="carte"><h2 class="vis-h">${titre}</h2>${L.length ? `<table class="vis-t"><tbody>${L.map(x => `<tr><td>${esc(x.nom)}</td><td>${nb(x.n)}</td><td>${pct(x.n, total)}</td></tr>`).join('')}</tbody></table>` : `<p class="note" style="margin:0">${vide}</p>`}</div>`;
+    const E = v.etapes || {};
+    const tunnel = [['Visiteurs', T.visiteurs], ['Simulateur ouvert', E.simu || 0], ['Prix affiché', E.prix || 0], ['Clic sur « Continuer »', E.continuer || 0], ['Dossier créé', T.crees], ['Acompte payé', T.payes]];
+    el.innerHTML = cadre(`<div class="rang ecart"><h1>Visites</h1><div class="rang">${[7, 30, 90].map(n => `<button class="btn petit ${n === visJours ? 'blue-btn' : 'ghost'}" type="button" data-vj="${n}">${n} jours</button>`).join('')}</div></div>
+      <p class="note" style="margin:8px 0 16px">${v.premier ? `Comptage en place depuis le ${jc(v.premier).replace(/\.$/, '')}.` : 'Aucune visite comptée pour l\'instant : le comptage vient de démarrer.'} Sans cookie, totaux par jour. Un visiteur est compté une fois par jour. Ne sont pas comptés : l'équipe connectée à cet espace, les robots, les navigateurs qui demandent à ne pas être suivis.</p>
+      <div class="vis-k">
+        <div class="carte"><span>Visiteurs</span><b>${nb(T.visiteurs)}</b><small>${pct(T.mobile, T.visiteurs)} sur téléphone</small></div>
+        <div class="carte"><span>Pages vues</span><b>${nb(T.vues)}</b><small>${T.visiteurs ? (Math.round(T.vues / T.visiteurs * 10) / 10).toLocaleString('fr-FR') : '-'} par visiteur</small></div>
+        <div class="carte"><span>Dossiers créés</span><b>${nb(T.crees)}</b><small>${pct(T.crees, T.visiteurs)} des visiteurs</small></div>
+        <div class="carte"><span>Acomptes payés</span><b>${nb(T.payes)}</b><small>${pct(T.payes, T.visiteurs)} des visiteurs · ${nb(Math.round(T.ca))} € de commandes</small></div>
+        <div class="carte"><span>Plans vendus à l'unité</span><b>${nb(T.plans)}</b><small>plan de masse, étude</small></div>
+      </div>
+      <div class="carte" style="margin-top:12px"><h2 class="vis-h">Visiteurs par jour</h2><div class="vis-g">${barres}</div>
+        <div class="rang ecart note" style="margin-top:6px"><span>${jc(v.serie[0].jour)}</span><span>Le point bleu marque un jour avec un acompte payé. Passez la souris sur une barre pour le détail.</span><span>${jc(v.serie[v.serie.length - 1].jour)}</span></div></div>
+      <div class="vis-2">
+        <div class="carte"><h2 class="vis-h">Du visiteur au paiement</h2><table class="vis-t"><tbody>${tunnel.map(([t, n]) => `<tr><td>${t}</td><td>${nb(n)}</td><td>${pct(n, T.visiteurs)}</td></tr>`).join('')}</tbody></table>
+          <p class="note" style="margin:10px 0 0">Les trois lignes du simulateur comptent chaque visiteur une fois par jour. Les dossiers et les paiements viennent des dossiers eux-mêmes, codes gratuits exclus.</p></div>
+        ${tab('D\'où viennent les visiteurs', v.sources, 'Rien pour l\'instant.', T.visiteurs)}
+        ${tab('Pages d\'arrivée', v.entrees, 'Rien pour l\'instant.', T.visiteurs)}
+        ${tab('Pages les plus vues', v.pages, 'Rien pour l\'instant.', T.vues)}
+        ${tab('Campagnes (utm_campaign)', v.campagnes, 'Aucune visite avec un nom de campagne dans le lien.', T.visiteurs)}
+      </div>`, 'visites');
+    brancherCadre();
+    el.querySelectorAll('[data-vj]').forEach(b => b.addEventListener('click', () => { visJours = +b.dataset.vj; vueVisites(); }));
+  }
+
   // ---------- codes promo ----------
   async function vuePromos(msg) {
     const r = await api('GET', '/promos');
@@ -489,7 +527,7 @@
 
   function route() {
     const h = decodeURIComponent(location.hash.slice(1));
-    if (h === 'promos') vuePromos(); else if (h === 'relances') vueRelances(); else if (h === 'mails') vueMails(); else if (/^BP-[A-Z0-9]{6}$/.test(h)) vueDossier(h); else vueListe();
+    if (h === 'promos') vuePromos(); else if (h === 'relances') vueRelances(); else if (h === 'visites') vueVisites(); else if (h === 'mails') vueMails(); else if (/^BP-[A-Z0-9]{6}$/.test(h)) vueDossier(h); else vueListe();
   }
   window.addEventListener('hashchange', route);
   route();

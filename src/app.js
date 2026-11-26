@@ -23,6 +23,7 @@
     body.querySelector('.qtitle').focus();
   }
   function open(p, opener, regul){
+    if (window.bpMesure) window.bpMesure('simu');
     if (p==='regul') return openRegul(opener);
     if (opener) lastFocus = opener;
     S = {p, a:{}, i:0, q:X.flow(P, p, {}), opt:{depot:false, express:false, visio:false, concept:false, d3:false, amenag:false, plus1:false, plus2:false}, regul:!!regul, stage:'a'};
@@ -128,6 +129,7 @@
 
   function renderVerdict(){
     const v = X.verdict(P, S.p, S.a, S.regul); S.v = v;
+    if (window.bpMesure) window.bpMesure('prix');
     const T = S.terrain;
     if (v.note && T) v.note = v.note.map(n =>
       (T.secteurProtege === false && n.indexOf('On vérifie avec votre adresse si vous êtes en quartier protégé') === 0) ? 'Aucun secteur protégé trouvé à votre adresse : pas de supplément prévu. On le confirme en préparant votre dossier.'
@@ -192,7 +194,7 @@
         else S.opt[o] = cb.checked;
         renderVerdict();
       }));
-      body.querySelector('[data-next]').addEventListener('click', () => { S.stage='c'; S.call=false; render(); });
+      body.querySelector('[data-next]').addEventListener('click', () => { if (window.bpMesure) window.bpMesure('continuer'); S.stage='c'; S.call=false; render(); });
       body.querySelector('[data-save]').addEventListener('click', async e => {
         const b = e.currentTarget, out = body.querySelector('[data-saved]'), proj = {p:S.p, a:S.a, regul:S.regul, opt:S.opt, adresse:S.adresse || '', lieu:S.lieu || null};
         b.disabled = true;

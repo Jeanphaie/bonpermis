@@ -673,3 +673,24 @@ body[data-page=dossier] .esp{padding-top:20px}
 .cf .cf-c input,.cf select{width:100%;box-sizing:border-box;font:inherit;font-size:15px;padding:9px 11px;border:1px solid var(--line-2);border-radius:9px;background:var(--surface);color:var(--ink)}
 .cf .cf-coche{flex:1 1 100%;display:flex;gap:8px;align-items:center;font-size:14px;margin:0 0 12px}
 .cf-brut{margin:0 0 14px;font-size:14px}.cf-brut summary{cursor:pointer;color:var(--accent)}
+
+/* Espace équipe : suivi des visites */
+.vis-k{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+.vis-k .carte + .carte{margin-top:0}
+.vis-k span{display:block;font-size:13px;color:var(--muted)}
+.vis-k b{display:block;font-family:var(--f-display);font-weight:600;font-size:30px;line-height:1.2}
+.vis-k small{display:block;font-size:13px;color:var(--muted)}
+.vis-h{font-size:16px;font-weight:600;margin:0 0 10px}
+.vis-g{display:flex;align-items:flex-end;gap:2px;height:150px;border-bottom:1px solid var(--line)}
+.vis-b{flex:1;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;position:relative;min-width:2px}
+.vis-b i{display:block;width:100%;min-height:1px;background:var(--accent);border-radius:3px 3px 0 0;opacity:.75}
+.vis-b:hover i{opacity:1}
+.vis-b u{position:absolute;top:0;width:7px;height:7px;border-radius:50%;background:var(--accent)}
+.vis-2{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:12px;margin-top:12px}
+.vis-2 .carte + .carte{margin-top:0}
+.vis-t{width:100%;border-collapse:collapse;font-size:14px}
+.vis-t td{padding:6px 0;border-top:1px solid var(--line)}
+.vis-t tr:first-child td{border-top:0}
+.vis-t td:first-child{overflow-wrap:anywhere;padding-right:10px}
+.vis-t td:nth-child(2),.vis-t td:nth-child(3){text-align:right;white-space:nowrap;width:1%;padding-left:14px;font-variant-numeric:tabular-nums}
+.vis-t td:nth-child(3){color:var(--muted)}

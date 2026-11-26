@@ -165,7 +165,7 @@ OVERLAY = '''
 
 def scripts(base):
     cons = f'<script src="{base}assets/consentement.js"></script>\n' if ADS_ID else ''
-    return f'<script src="{base}assets/data.js"></script>\n<script src="{base}assets/prix.js"></script>\n<script src="{base}assets/app.js"></script>\n{cons}</body>\n</html>\n'
+    return f'<script src="{base}assets/data.js"></script>\n<script src="{base}assets/prix.js"></script>\n<script src="{base}assets/app.js"></script>\n{cons}<script src="{base}assets/mesure.js" defer></script>\n</body>\n</html>\n'
 
 
 def tuile(k, base, simu=True):
@@ -392,7 +392,12 @@ def page(k):
     return head(titre, c['desc'], slug + '/', base, ld) + f'<body data-page="{simu}">\n\n' + entete(base, False, simu if simu in P or simu == 'regul' else None) + '\n' + corps + '\n' + pied(base) + OVERLAY + f'<script src="{base}assets/adresse.js"></script>\n' + scripts(base)
 
 
-COOKIES_SANS = ("<p>Le site n'utilise pas de cookie publicitaire ni de mesure d'audience. Seuls des cookies techniques servent à garder "
+MESURE = ("<p id=\"mesure\">Pour savoir combien de personnes visitent le site et d'où elles viennent, nous comptons les pages vues nous-mêmes, "
+          "sans cookie et sans service extérieur. Nous ne gardons que des totaux par jour : pages vues, site d'origine, campagne publicitaire. "
+          "Votre adresse IP sert seulement à ne pas vous compter deux fois dans la même journée : elle est transformée en une empreinte "
+          "effacée le lendemain, et n'est jamais enregistrée. Si votre navigateur envoie le signal « ne pas me suivre », vos visites ne sont "
+          "pas comptées. Vous pouvez aussi vous y opposer ici : <button class=\"lien\" type=\"button\" data-mesure>Ne pas compter mes visites</button></p>")
+COOKIES_SANS = ("<p>Le site n'utilise pas de cookie publicitaire. Seuls des cookies techniques servent à garder "
                 "votre session ouverte quand vous vous connectez à votre espace : ils sont indispensables et ne demandent pas d'accord. "
                 "Si cela change, nous vous demanderons votre accord avant.</p>")
 COOKIES_ADS = ("<p>Des cookies techniques servent à garder votre session ouverte quand vous vous connectez à votre espace : ils sont "
@@ -408,7 +413,7 @@ COOKIES_ADS = ("<p>Des cookies techniques servent à garder votre session ouvert
 
 def legale(slug, titre):
     base = '../'
-    corps = (SRC / 'legal' / f'{slug}.html').read_text(encoding='utf-8').replace('{{EMAIL}}', EMAIL).replace('{{TEL}}', TEL).replace('{{TEL_HREF}}', TEL_HREF).replace('{{COOKIES}}', COOKIES_ADS if ADS_ID else COOKIES_SANS)
+    corps = (SRC / 'legal' / f'{slug}.html').read_text(encoding='utf-8').replace('{{EMAIL}}', EMAIL).replace('{{TEL}}', TEL).replace('{{TEL_HREF}}', TEL_HREF).replace('{{COOKIES}}', (COOKIES_ADS if ADS_ID else COOKIES_SANS) + MESURE)
     html_ = f'''<main id="top">
 <section class="page-sec legal-page">
   <div class="wrap narrow">
@@ -442,7 +447,7 @@ def page_app(chemin, titre, desc, ident, script, large=False):
     h = head(f'{titre} | Le Bon Permis', desc, chemin, base, [])
     h = h.replace('<meta charset="utf-8">', '<meta charset="utf-8">\n<meta name="robots" content="noindex">\n<meta name="referrer" content="same-origin">')
     h = h.replace('</head>', f'<link rel="stylesheet" href="{base}assets/espace.css">\n</head>')
-    return h + f'<body data-page="{ident}">\n\n' + entete(base, False) + '\n' + corps + '\n' + (pied(base) if not large else '') + (f'<script src="{base}assets/plan.js"></script>\n' if script in ('espace-dossier.js', 'admin.js') else '') + (f'<script src="{base}assets/pdf-lib.min.js" defer></script>\n<script src="{base}assets/cerfa.js"></script>\n<script src="{base}assets/controles.js"></script>\n' if script == 'admin.js' else '') + (f'<script src="{base}assets/carte.js"></script>\n' if script == 'espace-dossier.js' else '') + f'<script src="{base}assets/{script}"></script>\n</body>\n</html>\n'
+    return h + f'<body data-page="{ident}">\n\n' + entete(base, False) + '\n' + corps + '\n' + (pied(base) if not large else '') + (f'<script src="{base}assets/plan.js"></script>\n' if script in ('espace-dossier.js', 'admin.js') else '') + (f'<script src="{base}assets/pdf-lib.min.js" defer></script>\n<script src="{base}assets/cerfa.js"></script>\n<script src="{base}assets/controles.js"></script>\n' if script == 'admin.js' else '') + (f'<script src="{base}assets/carte.js"></script>\n' if script == 'espace-dossier.js' else '') + f'<script src="{base}assets/{script}"></script>\n' + ('' if script == 'admin.js' else f'<script src="{base}assets/mesure.js" defer></script>\n') + '</body>\n</html>\n'
 
 
 APPS = [
@@ -1063,7 +1068,7 @@ def main():
     (SITE / 'assets').mkdir(exist_ok=True)
     data = {'P': P, 'GROUPS': GROUPS, 'SVCS': SVCS, 'NEED': NEED, 'URL': URL}
     (SITE / 'assets' / 'data.js').write_text('window.OP = ' + json.dumps(data, ensure_ascii=False) + ';\n', encoding='utf-8')
-    for f in ('app.js', 'prix.js', 'consentement.js', 'merci.js', 'dossier.js', 'espace.js', 'espace-dossier.js', 'admin.js', 'espace.css', 'plan.js', 'carte.js', 'plan-masse.js', 'plan-situation.js', 'adresse.js', 'cerfa.js', 'controles.js', 'pdf-lib.min.js'):
+    for f in ('app.js', 'prix.js', 'mesure.js', 'consentement.js', 'merci.js', 'dossier.js', 'espace.js', 'espace-dossier.js', 'admin.js', 'espace.css', 'plan.js', 'carte.js', 'plan-masse.js', 'plan-situation.js', 'adresse.js', 'cerfa.js', 'controles.js', 'pdf-lib.min.js'):
         shutil.copy(SRC / f, SITE / 'assets' / f)
     shutil.copy(SRC / 'style.css', SITE / 'assets' / 'style.css')
     shutil.copytree(SRC / 'cerfa', SITE / 'assets' / 'cerfa', dirs_exist_ok=True)
