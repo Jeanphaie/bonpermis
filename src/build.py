@@ -289,6 +289,17 @@ def page(k):
             f'<figure><a href="../img/{ex["dossier"]}/{f}.webp" target="_blank" rel="noopener"><img src="../img/{ex["dossier"]}/{f}-p.webp" alt="{e(code)} : {e(nom_p)}, {e(ex.get("alt", "exemple réel"))}" loading="lazy" width="720" height="509"></a>'
             f'<figcaption><b>{e(code)}</b> {e(nom_p)}<span>{e(leg)}</span></figcaption></figure>' for f, code, nom_p, leg in ex['planches'])
         + f'</div><p class="rules-src">{e(ex["note"])}</p></div></section>')
+    # Les pièces du dossier en images : les mêmes vignettes que la page « pièces du dossier », sauf si la page a déjà son propre exemple.
+    PIECES_VIG = [('exemple-extension/pcmi2-plan-de-masse', 'Plan de masse', 'Le terrain vu du dessus, le projet coté'),
+                  ('exemple-extension/pcmi3-coupe', 'Plan de coupe', 'Le terrain et la construction en tranche'),
+                  ('exemple-extension/pcmi5-facades-projet', 'Façades', 'Chaque face, avec matériaux et couleurs'),
+                  ('exemple-extension/pcmi6-insertion', 'Insertion', 'Le projet fini, calé sur une photo du terrain'),
+                  ('exemple-extension/pcmi7-8-photos', 'Photos', 'De près et de loin, repérées sur le plan')]
+    pieces_html = '' if (ex or (k in P and P[k].get('svc'))) else (
+        '<section id="pieces" class="page-sec alt"><div class="wrap"><h2>Ce que contient votre dossier</h2>'
+        '<p class="lead">Chaque pièce est dessinée par nous, d\'après votre croquis et vos photos.</p><div class="pieces vig">'
+        + ''.join(f'<article class="piece"><a href="../img/{f}.webp" target="_blank" rel="noopener"><img src="../img/{f}-p.webp" alt="{e(t)} : exemple tiré d\'un dossier réel" loading="lazy" width="720" height="509"></a><div><h3>{e(t)}</h3><p>{e(x)}</p></div></article>' for f, t, x in PIECES_VIG)
+        + '</div><p class="rules-src">Exemples tirés d\'un dossier réel d\'extension de maison, nom et adresse masqués, publié avec l\'accord de la cliente. Les pièces de votre dossier dépendent de votre projet. <a href="../pieces-du-dossier/">Toutes les pièces, une par une</a></p></div></section>')
     blocs_sup = '' if not (blocs_html or etapes_html or erreurs_html) else f'<section class="page-sec"><div class="wrap narrow">{blocs_html}{etapes_html}{erreurs_html}</div></section>'
     gar_t, gar_p = c.get('garantie', ["Si la mairie dit non à cause de nous, on reprend tout, sans frais.",
                                       "Un refus ou une pièce manquante à cause d'une erreur dans le dossier ? On corrige et on redépose, sans rien vous facturer."])
@@ -309,6 +320,7 @@ def page(k):
     else:
         faits_prix = f"<span><b>{e(c['prix'])}</b>Prix TTC tout compris</span><span><b>{e(c['delai'])}</b>Dossier prêt</span>"
         cta_prix, cta_lignes = c['prix'], ''
+    multi_html = '' if svc else '<p class="gar-ligne"><b>Un autre projet sur le même terrain ?</b> Il entre dans le même dossier pour 79 € de plus : un seul dépôt en mairie, une seule attente. Trois projets au maximum. <a href="../tarifs/#options">Voir les options</a></p>'
     need_html = '' if not need else (
         '<details class="besoin"><summary>Ce qu\'il faut nous envoyer</summary><ul class="need-list">'
         + ''.join(f'<li><i>{t}</i>{e(x)}</li>' for t, x in zip(['Le projet', 'Les mesures', 'Les photos'], need)) + '</ul></details>')
@@ -364,9 +376,10 @@ def page(k):
       <button class="btn blue-btn" type="button" data-p="{simu}">Voir mon prix exact</button>
     </div>
     <p class="gar-ligne"><b>{e(gar_t)}</b> {e(gar_p)} <a href="../tarifs/#garantie">Voir les conditions</a></p>
+    {multi_html}
   </div>
 </section>
-{exemple_html}{blocs_sup}
+{exemple_html}{pieces_html}{blocs_sup}
 {faq_html}
 <section class="page-sec">
   <div class="wrap">

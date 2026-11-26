@@ -243,7 +243,7 @@
         <div class="z-cmd pile">
           <section class="carte"><h3>Commande</h3><dl class="dl">
             <dt>Projet</dt><dd>${esc(d.nom)}</dd><dt>Client</dt><dd>${esc(d.client)}<br><a href="mailto:${esc(d.email)}">${esc(d.email)}</a></dd>
-            <dt>Options</dt><dd>${esc((d.options || '').replace(/,/g, ', '))}</dd>
+            <dt>Options</dt><dd>${esc((d.options || '').replace('plus1', '1 PROJET EN PLUS (demander lequel)').replace('plus2', '2 PROJETS EN PLUS (demander lesquels)').replace(/,/g, ', '))}</dd>
             ${d.depot ? (() => { const m = d.pieces.find(x => x.id === 'cerfa-mandat'), f = d.depot.fait; return `<dt>Dépôt</dt><dd><b style="color:${f ? '#3E5A38' : '#B3261E'}">${f ? 'Déposé le ' + jour(f.date) + ', numéro ' + esc(f.numero) : 'À faire par nous'}</b><br><small class="note">Accord du client : ${m && m.texte ? '« ' + esc(m.texte) + ' »' : f ? 'non enregistré' : 'pas encore donné, ne pas déposer'}</small>${f ? '' : '<br><button class="btn petit ghost" type="button" data-depot style="margin-top:6px">Dossier déposé, prévenir le client</button>'}</dd>`; })() : ''}
             <dt>Dossier</dt><dd>${esc(KIND[d.kind] || d.kind || '-')}</dd>
             <dt>Prix</dt><dd>${euro(d.total)}${d.promo ? `<br><small class="note">code promo ${esc(d.promo)}</small>` : ''}</dd><dt>Acompte</dt><dd style="color:#3E5A38">${d.paiements.acompte ? euro(d.paiements.acompte.montant) + ' le ' + jour(d.paiements.acompte.date) : '-'}</dd>

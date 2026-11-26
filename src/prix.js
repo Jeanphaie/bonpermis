@@ -104,8 +104,13 @@
     d3:      {prix: 190, label: 'Vue 3D de l\'intérieur'},
     express: {prix: 49,  label: 'Dossier prêt en 24 h'},
     depot:   {prix: 99,  label: 'Dépôt et suivi jusqu\'à la réponse de la mairie'},
-    visio:   {prix: 49,  label: '20 minutes en visio'}
+    visio:   {prix: 49,  label: '20 minutes en visio'},
+    plus1:   {prix: 79,  label: 'Un deuxième projet sur le même dossier'},
+    plus2:   {prix: 158, label: 'Deux projets de plus sur le même dossier'}
   };
+  // Plusieurs projets sur le même terrain, déposés dans le même dossier : 79 € par projet en plus, trois projets au maximum.
+  // plus1 = un projet en plus, plus2 = deux projets en plus. Jamais les deux ensemble. Réservé aux déclarations et aux permis.
+  const MULTI = v => v.kind === 'dp' || v.kind === 'pc';
   // Conception et aménagement intérieur : plus vendus en ligne (10/11/2026). Ce sont des missions de conception,
   // qui demandent une assurance décennale : elles se font sur devis. Pour les rouvrir, remettre les catégories ici.
   const CONCEPT = [];
@@ -123,7 +128,9 @@
       d3: !!(canC && o.concept && o.d3),
       express: !!(v.kind === 'dp' && o.express),
       depot: !!o.depot,
-      visio: !!o.visio
+      visio: !!o.visio,
+      plus1: !!(MULTI(v) && o.plus1 && !o.plus2),
+      plus2: !!(MULTI(v) && o.plus2)
     };
   }
 

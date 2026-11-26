@@ -25,7 +25,7 @@
   function open(p, opener, regul){
     if (p==='regul') return openRegul(opener);
     if (opener) lastFocus = opener;
-    S = {p, a:{}, i:0, q:X.flow(P, p, {}), opt:{depot:false, express:false, visio:false, concept:false, d3:false, amenag:false}, regul:!!regul, stage:'a'};
+    S = {p, a:{}, i:0, q:X.flow(P, p, {}), opt:{depot:false, express:false, visio:false, concept:false, d3:false, amenag:false, plus1:false, plus2:false}, regul:!!regul, stage:'a'};
     // L'adresse déjà donnée sur le site (accueil, page projet, plan de situation) est reprise : on ne la redemande pas.
     const l = window.BPLieu && window.BPLieu.lire(); if (l) { S.adresse = l.label; S.lieu = {lon: l.lon, lat: l.lat}; }
     showPanel((regul?'Travaux déjà faits · ':'') + P[p].n, P[p].img);
@@ -142,7 +142,8 @@
       body.innerHTML = `<div class="verdict"><span class="kind">${v.kind==='archi'?'Il vous faut un architecte':'Un projet à dessiner de zéro'}</span><h3>${v.kind==='archi'?(v.raison==='societe'?'Pour une société, la loi impose un architecte pour tout permis de construire.':'Au-delà de 150 m², la loi impose qu\'un architecte établisse le projet.'):'Votre maison est encore à concevoir.'}</h3><p class="qhelp">${v.kind==='archi'?'On vous met en relation avec un architecte partenaire, qui conçoit le projet et signe avec vous. Laissez-nous votre numéro, on vous rappelle.':'C\'est un vrai travail de conception, qu\'on préfère chiffrer après vous avoir parlé. Laissez-nous votre numéro, on vous rappelle.'}</p></div><button class="btn" type="button" data-call>Être rappelé</button>${back}`;
       body.querySelector('[data-call]').addEventListener('click', () => { S.stage='c'; S.call=true; render(); });
     } else {
-      const dp = v.kind==='dp';
+      const dp = v.kind==='dp', multi = v.kind==='dp' || v.kind==='pc';
+      if (!multi) { S.opt.plus1 = false; S.opt.plus2 = false; }
       const c = P[S.p].cat, canC = CONCEPT.includes(c);
       if (!canC) { S.opt.concept = false; S.opt.d3 = false; }
       const canA = !!v.amenag && !S.opt.concept;
@@ -171,16 +172,26 @@
           ${canC?`<label class="opt"><input type="checkbox" data-o="concept" ${S.opt.concept?'checked':''}><span><b>On conçoit votre projet avec vous</b><small>Vous nous dites ce que vous voulez, on dessine : 2 propositions, les plans de l'intérieur, une vue 3D, et 2 tours d'ajustements</small></span><span class="p">+ 690 €</span></label>`:''}
           ${canC&&S.opt.concept?`<label class="opt"><input type="checkbox" data-o="d3" ${S.opt.d3?'checked':''}><span><b>Vue 3D de l'intérieur</b><small>Pour vous projeter dans vos futures pièces</small></span><span class="p">+ 190 €</span></label>`:''}
           ${dp?`<label class="opt"><input type="checkbox" data-o="express" ${S.opt.express?'checked':''}><span><b>Dossier prêt en 24 h</b><small>Au lieu de 48 h</small></span><span class="p">+ 49 €</span></label>`:''}
-          <label class="opt"><input type="checkbox" data-o="depot" ${S.opt.depot?'checked':''}><span><b>On dépose et on suit le dossier jusqu'à la réponse de la mairie</b><small>Dépôt en ligne avec votre accord écrit, accusé de réception, réponse aux demandes de pièces de la mairie, nouvelles à chaque étape</small></span><span class="p">+ ${X.OPTIONS.depot.prix} €</span></label>
+          <label class="opt"><input type="checkbox" data-o="depot" ${S.opt.depot?'checked':''}><span><b>On dépose et on suit le dossier jusqu'à la réponse de la mairie</b> <em class="reco">Recommandé</em><small>Dépôt en ligne avec votre accord écrit, accusé de réception, réponse aux demandes de pièces de la mairie, nouvelles à chaque étape</small></span><span class="p">+ ${X.OPTIONS.depot.prix} €</span></label>
           <label class="opt"><input type="checkbox" data-o="visio" ${S.opt.visio?'checked':''}><span><b>20 minutes en visio avec nous</b><small>Pour parler de votre projet avant qu'on commence</small></span><span class="p">+ 49 €</span></label>
+          ${multi?`<label class="opt"><input type="checkbox" data-o="plus1" ${S.opt.plus1||S.opt.plus2?'checked':''}><span><b>Un autre projet sur le même terrain</b><small>Par exemple un abri avec la piscine, ou une clôture avec le portail. Un seul dossier, un seul dépôt en mairie. Vous nous dites lequel dans votre espace, après la commande</small></span><span class="p">+ ${X.OPTIONS.plus1.prix} €</span></label>`:''}
+          ${multi&&(S.opt.plus1||S.opt.plus2)?`<label class="opt"><input type="checkbox" data-o="plus2" ${S.opt.plus2?'checked':''}><span><b>Et un troisième projet</b><small>Trois projets au maximum par dossier</small></span><span class="p">+ ${X.OPTIONS.plus1.prix} €</span></label>`:''}
         </div>
+        ${S.opt.plus1||S.opt.plus2?`<p class="small-note">Plusieurs projets dans un même dossier : si la mairie bloque l'un d'eux, tout le dossier attend. Si on voit ce risque en lisant le règlement de votre mairie, on vous propose de les séparer avant de commencer.</p>`:''}
         <div class="total"><span>Total TTC</span><b>${euro(total(v))}</b></div>
         <div class="lines acompte-l"><div><span>Aujourd'hui, acompte de 30 %</span><span>${euro(acompte(v))}</span></div><div><span>Quand le dossier est prêt, le solde</span><span>${euro(Math.round((total(v) - acompte(v)) * 100) / 100)}</span></div></div>
         <p class="small-note">Avant le solde, vous voyez un aperçu de vos plans en basse qualité, avec un filigrane. Vous les relisez nets après le paiement, et les corrections sont comprises.</p>
         <p class="small-note">Compris : la vérification des règles de votre mairie, tous les plans et pièces du dossier, le formulaire rempli, la relecture. Si la mairie refuse à cause de nous, on corrige sans frais.</p>
         </div><button class="btn blue-btn" type="button" data-next>Continuer</button>
         <button class="btn ghost" type="button" data-save style="margin-top:10px">Enregistrer dans mon espace</button><p class="small-note" data-saved aria-live="polite"></p>${back}`;
-      body.querySelectorAll('[data-o]').forEach(cb => cb.addEventListener('change', () => { S.opt[cb.dataset.o] = cb.checked; renderVerdict(); }));
+      body.querySelectorAll('[data-o]').forEach(cb => cb.addEventListener('change', () => {
+        const o = cb.dataset.o;
+        // Projets en plus : plus1 = un projet, plus2 = deux projets, jamais les deux à la fois.
+        if (o === 'plus1') { S.opt.plus1 = cb.checked; S.opt.plus2 = false; }
+        else if (o === 'plus2') { S.opt.plus2 = cb.checked; S.opt.plus1 = !cb.checked; }
+        else S.opt[o] = cb.checked;
+        renderVerdict();
+      }));
       body.querySelector('[data-next]').addEventListener('click', () => { S.stage='c'; S.call=false; render(); });
       body.querySelector('[data-save]').addEventListener('click', async e => {
         const b = e.currentTarget, out = body.querySelector('[data-saved]'), proj = {p:S.p, a:S.a, regul:S.regul, opt:S.opt, adresse:S.adresse || '', lieu:S.lieu || null};

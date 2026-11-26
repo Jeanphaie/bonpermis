@@ -246,6 +246,7 @@ footer a{color:var(--muted)}
 .opt b{font-weight:500}
 .opt small{display:block;color:var(--muted);font-size:13px}
 .opt .p{margin-left:auto;white-space:nowrap;font-weight:500}
+.opt .reco,.tarif-lignes .reco{display:inline-block;font:500 10.5px/1 var(--f-mono);font-style:normal;letter-spacing:.04em;text-transform:uppercase;background:var(--terra);color:#fff;padding:4px 7px;border-radius:999px;vertical-align:2px;margin-left:4px}
 .total{display:flex;justify-content:space-between;align-items:baseline;margin-top:18px;font-size:16px}
 .total b{font-size:30px;letter-spacing:-.02em}
 .small-note{font-size:13px;color:var(--muted);margin-top:8px}
@@ -783,3 +784,11 @@ header.top:has(.top-act > button.btn) nav.links a[href$="questions/"]{display:no
 .piece h3{font-size:19px;margin:0}
 .piece p{margin:0;color:var(--muted);font-size:15px;line-height:1.5}
 .piece a{color:var(--accent);font-weight:600;font-size:15px;margin-top:4px}
+
+/* vignettes des pièces sur les pages projet */
+.pieces.vig{grid-template-columns:repeat(5,1fr);gap:14px;margin-top:24px}
+.pieces.vig .piece h3{font-size:16px;margin:0 0 4px}
+.pieces.vig .piece p{margin:0;color:var(--muted);font-size:13.5px}
+.pieces.vig .piece img{aspect-ratio:720/509;object-fit:cover;display:block}
+@media (max-width:980px){.pieces.vig{grid-template-columns:repeat(3,1fr)}}
+@media (max-width:560px){.pieces.vig{grid-template-columns:repeat(2,1fr)}}

@@ -284,7 +284,7 @@
         ${!d.paiements.acompte ? `<span>Acompte, à la validation</span><span>${euro(acompteAff())}</span>` : ''}
         ${d.paiements.acompte ? `<span class="vert">Acompte payé le ${new Date(d.paiements.acompte.date).toLocaleDateString('fr-FR', {day: 'numeric', month: 'short'})}</span><span class="vert">${euro(d.paiements.acompte.montant)}</span>` : ''}
         ${d.paiements.solde ? (d.paiements.solde.montant ? `<span class="vert">Solde payé le ${new Date(d.paiements.solde.date).toLocaleDateString('fr-FR', {day: 'numeric', month: 'short'})}</span><span class="vert">${euro(d.paiements.solde.montant)}</span>` : '') : `<span class="gris">Solde, après l'aperçu</span><span class="gris">${euro(promoOk ? promoOk.solde : d.solde)}</span>`}
-      </div><p class="note">Options : ${esc(d.options || 'aucune').replace(/,/g, ', ').replace('aucune', 'aucune')}. Les reçus de paiement vous sont envoyés par e-mail.</p></section>`;
+      </div><p class="note">Options : ${esc(d.options || 'aucune').replace('plus1', 'un projet en plus').replace('plus2', 'deux projets en plus').replace(/,/g, ', ')}. Les reçus de paiement vous sont envoyés par e-mail.</p></section>`;
   }
 
   // ---------- validation du dossier (statut « brouillon ») : paiement de l'acompte ----------
