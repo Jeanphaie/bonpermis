@@ -695,11 +695,36 @@ def page_questions():
                         'Questions fréquentes', "Les réponses aux questions qu'on nous pose le plus.", sections, [faq_ld(bloc)])
 
 
-def _plan(dossier, fichier, alt, legende, base='../'):
-    """Un plan montré en grand : vignette cliquable, légende dessous."""
-    return (f'<figure class="guide-plan"><a href="{base}img/{dossier}{fichier}.webp" target="_blank" rel="noopener">'
-            f'<img src="{base}img/{dossier}{fichier}-p.webp" alt="{e(alt)}" loading="lazy" width="900" height="637"></a>'
+# Google Images : les plans des guides portent un nom de fichier qui dit ce qu'ils sont, et s'affichent en grande taille.
+EXEMPLES = {
+    'exemple-plan-de-masse-extension-maison': ('exemple-extension/pcmi2-plan-de-masse', 2150, 1521),
+    'exemple-plan-de-masse-abri-de-jardin': ('exemple-abri/pcmi2-plan-de-masse', 1818, 1286),
+    'exemple-plan-de-masse-cote-3-dimensions': ('exemple-plan-masse-auto', 1819, 1287),
+    'exemple-plan-de-coupe-extension-maison': ('exemple-extension/pcmi3-coupe', 2150, 1521),
+    'exemple-plan-de-coupe-abri-de-jardin': ('exemple-abri/pcmi3-coupe', 1818, 1286),
+}
+
+
+def copier_exemples():
+    (SITE / 'img' / 'exemples').mkdir(exist_ok=True)
+    for nom, (src, _, _) in EXEMPLES.items():
+        shutil.copy(SITE / 'img' / (src + '.webp'), SITE / 'img' / 'exemples' / (nom + '.webp'))
+
+
+def _plan(nom, alt, legende, base='../'):
+    """Un plan montré en grand, dans la page : c'est cette image que Google Images retient."""
+    _, w, h = EXEMPLES[nom]
+    return (f'<figure class="guide-plan"><a href="{base}img/exemples/{nom}.webp" target="_blank" rel="noopener">'
+            f'<img src="{base}img/exemples/{nom}.webp" alt="{e(alt)}" loading="lazy" width="{w}" height="{h}"></a>'
             f'<figcaption>{legende} <span>Cliquez pour ouvrir en grand.</span></figcaption></figure>')
+
+
+def _images_ld(page, lignes):
+    """Données structurées des plans d'une page : légende et auteur, pour Google Images."""
+    return [{"@context": "https://schema.org", "@type": "ImageObject", "contentUrl": f"{DOMAINE}/img/exemples/{nom}.webp",
+             "url": f"{DOMAINE}/{page}", "name": titre, "caption": legende, "width": EXEMPLES[nom][1], "height": EXEMPLES[nom][2],
+             "creator": {"@type": "Organization", "name": "Le Bon Permis", "url": DOMAINE + "/"},
+             "creditText": "Le Bon Permis", "copyrightNotice": "Le Bon Permis"} for nom, titre, legende in lignes]
 
 
 def _faq_bloc(qr):
@@ -719,11 +744,11 @@ def page_exemple_masse():
     sections = f'''<section class="page-sec" style="padding-top:0">
   <div class="wrap narrow">
     <h2>Exemple 1 : une extension de maison</h2>
-    {_plan('exemple-extension/', 'pcmi2-plan-de-masse', "Exemple de plan de masse PCMI2 pour une extension de maison : terrain, extension cotée, distances aux limites, tableau des surfaces", "<b>Extension de 31 m², permis de construire.</b> Dossier réel, nom et adresse masqués, publié avec l'accord de la cliente.")}
+    {_plan('exemple-plan-de-masse-extension-maison', "Exemple de plan de masse PCMI2 pour une extension de maison : terrain, extension cotée, distances aux limites, tableau des surfaces", "<b>Extension de 31 m², permis de construire.</b> Dossier réel, nom et adresse masqués, publié avec l'accord de la cliente.")}
     <h2 class="mt">Exemple 2 : un abri de jardin</h2>
-    {_plan('exemple-abri/', 'pcmi2-plan-de-masse', "Exemple de plan de masse pour un abri de jardin de 24 m² : abri coté, distances aux limites du terrain", "<b>Abri de jardin de 6 m sur 4.</b> Exemple préparé par notre équipe sur un terrain réel, non déposé en mairie.")}
+    {_plan('exemple-plan-de-masse-abri-de-jardin', "Exemple de plan de masse pour un abri de jardin de 24 m² : abri coté, distances aux limites du terrain", "<b>Abri de jardin de 6 m sur 4.</b> Exemple préparé par notre équipe sur un terrain réel, non déposé en mairie.")}
     <h2 class="mt">Exemple 3 : le plan sorti de notre outil</h2>
-    {_plan('', 'exemple-plan-masse-auto', "Exemple de plan de masse coté sorti de l'outil en ligne : terrain, maison, abri de jardin, distances aux limites", f"<b>Abri de 4 m sur 3, plan automatique à {PRIX_PLAN} €.</b> Terrain réel, commune et parcelle remplacées par des valeurs d'exemple.")}
+    {_plan('exemple-plan-de-masse-cote-3-dimensions', "Exemple de plan de masse coté sorti de l'outil en ligne : terrain, maison, abri de jardin, distances aux limites", f"<b>Abri de 4 m sur 3, plan automatique à {PRIX_PLAN} €.</b> Terrain réel, commune et parcelle remplacées par des valeurs d'exemple.")}
   </div>
 </section>
 
@@ -751,7 +776,10 @@ def page_exemple_masse():
     return _page_simple('exemple-plan-de-masse/', 'Exemple de plan de masse (DP2, PCMI2) | Le Bon Permis',
                         "Trois exemples de plan de masse à ouvrir en grand : extension, abri de jardin, plan automatique. Et la liste de ce que la mairie veut y trouver.",
                         'Exemple de plan de masse (DP2, PCMI2)', "Trois plans de masse tels qu'on les livre, à ouvrir en grand. Et ce que la mairie veut y trouver.",
-                        sections, [faq_ld(_faq_bloc(qr))])
+                        sections, [faq_ld(_faq_bloc(qr))] + _images_ld('exemple-plan-de-masse/', [
+                            ('exemple-plan-de-masse-extension-maison', "Exemple de plan de masse d'une extension de maison (PCMI2)", "Plan de masse d'une extension de 31 m² : terrain, extension cotée, distances aux limites, tableau des surfaces."),
+                            ('exemple-plan-de-masse-abri-de-jardin', "Exemple de plan de masse d'un abri de jardin", "Plan de masse d'un abri de jardin de 6 m sur 4 : abri coté, distances aux limites du terrain."),
+                            ('exemple-plan-de-masse-cote-3-dimensions', "Exemple de plan de masse coté dans les trois dimensions (DP2)", "Plan de masse coté d'un abri de 4 m sur 3 : longueur, largeur, hauteur et distances aux limites.")]))
 
 
 def page_tuto_masse():
@@ -770,7 +798,7 @@ def page_tuto_masse():
       <li><h2 class="h3">Ajoutez l'accès, les réseaux et les plantations</h2><p>Le chemin depuis la rue, les raccordements si le projet en a besoin, les arbres gardés, supprimés ou plantés.</p></li>
       <li><h2 class="h3">Terminez par les repères</h2><p>La flèche du nord, une légende, l'endroit du trait de coupe, et les endroits d'où vous prenez les photos du dossier.</p></li>
     </ol>
-    {_plan('', 'exemple-plan-masse-auto', "Plan de masse coté terminé : terrain, maison, abri de jardin, distances aux limites, nord et échelle", "<b>Le résultat attendu.</b> Ici un abri de 4 m sur 3, sorti de notre outil.")}
+    {_plan('exemple-plan-de-masse-cote-3-dimensions', "Plan de masse coté terminé : terrain, maison, abri de jardin, distances aux limites, nord et échelle", "<b>Le résultat attendu.</b> Ici un abri de 4 m sur 3, sorti de notre outil.")}
   </div>
 </section>
 
@@ -806,9 +834,9 @@ def page_coupe():
     sections = f'''<section class="page-sec" style="padding-top:0">
   <div class="wrap narrow">
     <h2>Exemple 1 : une extension de maison</h2>
-    {_plan('exemple-extension/', 'pcmi3-coupe', "Exemple de plan de coupe PCMI3 pour une extension de maison : profil du terrain, construction en tranche, hauteurs", "<b>Extension de maison, permis de construire.</b> Dossier réel, nom et adresse masqués, publié avec l'accord de la cliente.")}
+    {_plan('exemple-plan-de-coupe-extension-maison', "Exemple de plan de coupe PCMI3 pour une extension de maison : profil du terrain, construction en tranche, hauteurs", "<b>Extension de maison, permis de construire.</b> Dossier réel, nom et adresse masqués, publié avec l'accord de la cliente.")}
     <h2 class="mt">Exemple 2 : un abri de jardin</h2>
-    {_plan('exemple-abri/', 'pcmi3-coupe', "Exemple de plan de coupe pour un abri de jardin : abri et terrain en tranche, hauteurs", "<b>Abri de jardin de 6 m sur 4.</b> Exemple préparé par notre équipe sur un terrain réel, non déposé en mairie.")}
+    {_plan('exemple-plan-de-coupe-abri-de-jardin', "Exemple de plan de coupe pour un abri de jardin : abri et terrain en tranche, hauteurs", "<b>Abri de jardin de 6 m sur 4.</b> Exemple préparé par notre équipe sur un terrain réel, non déposé en mairie.")}
   </div>
 </section>
 
@@ -840,7 +868,9 @@ def page_coupe():
     return _page_simple('plan-de-coupe/', 'Plan de coupe (DP3, PCMI3) : exemples | Le Bon Permis',
                         "Deux exemples de plan de coupe à ouvrir en grand, ce que la mairie veut y voir, et comment le dessiner en quatre étapes.",
                         'Plan de coupe : exemples et méthode (DP3, PCMI3)', "Deux plans de coupe tels qu'on les livre, ce que la mairie veut y voir, et comment le dessiner.",
-                        sections, [faq_ld(_faq_bloc(qr))])
+                        sections, [faq_ld(_faq_bloc(qr))] + _images_ld('plan-de-coupe/', [
+                            ('exemple-plan-de-coupe-extension-maison', "Exemple de plan de coupe d'une extension de maison (PCMI3)", "Plan en coupe d'une extension : profil du terrain, construction en tranche, hauteurs."),
+                            ('exemple-plan-de-coupe-abri-de-jardin', "Exemple de plan de coupe d'un abri de jardin", "Plan en coupe d'un abri de jardin : abri et terrain en tranche, hauteurs.")]))
 
 
 def page_pieces():
@@ -1022,6 +1052,7 @@ def main():
     (SITE / 'plan-de-situation').mkdir(exist_ok=True)
     (SITE / 'plan-de-situation' / 'index.html').write_text(page_plan_situation(), encoding='utf-8')
     chemins.append('plan-de-situation/')
+    copier_exemples()
     for chemin, fabrique in (('projets', page_projets), ('comment-ca-marche', page_comment), ('questions', page_questions),
                              ('exemple-plan-de-masse', page_exemple_masse), ('comment-faire-un-plan-de-masse', page_tuto_masse),
                              ('plan-de-coupe', page_coupe), ('pieces-du-dossier', page_pieces)):
