@@ -707,9 +707,31 @@ EXEMPLES = {
 
 
 def copier_exemples():
-    (SITE / 'img' / 'exemples').mkdir(exist_ok=True)
+    """Copie les plans d'exemple sous leur nom descriptif, avec la mention bonpermis.fr en haut à droite du cadre.
+    Un fichier déjà présent n'est pas refait : pour le régénérer, le supprimer puis relancer (il faut Pillow)."""
+    dest = SITE / 'img' / 'exemples'
+    dest.mkdir(exist_ok=True)
     for nom, (src, _, _) in EXEMPLES.items():
-        shutil.copy(SITE / 'img' / (src + '.webp'), SITE / 'img' / 'exemples' / (nom + '.webp'))
+        cible = dest / (nom + '.webp')
+        if cible.exists():
+            continue
+        try:
+            from PIL import Image, ImageDraw, ImageFont
+        except ImportError:
+            shutil.copy(SITE / 'img' / (src + '.webp'), cible)
+            continue
+        im = Image.open(SITE / 'img' / (src + '.webp')).convert('RGB')
+        w, h = im.size
+        police = None
+        for f in ('/usr/share/fonts/opentype/inter/Inter-Bold.otf', '/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf',
+                  '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf'):
+            if Path(f).exists():
+                police = ImageFont.truetype(f, round(w * 0.0125))
+                break
+        if police:
+            d = ImageDraw.Draw(im)
+            d.text((round(w * 0.962), round(h * 0.058)), 'bonpermis.fr', font=police, fill=(35, 64, 217), anchor='rm')
+        im.save(cible, 'WEBP', quality=88, method=6)
 
 
 def _plan(nom, alt, legende, base='../'):
