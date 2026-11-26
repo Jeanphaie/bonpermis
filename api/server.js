@@ -132,6 +132,7 @@ const ROUTES = {
   'POST /api/espace/dossier/terminer': D.clientTerminer,
   'POST /api/espace/dossier/valider': D.clientValider,
   'GET /api/espace/voir': D.clientVoir,
+  'POST /api/espace/dossier/confirmer': D.clientConfirmer,
   'GET /api/espace/telecharger': D.clientTelecharger,
   // équipe
   'POST /api/admin/code': C.adminCode,

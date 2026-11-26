@@ -26,13 +26,13 @@
 
   // ---------- avancement en 5 étapes ----------
   function etapes() {
-    const pos = {brouillon: 0, elements: 1, verification: 2, preparation: 3, apercu: 3, corrections: 3, livre: 5}[d.statut] ?? 1;
+    const pos = d.telechargeable ? 5 : ({brouillon: 0, elements: 1, verification: 2, preparation: 3, apercu: 3, corrections: 3, livre: 5}[d.statut] ?? 1);
     const delai = d.delai === 1 ? '24 h ouvrées' : d.delai === 2 ? '48 h ouvrées' : `${d.delai} jours ouvrés`;
     const L = [
       d.paiements.acompte ? [d.total > 0 ? 'Acompte payé' : 'Dossier validé', new Date(d.paiements.acompte.date).toLocaleDateString('fr-FR', {day: 'numeric', month: 'short'})] : ['Validation', `Acompte de ${euro(acompteAff())} à régler`],
       ['Vos pièces', pos <= 1 ? `${pos === 1 ? 'En cours · ' : ''}${d.recues.n} sur ${d.recues.sur}` : `${d.recues.n} sur ${d.recues.sur} reçues`],
       ['Vérification', pos === 2 ? 'En cours, sous 24 h ouvrées' : 'sous 24 h ouvrées'],
-      ['Aperçu des plans', d.statut === 'preparation' && d.echeance ? 'Au plus tard le ' + jour(d.echeance) : d.statut === 'apercu' ? 'À relire' : d.statut === 'corrections' ? 'Corrections en cours' : delai],
+      ['Aperçu des plans', d.statut === 'preparation' && d.echeance ? 'Au plus tard le ' + jour(d.echeance) : d.statut === 'apercu' ? 'Prêt, à recevoir' : d.statut === 'corrections' ? 'Corrections en cours' : delai],
       ['Dossier prêt', d.paiements.solde ? 'Téléchargeable' : d.paiements.acompte && !(d.total > 0) ? 'après validation des plans' : 'après le solde']
     ];
     return `<ol class="dz-etapes" aria-label="Avancement du dossier">${L.map((x, k) => {
@@ -235,18 +235,27 @@
   function apercu() {
     if (!d.livrables.length || !['apercu', 'corrections', 'livre'].includes(d.statut)) return '';
     if (!livrSel || !d.livrables.some(l => l.id === livrSel)) livrSel = d.livrables[0].id;
-    const l = d.livrables.find(x => x.id === livrSel), livre = d.statut === 'livre';
-    const pages = l.pages && !livre ? Array.from({length: l.pages}, (_, k) => `<img class="page-ap" src="/api/espace/voir?ref=${R}&l=${l.id}&n=${k + 1}" alt="${esc(l.code)}, page ${k + 1}" loading="lazy">`).join('')
-      : livre ? '' : l.reservee ? '<div class="sans-ap">Cette pièce est prête. Elle vous est remise avec le dossier complet, dès que vous validez vos plans.</div>' : '<div class="sans-ap">Aperçu en image indisponible pour cette pièce. Il sera téléchargeable après validation.</div>';
-    return `<section class="dz-carte" id="plans"><h2 class="dz-h2">${livre ? 'Votre dossier est prêt' : 'Vos plans à relire'}</h2>
-        ${livre ? `<p style="margin:0 0 12px">Votre dossier complet, sans filigrane.</p>
-          <div class="pile">${d.livrables.map(x => `<a class="rang ecart" href="/api/espace/telecharger?ref=${R}&id=${x.id}" style="text-decoration:none;color:inherit;border-top:1px solid var(--line);padding-top:10px"><span><b>${esc(x.code)}</b> ${esc(x.nom)}</span><span class="lien">Télécharger</span></a>`).join('')}</div>
-          <a class="btn blue-btn" href="/api/espace/telecharger?ref=${R}" style="width:100%;margin-top:16px">Tout télécharger (zip)</a>`
-        : `<div class="livr-tabs" role="group" aria-label="Pièces du dossier">${d.livrables.map(x => `<button type="button" data-l="${x.id}" aria-pressed="${x.id === l.id}">${esc(x.code)}</button>`).join('')}</div>
+    // Dossier réglé : le client télécharge, relit, et peut encore demander une correction.
+    const livre = d.telechargeable, l = d.livrables.find(x => x.id === livrSel);
+    if (livre) return `<section class="dz-carte" id="plans"><h2 class="dz-h2">${d.statut === 'corrections' ? 'Corrections en cours' : 'Votre dossier est prêt'}</h2>
+        <p style="margin:0 0 12px">${d.statut === 'corrections' ? 'Nous reprenons vos plans et revenons vers vous avec la version corrigée. En attendant, la version actuelle reste téléchargeable.' : 'Votre dossier complet, en pleine qualité et sans filigrane. Relisez chaque pièce avant de déposer.'}</p>
+        <div class="pile">${d.livrables.map(x => `<a class="rang ecart" href="/api/espace/telecharger?ref=${R}&id=${x.id}" style="text-decoration:none;color:inherit;border-top:1px solid var(--line);padding-top:10px"><span><b>${esc(x.code)}</b> ${esc(x.nom)}</span><span class="lien">Télécharger</span></a>`).join('')}</div>
+        <a class="btn blue-btn" href="/api/espace/telecharger?ref=${R}" style="width:100%;margin-top:16px">Tout télécharger (zip)</a>
+        ${d.statut === 'corrections' ? '' : d.confirme ? '<p class="ok-msg" style="margin-top:14px">Vous avez confirmé que tout est bon. Un doute plus tard ? Écrivez-nous, les corrections restent comprises jusqu\'au dépôt.</p>'
+          : `<div class="rang" style="margin-top:16px"><button class="btn ghost" type="button" data-corr>Demander une correction</button><button class="btn ghost" type="button" data-confirmer>Tout est bon</button></div>
+          <p class="note">Quelque chose ne va pas ? On corrige, c'est compris dans le prix, jusqu'au dépôt en mairie.</p>`}
+      </section>`;
+    // Avant le solde : un aperçu volontairement dégradé, pour montrer que le dossier est prêt.
+    const pages = l.reservee ? '<div class="sans-ap">Cette pièce est prête. Elle vous est remise avec le dossier complet.</div>'
+      : l.pages ? Array.from({length: l.pages}, (_, k) => `<img class="page-ap" src="/api/espace/voir?ref=${R}&l=${l.id}&n=${k + 1}" alt="${esc(l.code)}, aperçu de la page ${k + 1}" loading="lazy">`).join('')
+      : '<div class="sans-ap">Aperçu indisponible pour cette pièce. Elle vous est remise avec le dossier complet.</div>';
+    return `<section class="dz-carte" id="plans"><h2 class="dz-h2">Votre dossier est prêt</h2>
+        <p style="margin:0 0 12px">${d.livrables.length} pièce${d.livrables.length > 1 ? 's' : ''} préparée${d.livrables.length > 1 ? 's' : ''}. Voici un aperçu, volontairement en basse qualité. ${d.solde > 0 ? 'Réglez le solde' : 'Validez'} pour recevoir tous vos plans en pleine qualité, avec le formulaire rempli.</p>
+        <div class="livr-tabs" role="group" aria-label="Pièces du dossier">${d.livrables.map(x => `<button type="button" data-l="${x.id}" aria-pressed="${x.id === l.id}">${esc(x.code)}</button>`).join('')}</div>
           <p style="margin:12px 0 0"><b>${esc(l.code)}</b> ${esc(l.nom)}${l.pages ? ` <span class="note">· ${l.pages} page${l.pages > 1 ? 's' : ''}</span>` : ''}</p>${pages}
           ${d.statut === 'corrections' ? '<p class="ok-msg" style="margin-top:14px">Corrections demandées : nous revenons vers vous avec une nouvelle version.</p>' : `
-          <div class="rang" style="margin-top:16px"><button class="btn ghost" type="button" data-corr>Demander une correction</button><button class="btn blue-btn" type="button" data-valider>${d.solde > 0 ? 'C\'est bon pour moi : payer le solde de ' + euro(d.solde) : 'C\'est bon pour moi : recevoir mon dossier'}</button></div>
-          <p class="note">Les corrections sont comprises jusqu'au dépôt. ${d.solde > 0 ? 'Après le solde' : 'Dès que vous validez'}, vous téléchargez le dossier complet sans filigrane.</p>`}`}
+          <div class="rang" style="margin-top:16px"><button class="btn blue-btn" type="button" data-valider>${d.solde > 0 ? 'Recevoir mon dossier : payer le solde de ' + euro(d.solde) : 'Recevoir mon dossier'}</button></div>
+          <p class="note">Vous relisez ensuite vos plans en pleine qualité. Si quelque chose ne va pas, on corrige : c'est compris dans le prix, jusqu'au dépôt en mairie. <button class="lien" type="button" data-corr>Signaler un problème dès maintenant</button></p>`}
       </section>`;
   }
 
@@ -254,7 +263,7 @@
     return `<section class="dz-carte dz-side"><h3>Une question ?</h3>
       <div class="fil">${d.messages.length ? d.messages.map(m => `<div class="msg ${m.de}${m.type === 'correction' ? ' correction' : ''}"><small>${m.de === 'client' ? 'Vous' : 'L\'équipe'} · ${court(m.date)}${m.type === 'correction' ? ' · correction' : ''}</small>${esc(m.texte)}</div>`).join('') : '<p class="note" style="margin:0">Écrivez-nous ici, on répond sous 24 h ouvrées.</p>'}</div>
       <form id="fmsg"><label for="fmsg-t" class="note" style="display:block;margin:0 0 6px">Votre message</label><textarea id="fmsg-t" name="t" rows="2" maxlength="3000" placeholder="Écrivez-nous ici" class="dz-texte"></textarea>
-      <label class="rang" style="font-size:14px;margin-top:8px" ${d.statut === 'apercu' ? '' : 'hidden'}><input type="checkbox" name="corr" style="width:18px;height:18px;accent-color:var(--accent)"> C'est une demande de correction des plans</label>
+      <label class="rang" style="font-size:14px;margin-top:8px" ${['apercu', 'livre'].includes(d.statut) ? '' : 'hidden'}><input type="checkbox" name="corr" style="width:18px;height:18px;accent-color:var(--accent)"> C'est une demande de correction des plans</label>
       <p class="form-err" role="alert" hidden></p><button class="btn ghost petit" type="submit" style="margin-top:8px">Envoyer</button></form></section>`;
   }
 
@@ -286,7 +295,7 @@
     return `<section class="dz-valider" id="valider">
       <div class="dz-valider-t">
         <h2>Validez votre dossier pour qu'on commence</h2>
-        ${promoOk && total === 0 ? `<p>Avec votre code <b>${esc(promoOk.code)}</b>, ce dossier est <b>gratuit</b> : rien à payer, ni maintenant ni plus tard.${d.recues.n < d.recues.sur ? ' Vous pouvez envoyer vos pièces avant ou après.' : ''}</p>` : `<p>Acompte de <b>${euro(acompteAff())}</b>${Math.abs(acompteAff() - total * 0.3) < 0.01 ? ', soit 30 % du prix de ' + euro(total) : ' sur un prix de ' + euro(total)}. Le solde de ${euro(solde)} se règle après l'aperçu de vos plans, quand tout vous convient.${d.recues.n < d.recues.sur ? ' Vous pouvez envoyer vos pièces avant ou après : rien n\'est perdu.' : ''}</p>`}
+        ${promoOk && total === 0 ? `<p>Avec votre code <b>${esc(promoOk.code)}</b>, ce dossier est <b>gratuit</b> : rien à payer, ni maintenant ni plus tard.${d.recues.n < d.recues.sur ? ' Vous pouvez envoyer vos pièces avant ou après.' : ''}</p>` : `<p>Acompte de <b>${euro(acompteAff())}</b>${Math.abs(acompteAff() - total * 0.3) < 0.01 ? ', soit 30 % du prix de ' + euro(total) : ' sur un prix de ' + euro(total)}. Le solde de ${euro(solde)} se règle quand votre dossier est prêt. Vous le relisez ensuite, et on corrige si besoin.${d.recues.n < d.recues.sur ? ' Vous pouvez envoyer vos pièces avant ou après : rien n\'est perdu.' : ''}</p>`}
         <ul class="dz-garanties">
           ${promoOk && total === 0 ? '' : '<li>Paiement sécurisé par Stripe : carte, Apple Pay, Google Pay, PayPal</li>'}
           <li>Corrections des plans comprises jusqu'au dépôt</li>
@@ -337,7 +346,7 @@
   function afficher() {
     const w = el.closest('.wrap'); if (w) w.classList.add('dz-large');
     const manque = d.pieces.filter(p => !p.facultatif && p.etat === 'manquant').length;
-    const statut = d.statut === 'brouillon' ? ['Non validé : acompte à régler', 'attente'] : d.statut === 'elements' && manque ? [`À vous : ${manque} pièce${manque > 1 ? 's' : ''} à envoyer`, 'attente'] : d.statut === 'apercu' ? ['À vous : relire vos plans', 'attente'] : [d.statutTexte, d.statut === 'livre' ? 'ok' : 'info'];
+    const statut = d.statut === 'brouillon' ? ['Non validé : acompte à régler', 'attente'] : d.statut === 'elements' && manque ? [`À vous : ${manque} pièce${manque > 1 ? 's' : ''} à envoyer`, 'attente'] : d.statut === 'apercu' ? ['Dossier prêt : solde à régler', 'attente'] : [d.statutTexte, d.statut === 'livre' ? 'ok' : 'info'];
     const kind = {dp: 'Déclaration préalable', pc: 'Permis de construire', pd: 'Permis de démolir'}[d.kind] || '';
     const pct = Math.round(d.recues.n / Math.max(1, d.recues.sur) * 100);
     const prochaine = d.statut === 'livre' ? null : d.pieces.find(p => !p.facultatif && p.type !== 'plan' && (p.etat === 'a_refaire' || p.etat === 'manquant'));
@@ -450,6 +459,8 @@
       if (!r.ok) { const e = el.querySelector('#errfin'); e.textContent = r.j.erreur || 'Erreur.'; e.hidden = false; return; }
       charger();
     });
+    const conf = el.querySelector('[data-confirmer]');
+    if (conf) conf.addEventListener('click', async () => { conf.disabled = true; const r = await api('POST', '/espace/dossier/confirmer?ref=' + R).catch(() => ({})); if (r.ok) { d = Object.assign(d, r.j); afficher(); } else conf.disabled = false; });
     const corr = el.querySelector('[data-corr]');
     if (corr) corr.addEventListener('click', () => { const f = el.querySelector('#fmsg'); f.corr.checked = true; f.t.placeholder = 'Quelle pièce, et que faut-il changer ?'; f.t.focus(); f.scrollIntoView({block: 'center'}); });
     const val = el.querySelector('[data-valider]');

@@ -134,7 +134,7 @@ function vueCmd(cmd, pourEquipe) {
     fichiers: cmd.fichiers.map(fichierPublic), messages: cmd.messages, recues: r,
     livrables: cmd.livrables.map(l => (!pourEquipe && reservee(cmd, l) ? {id: l.id, code: l.code, nom: l.nom, pages: 0, reservee: true, date: l.date} : {id: l.id, code: l.code, nom: l.nom, pages: l.pages, taille: l.taille, date: l.date})),
     depot: aDepot(cmd.options) ? {fait: cmd.depot || null} : null,
-    telechargeable: !!cmd.paiements.solde, demandes: NEED[cmd.projet] || NEED.extension,
+    telechargeable: !!cmd.paiements.solde, confirme: cmd.confirme || null, demandes: NEED[cmd.projet] || NEED.extension,
     lignes: cmd.lignes || null, promo: cmd.promo || null
   };
   if (pourEquipe) { try { o.relances = require('./relances').resume(cmd); } catch (e) { o.relances = null; } }
@@ -476,7 +476,7 @@ async function soldeRecu(s, m) {
   journal('solde payé', cmd.ref, s.amount_total / 100 + ' €');
   const u = C.lireUser(cmd.uid);
   await envoyerMail(CONF.mailA, `${offert ? 'Dossier livré' : 'Solde payé'} ${cmd.ref} : ${cmd.nom}`, `${offert ? 'Le client a validé ses plans (dossier offert, pas de solde)' : 'Le client a réglé le solde (' + euro(s.amount_total / 100) + ')'}. Il peut télécharger son dossier.\n\n${CONF.site}/admin/#${cmd.ref}\n`, cmd.email);
-  if (u) await envoyerMail(cmd.email, `Dossier ${cmd.ref} : prêt à télécharger`, `Bonjour,\n\n${offert ? 'Merci, vos plans sont validés' : 'Merci, le solde est bien reçu'}. Votre dossier complet est prêt à télécharger, sans filigrane :\n${C.lienLong(u, '/espace/dossier/?ref=' + cmd.ref)}\n\n${String(cmd.options).includes('depot') ? 'Vous avez choisi le dépôt et le suivi : nous déposons le dossier pour vous, nous vous envoyons le numéro d\'enregistrement et nous répondons à la mairie si elle demande une pièce, jusqu\'à sa réponse.' : 'Il ne vous reste qu\'à signer le formulaire et à le déposer en mairie, ou en ligne si votre commune le permet.'}${signature}`, CONF.mailA);
+  if (u) await envoyerMail(cmd.email, `Dossier ${cmd.ref} : prêt à télécharger`, `Bonjour,\n\n${offert ? 'Merci, vos plans sont validés' : 'Merci, le solde est bien reçu'}. Votre dossier complet est prêt à télécharger, en pleine qualité. Relisez-le : si quelque chose ne va pas, demandez une correction depuis la même page, c'est compris. Il est sans filigrane :\n${C.lienLong(u, '/espace/dossier/?ref=' + cmd.ref)}\n\n${String(cmd.options).includes('depot') ? 'Vous avez choisi le dépôt et le suivi : nous déposons le dossier pour vous, nous vous envoyons le numéro d\'enregistrement et nous répondons à la mairie si elle demande une pièce, jusqu\'à sa réponse.' : 'Il ne vous reste qu\'à signer le formulaire et à le déposer en mairie, ou en ligne si votre commune le permet.'}${signature}`, CONF.mailA);
 }
 
 // GET /api/commande?ref=cs_... : page « Commande reçue »
@@ -592,7 +592,7 @@ async function message(req, res, cmd, de) {
   const d = await lireJson(req, 30000); const t = d && texteLong(d.texte, 3000);
   if (!t) return repondre(res, 400, {erreur: 'Message vide.'});
   cmd.messages.push({de, texte: t, date: new Date().toISOString(), type: d.correction ? 'correction' : undefined});
-  if (de === 'client' && d.correction && cmd.statut === 'apercu') { cmd.statut = 'corrections'; histo(cmd, 'Corrections demandées par le client'); }
+  if (de === 'client' && d.correction && ['apercu', 'livre'].includes(cmd.statut)) { histo(cmd, cmd.statut === 'livre' ? 'Corrections demandées par le client, après le solde' : 'Corrections demandées par le client'); cmd.statut = 'corrections'; delete cmd.confirme; }
   sauver(cmd); repondre(res, 200, {ok: true, messages: cmd.messages});
   const u = C.lireUser(cmd.uid);
   if (de === 'client') await envoyerMail(CONF.mailA, `${d.correction ? 'Corrections demandées' : 'Message'} ${cmd.ref} : ${cmd.nom}`, `${cmd.email} a écrit :\n\n${t}\n\n${CONF.site}/admin/#${cmd.ref}\n`, cmd.email);
@@ -644,7 +644,8 @@ const RESERVEES = ['CERFA', 'NOTICE'];
 const reservee = (cmd, l) => RESERVEES.includes(l.code) && !(cmd.paiements && cmd.paiements.solde);
 function voirApercu(res, cmd, lid, n, client) {
   const l = cmd.livrables.find(x => x.id === lid);
-  if (l && client && reservee(cmd, l)) return repondre(res, 403, {erreur: 'Cette pièce est remise avec le dossier complet.'}); if (!l || !(n >= 1 && n <= l.pages)) return repondre(res, 404, {erreur: 'Page introuvable.'});
+  if (l && client && reservee(cmd, l)) return repondre(res, 403, {erreur: 'Cette pièce est remise avec le dossier complet.'});
+  if (l && !client && n >= 1 && n <= l.pages) { const net = path.join(dDir(cmd.ref), 'apercu', `${l.id}-e${n}.jpg`); if (fs.existsSync(net)) return envoyerFichier(res, net, 'image/jpeg'); } if (!l || !(n >= 1 && n <= l.pages)) return repondre(res, 404, {erreur: 'Page introuvable.'});
   return envoyerFichier(res, path.join(dDir(cmd.ref), 'apercu', `${l.id}-${n}.jpg`), 'image/jpeg');
 }
 function clientVoir(req, res, url) {
@@ -654,6 +655,13 @@ function clientVoir(req, res, url) {
 }
 function livrablesZip(res, cmd) {
   B.envoyerZip(res, `${cmd.ref}-dossier.zip`, cmd.livrables.map((l, i) => ({nom: `${String(i + 1).padStart(2, '0')}-${B.nomPropre(l.code + '-' + l.nom)}.pdf`, data: fs.readFileSync(path.join(dDir(cmd.ref), 'livrables', l.id + '.pdf'))})));
+}
+// POST /api/espace/dossier/confirmer?ref= : après le solde, le client a relu ses plans et dit que tout est bon.
+function clientConfirmer(req, res, url) {
+  const cmd = cmdClient(req, res, url); if (!cmd) return;
+  if (cmd.statut !== 'livre') return repondre(res, 409, {erreur: 'Votre dossier n\'est pas encore livré.'});
+  if (!cmd.confirme) { cmd.confirme = new Date().toISOString(); histo(cmd, 'Le client a relu son dossier : tout est bon'); sauver(cmd); }
+  repondre(res, 200, vueCmd(cmd, false));
 }
 function clientTelecharger(req, res, url) {
   const cmd = cmdClient(req, res, url); if (!cmd) return;
@@ -921,7 +929,7 @@ async function equipeGenerer(req, res, url) {
   const frais = lireCmd(cmd.ref);
   for (const l of frais.livrables.filter(x => x.auto)) {
     fs.rmSync(path.join(dDir(cmd.ref), 'livrables', l.id + '.pdf'), {force: true});
-    for (let n = 1; n <= l.pages; n++) fs.rmSync(path.join(dDir(cmd.ref), 'apercu', `${l.id}-${n}.jpg`), {force: true});
+    for (let n = 1; n <= l.pages; n++) for (const s of ['', 'e']) fs.rmSync(path.join(dDir(cmd.ref), 'apercu', `${l.id}-${s}${n}.jpg`), {force: true});
   }
   frais.livrables = frais.livrables.filter(x => !x.auto);
   fs.mkdirSync(path.join(dDir(cmd.ref), 'livrables'), {recursive: true});
@@ -941,7 +949,7 @@ async function equipeSupprimerLivrable(req, res, url) {
   const l = cmd.livrables.find(x => x.id === url.searchParams.get('id')); if (!l) return repondre(res, 404, {});
   cmd.livrables = cmd.livrables.filter(x => x !== l); sauver(cmd);
   fs.rmSync(path.join(dDir(cmd.ref), 'livrables', l.id + '.pdf'), {force: true});
-  for (let n = 1; n <= l.pages; n++) fs.rmSync(path.join(dDir(cmd.ref), 'apercu', `${l.id}-${n}.jpg`), {force: true});
+  for (let n = 1; n <= l.pages; n++) for (const s of ['', 'e']) fs.rmSync(path.join(dDir(cmd.ref), 'apercu', `${l.id}-${s}${n}.jpg`), {force: true});
   repondre(res, 200, vueCmd(cmd, true));
 }
 async function equipeEnvoyerApercu(req, res, url) {
@@ -949,11 +957,14 @@ async function equipeEnvoyerApercu(req, res, url) {
   if (!cmd.livrables.length) return repondre(res, 400, {erreur: 'Déposez d\'abord les PDF du dossier.'});
   if (cmd.statut === 'livre') return repondre(res, 409, {erreur: 'Dossier déjà livré.'});
   const d = await lireJson(req) || {};
-  cmd.statut = 'apercu'; histo(cmd, 'Aperçu envoyé au client');
+  // Solde déjà réglé (corrections demandées après la livraison) : la version corrigée est remise tout de suite.
+  const regle = !!cmd.paiements.solde;
+  cmd.statut = regle ? 'livre' : 'apercu'; histo(cmd, regle ? 'Version corrigée remise au client' : 'Dossier prêt : aperçu envoyé au client');
   if (texteLong(d.texte, 3000)) cmd.messages.push({de: 'equipe', texte: texteLong(d.texte, 3000), date: new Date().toISOString()});
   sauver(cmd); repondre(res, 200, vueCmd(cmd, true));
-  const u = C.lireUser(cmd.uid);
-  if (u) await envoyerMail(cmd.email, `Dossier ${cmd.ref} : vos plans sont prêts à relire`, `Bonjour,\n\nVos plans sont prêts. Relisez chaque pièce dans votre espace :\n${C.lienLong(u, '/espace/dossier/?ref=' + cmd.ref)}\n\nUne correction ? Demandez-la depuis la même page, c'est compris dans le prix.\nTout vous convient ? Réglez le solde de ${euro(cmd.solde)} et téléchargez le dossier complet, sans filigrane.${signature}`, CONF.mailA);
+  const u = C.lireUser(cmd.uid), lien = u ? C.lienLong(u, '/espace/dossier/?ref=' + cmd.ref) : '';
+  if (u && regle) await envoyerMail(cmd.email, `Dossier ${cmd.ref} : la version corrigée est prête`, `Bonjour,\n\nVos corrections sont faites. Le dossier à jour est à télécharger dans votre espace :\n${lien}\n\nRelisez-le, et dites-nous si tout est bon.${signature}`, CONF.mailA);
+  else if (u) await envoyerMail(cmd.email, `Dossier ${cmd.ref} : votre dossier est prêt`, `Bonjour,\n\nVotre dossier est prêt. Un aperçu de chaque plan vous attend dans votre espace :\n${lien}\n\n${cmd.solde > 0 ? `Réglez le solde de ${euro(cmd.solde)} pour recevoir tous vos plans en pleine qualité, avec le formulaire rempli.` : 'Validez-le pour recevoir tous vos plans en pleine qualité, avec le formulaire rempli.'}\nVous les relisez ensuite tranquillement : si quelque chose ne va pas, on corrige, c'est compris dans le prix.${signature}`, CONF.mailA);
 }
 function equipeZip(req, res, url) {
   const cmd = cmdEquipe(req, res, url); if (!cmd) return;
@@ -967,7 +978,7 @@ function equipeZip(req, res, url) {
 module.exports = {
   verifierPromo, creerDossier, payerDossier,
   REF_RE, lireCmd, sauver, vueCmd, commande, etatCommande, paiementRecu, enregistrerProjet, supprimerProjet, commanderProjet, espace,
-  clientDossier, clientTexte, clientPlusTard, clientPlan, clientFichier, clientSupprimerFichier, clientMessage, clientTerminer, clientValider, clientVoir, clientTelecharger,
+  clientDossier, clientTexte, clientPlusTard, clientPlan, clientFichier, clientSupprimerFichier, clientMessage, clientConfirmer, clientTerminer, clientValider, clientVoir, clientTelecharger,
   equipeListe, equipeArchiver, equipeDossier, equipeVoir, equipePiece, equipeCommande, equipeBrief, equipeAnalyse, equipeAppliquer, equipeGenerer, equipeClasser, equipeFichier, equipeMessage, equipeLancer, equipeDepot, equipeLivrable,
   equipeSupprimerLivrable, equipeEnvoyerApercu, equipeZip, analyser, partAcompte, piecesInitiales, listePieces
 };

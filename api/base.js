@@ -342,8 +342,9 @@ async function preparerVue(src, vue, mini) {
 }
 
 // Aperçu d'un PDF livré : chaque page en image, avec un filigrane « APERÇU ».
-// Fait pour relire, pas pour réutiliser : image de 1 000 px au plus (les petites cotes ne se lisent plus) et filigrane serré,
-// incrusté dans les pixels sur toute la page. Le client ne reçoit jamais de PDF avant d'avoir tout réglé.
+// L'aperçu du client sert à montrer que le dossier est prêt, pas à le relire : image de 420 px, floutée, filigrane serré
+// incrusté dans les pixels. Rien n'y est lisible ni réutilisable. Le client relit sur les vrais PDF, après le solde.
+// L'équipe a sa propre vue nette (fichier « -e »), sans filigrane.
 async function apercuPdf(pdf, dossier, base) {
   if (!OUTILS.pdftoppm) return {pages: 0, erreur: 'outils absents'};
   fs.mkdirSync(dossier, {recursive: true});
@@ -355,10 +356,11 @@ async function apercuPdf(pdf, dossier, base) {
     n++;
     const src = path.join(dossier, f), dst = path.join(dossier, `${base}-${n}.jpg`);
     if (OUTILS.magick) {
-      const args = [src, '-resize', '1000x1000>', '-fill', 'rgba(35,64,217,0.30)', '-gravity', 'center', '-pointsize', '44'];
+      await lancer(OUTILS.magick, [src, '-resize', '1600x1600>', '-quality', '80', '-strip', path.join(dossier, `${base}-e${n}.jpg`)]);
+      const args = [src, '-resize', '420x420>', '-blur', '0x1.1', '-fill', 'rgba(35,64,217,0.30)', '-gravity', 'center', '-pointsize', '26'];
       if (OUTILS.police) args.push('-font', OUTILS.police);
-      for (let y = -540; y <= 540; y += 120) args.push('-annotate', `330x330+0${y < 0 ? y : '+' + y}`, 'APERÇU  bonpermis.fr     APERÇU  bonpermis.fr     APERÇU  bonpermis.fr');
-      args.push('-quality', '70', '-strip', dst);
+      for (let y = -240; y <= 240; y += 80) args.push('-annotate', `330x330+0${y < 0 ? y : '+' + y}`, 'APERÇU  bonpermis.fr     APERÇU  bonpermis.fr');
+      args.push('-quality', '55', '-strip', dst);
       const ok = await lancer(OUTILS.magick, args);
       fs.rmSync(src, {force: true});
       if (!ok) return {pages: 0, erreur: 'filigrane impossible'};
