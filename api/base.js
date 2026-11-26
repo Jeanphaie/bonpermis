@@ -342,6 +342,8 @@ async function preparerVue(src, vue, mini) {
 }
 
 // Aperçu d'un PDF livré : chaque page en image, avec un filigrane « APERÇU ».
+// Fait pour relire, pas pour réutiliser : image de 1 000 px au plus (les petites cotes ne se lisent plus) et filigrane serré,
+// incrusté dans les pixels sur toute la page. Le client ne reçoit jamais de PDF avant d'avoir tout réglé.
 async function apercuPdf(pdf, dossier, base) {
   if (!OUTILS.pdftoppm) return {pages: 0, erreur: 'outils absents'};
   fs.mkdirSync(dossier, {recursive: true});
@@ -353,10 +355,10 @@ async function apercuPdf(pdf, dossier, base) {
     n++;
     const src = path.join(dossier, f), dst = path.join(dossier, `${base}-${n}.jpg`);
     if (OUTILS.magick) {
-      const args = [src, '-resize', '2000x2000>', '-fill', 'rgba(35,64,217,0.17)', '-gravity', 'center', '-pointsize', '120'];
+      const args = [src, '-resize', '1000x1000>', '-fill', 'rgba(35,64,217,0.30)', '-gravity', 'center', '-pointsize', '44'];
       if (OUTILS.police) args.push('-font', OUTILS.police);
-      for (const y of [-560, 0, 560]) args.push('-annotate', `330x330+0${y < 0 ? y : '+' + y}`, 'APERÇU  bonpermis.fr');
-      args.push('-quality', '78', dst);
+      for (let y = -540; y <= 540; y += 120) args.push('-annotate', `330x330+0${y < 0 ? y : '+' + y}`, 'APERÇU  bonpermis.fr     APERÇU  bonpermis.fr     APERÇU  bonpermis.fr');
+      args.push('-quality', '70', '-strip', dst);
       const ok = await lancer(OUTILS.magick, args);
       fs.rmSync(src, {force: true});
       if (!ok) return {pages: 0, erreur: 'filigrane impossible'};

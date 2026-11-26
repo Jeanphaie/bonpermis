@@ -132,7 +132,7 @@ function vueCmd(cmd, pourEquipe) {
     total: cmd.total, acompte: cmd.acompte, solde: cmd.solde, paiements: {acompte: cmd.paiements.acompte ? {montant: cmd.paiements.acompte.montant, date: cmd.paiements.acompte.date} : null, solde: cmd.paiements.solde ? {montant: cmd.paiements.solde.montant, date: cmd.paiements.solde.date} : null},
     pieces: cmd.pieces.map(p => ({id: p.id, nom: p.nom, aide: p.aide, exemple: p.exemple || '', type: p.type, facultatif: facultative(p, cmd), couverte: couverte(p, cmd) && etatPiece(p, cmd) === 'manquant', texte: p.texte || '', etat: etatPiece(p, cmd), motif: p.motif || '', plusTard: !!p.plusTard && etatPiece(p, cmd) === 'manquant', ...(p.type === 'plan' ? {mode: p.mode, plan: p.plan || null} : {})})),
     fichiers: cmd.fichiers.map(fichierPublic), messages: cmd.messages, recues: r,
-    livrables: cmd.livrables.map(l => ({id: l.id, code: l.code, nom: l.nom, pages: l.pages, taille: l.taille, date: l.date})),
+    livrables: cmd.livrables.map(l => (!pourEquipe && reservee(cmd, l) ? {id: l.id, code: l.code, nom: l.nom, pages: 0, reservee: true, date: l.date} : {id: l.id, code: l.code, nom: l.nom, pages: l.pages, taille: l.taille, date: l.date})),
     depot: aDepot(cmd.options) ? {fait: cmd.depot || null} : null,
     telechargeable: !!cmd.paiements.solde, demandes: NEED[cmd.projet] || NEED.extension,
     lignes: cmd.lignes || null, promo: cmd.promo || null
@@ -639,13 +639,17 @@ function voirFichier(res, cmd, fid, taille) {
   if (taille !== 'original' && f.vue) return envoyerFichier(res, path.join(d, 'vues', f.id + (taille === 'mini' ? '-mini' : '') + '.jpg'), 'image/jpeg');
   return envoyerFichier(res, path.join(d, 'fichiers', f.id + '.' + f.type), TYPES[f.type], taille === 'original' ? f.nom : null);
 }
-function voirApercu(res, cmd, lid, n) {
-  const l = cmd.livrables.find(x => x.id === lid); if (!l || !(n >= 1 && n <= l.pages)) return repondre(res, 404, {erreur: 'Page introuvable.'});
+// Pièces de texte (formulaire, notice) : faciles à recopier, donc jamais montrées au client avant la livraison.
+const RESERVEES = ['CERFA', 'NOTICE'];
+const reservee = (cmd, l) => RESERVEES.includes(l.code) && !(cmd.paiements && cmd.paiements.solde);
+function voirApercu(res, cmd, lid, n, client) {
+  const l = cmd.livrables.find(x => x.id === lid);
+  if (l && client && reservee(cmd, l)) return repondre(res, 403, {erreur: 'Cette pièce est remise avec le dossier complet.'}); if (!l || !(n >= 1 && n <= l.pages)) return repondre(res, 404, {erreur: 'Page introuvable.'});
   return envoyerFichier(res, path.join(dDir(cmd.ref), 'apercu', `${l.id}-${n}.jpg`), 'image/jpeg');
 }
 function clientVoir(req, res, url) {
   const cmd = cmdClient(req, res, url); if (!cmd) return;
-  if (url.searchParams.get('l')) return voirApercu(res, cmd, url.searchParams.get('l'), +url.searchParams.get('n'));
+  if (url.searchParams.get('l')) return voirApercu(res, cmd, url.searchParams.get('l'), +url.searchParams.get('n'), true);
   return voirFichier(res, cmd, url.searchParams.get('id'), url.searchParams.get('taille'));
 }
 function livrablesZip(res, cmd) {

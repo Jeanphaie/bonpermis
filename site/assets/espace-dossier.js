@@ -237,7 +237,7 @@
     if (!livrSel || !d.livrables.some(l => l.id === livrSel)) livrSel = d.livrables[0].id;
     const l = d.livrables.find(x => x.id === livrSel), livre = d.statut === 'livre';
     const pages = l.pages && !livre ? Array.from({length: l.pages}, (_, k) => `<img class="page-ap" src="/api/espace/voir?ref=${R}&l=${l.id}&n=${k + 1}" alt="${esc(l.code)}, page ${k + 1}" loading="lazy">`).join('')
-      : livre ? '' : '<div class="sans-ap">Aperçu en image indisponible pour cette pièce. Il sera téléchargeable après validation.</div>';
+      : livre ? '' : l.reservee ? '<div class="sans-ap">Cette pièce est prête. Elle vous est remise avec le dossier complet, dès que vous validez vos plans.</div>' : '<div class="sans-ap">Aperçu en image indisponible pour cette pièce. Il sera téléchargeable après validation.</div>';
     return `<section class="dz-carte" id="plans"><h2 class="dz-h2">${livre ? 'Votre dossier est prêt' : 'Vos plans à relire'}</h2>
         ${livre ? `<p style="margin:0 0 12px">Votre dossier complet, sans filigrane.</p>
           <div class="pile">${d.livrables.map(x => `<a class="rang ecart" href="/api/espace/telecharger?ref=${R}&id=${x.id}" style="text-decoration:none;color:inherit;border-top:1px solid var(--line);padding-top:10px"><span><b>${esc(x.code)}</b> ${esc(x.nom)}</span><span class="lien">Télécharger</span></a>`).join('')}</div>

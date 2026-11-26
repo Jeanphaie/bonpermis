@@ -141,7 +141,8 @@ function image(req, res, url) {
   if (!ID_RE.test(id)) return repondre(res, 400, {erreur: 'Aperçu inconnu.'});
   const png = fichier(id, '-apercu.png');
   if (fs.existsSync(png)) return B.envoyerFichier(res, png, 'image/png');
-  B.envoyerFichier(res, fichier(id, '-apercu.pdf'), 'application/pdf');
+  // Jamais le PDF de l'aperçu : son filigrane y est un calque qu'un logiciel peut retirer. L'image seule est montrée.
+  repondre(res, 503, {erreur: 'Aperçu indisponible pour le moment. Réessayez dans un instant.'});
 }
 
 async function payer(req, res) {
