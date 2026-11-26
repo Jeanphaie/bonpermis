@@ -845,14 +845,14 @@
    "titre": "Transformer un garage en pièce : quelle démarche en 2026 ?",
    "desc": "Garage transformé en chambre ou bureau, porte remplacée par une fenêtre : déclaration préalable. Dossier complet, nouvelle façade comprise, 319 €.",
    "h1": "Transformer son garage en pièce : faut-il déclarer ?",
-   "chapo": "Oui, dès que la façade change : remplacer la porte de garage par une fenêtre ou un mur demande une déclaration préalable. Au-delà de 20 m² transformés (40 m² en zone urbaine), il faut un permis de construire.",
+   "chapo": "Oui, dès que la façade change : remplacer la porte de garage par une fenêtre ou un mur demande une déclaration préalable. Même sans toucher à la façade, il en faut une dès que plus de 5 m² deviennent habitables.",
    "regles": [
     [
      "Porte de garage remplacée par une fenêtre ou un mur",
      "Déclaration préalable"
     ],
     [
-     "Plus de 20 m² transformés (40 m² en zone urbaine)",
+     "Garage agrandi en même temps (extension de plus de 20 m², ou 40 m² en zone urbaine)",
      "Permis de construire"
     ],
     [
@@ -906,7 +906,7 @@
     ],
     [
      "Quel permis pour transformer un garage en habitation ?",
-     "Une déclaration préalable jusqu'à 20 m² transformés, et jusqu'à 40 m² en zone urbaine d'un plan local d'urbanisme. Au-delà, un permis de construire."
+     "Une déclaration préalable, quelle que soit la surface du garage, dès que plus de 5 m² deviennent habitables ou que la façade change. Un permis de construire n'entre en jeu que si vous agrandissez le garage en même temps."
     ],
     [
      "Est-il possible de transformer son garage en chambre ?",
