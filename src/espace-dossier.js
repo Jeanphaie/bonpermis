@@ -213,7 +213,7 @@
     const S = lesEtapes();
     if (ouv == null || ouv >= S.length) ouvrirDefaut(S);
     return `${frise(S)}${carteEtape(S)}
-      <p class="dz-ensuite"><b>Ensuite, de notre côté</b> : vérification sous 24 h ouvrées · aperçu des plans · ${d.paiements.acompte && !(d.total > 0) ? 'dossier prêt dès que vous validez vos plans' : 'dossier prêt après le solde'}. Tout est enregistré au fur et à mesure : vous pouvez arrêter et revenir plus tard.</p>`;
+      <p class="dz-ensuite"><b>Ensuite, de notre côté</b> : vérification sous 24 h ouvrées · aperçu des plans en basse qualité · ${d.paiements.acompte && !(d.total > 0) ? 'plans nets dès que vous validez' : 'plans nets après le solde, que vous relisez ensuite'}. Tout est enregistré au fur et à mesure : vous pouvez arrêter et revenir plus tard.</p>`;
   }
   function brancherGuide() {
     const S = lesEtapes(), aller = () => { afficher(); const f = el.querySelector('.dz-frise'); if (f && f.getBoundingClientRect().top < 0) f.scrollIntoView({block: 'start'}); };
@@ -250,7 +250,8 @@
       : l.pages ? Array.from({length: l.pages}, (_, k) => `<img class="page-ap" src="/api/espace/voir?ref=${R}&l=${l.id}&n=${k + 1}" alt="${esc(l.code)}, aperçu de la page ${k + 1}" loading="lazy">`).join('')
       : '<div class="sans-ap">Aperçu indisponible pour cette pièce. Elle vous est remise avec le dossier complet.</div>';
     return `<section class="dz-carte" id="plans"><h2 class="dz-h2">Votre dossier est prêt</h2>
-        <p style="margin:0 0 12px">${d.livrables.length} pièce${d.livrables.length > 1 ? 's' : ''} préparée${d.livrables.length > 1 ? 's' : ''}. Voici un aperçu, volontairement en basse qualité. ${d.solde > 0 ? 'Réglez le solde' : 'Validez'} pour recevoir tous vos plans en pleine qualité, avec le formulaire rempli.</p>
+        <p style="margin:0 0 12px">${d.livrables.length} pièce${d.livrables.length > 1 ? 's' : ''} préparée${d.livrables.length > 1 ? 's' : ''}. ${d.solde > 0 ? 'Réglez le solde' : 'Validez'} pour recevoir tous vos plans en pleine qualité, avec le formulaire rempli.</p>
+        <p class="ap-avis"><b>Cet aperçu est volontairement en basse qualité, avec un filigrane.</b> Il montre que votre dossier est fait : les cotes et les petits textes ne s'y lisent pas, c'est normal. Vos plans nets arrivent dès ${d.solde > 0 ? 'le solde réglé' : 'votre validation'}, et vous les relisez à ce moment-là.</p>
         <div class="livr-tabs" role="group" aria-label="Pièces du dossier">${d.livrables.map(x => `<button type="button" data-l="${x.id}" aria-pressed="${x.id === l.id}">${esc(x.code)}</button>`).join('')}</div>
           <p style="margin:12px 0 0"><b>${esc(l.code)}</b> ${esc(l.nom)}${l.pages ? ` <span class="note">· ${l.pages} page${l.pages > 1 ? 's' : ''}</span>` : ''}</p>${pages}
           ${d.statut === 'corrections' ? '<p class="ok-msg" style="margin-top:14px">Corrections demandées : nous revenons vers vous avec une nouvelle version.</p>' : `
@@ -314,7 +315,7 @@
   }
   function barrePayer() {
     if (d.statut !== 'brouillon') return '';
-    return `<div class="dz-barre-payer" role="region" aria-label="Valider le dossier"><span><b>Dossier non validé</b><small>${promoOk && promoOk.total === 0 ? 'Gratuit avec votre code promo' : 'Acompte de ' + euro(acompteAff()) + ', solde après l\'aperçu'}</small></span><button class="btn blue-btn" type="button" data-payer>${promoOk && promoOk.total === 0 ? 'Valider mon dossier' : 'Valider et payer'}</button></div>`;
+    return `<div class="dz-barre-payer" role="region" aria-label="Valider le dossier"><span><b>Dossier non validé</b><small>${promoOk && promoOk.total === 0 ? 'Gratuit avec votre code promo' : 'Acompte de ' + euro(acompteAff()) + ', solde quand le dossier est prêt'}</small></span><button class="btn blue-btn" type="button" data-payer>${promoOk && promoOk.total === 0 ? 'Valider mon dossier' : 'Valider et payer'}</button></div>`;
   }
   function brancherPaiement() {
     el.querySelectorAll('[data-payer]').forEach(b => b.addEventListener('click', async () => {

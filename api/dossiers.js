@@ -217,7 +217,7 @@ async function ouvrirPaiementAcompte(x, email, adresse, uid, pid, lieu, ref) {
     cancel_url: ref ? `${CONF.site}/espace/dossier/?ref=${ref}` : pid ? `${CONF.site}/espace/` : `${page}#${x.p}`,
     line_items: [{quantity: 1, price_data: {currency: 'eur', unit_amount: centimes(acompte), product_data: {
       name: `Acompte 30 % : ${x.nom}`.slice(0, 250),
-      description: `Prix total ${euro(x.total)} TTC (${x.lignes.map(l => l.label).join(', ')}). Solde de ${euro(x.total - acompte)} à régler après l'aperçu des plans.`.slice(0, 500)}}}],
+      description: `Prix total ${euro(x.total)} TTC (${x.lignes.map(l => l.label).join(', ')}). Solde de ${euro(x.total - acompte)} à régler quand le dossier est prêt (aperçu en basse qualité avant, plans nets après).`.slice(0, 500)}}}],
     metadata: meta,
     payment_intent_data: {description: `Acompte ${x.nom}, ${adresse}`.slice(0, 1000), metadata: meta},
     consent_collection: {terms_of_service: 'required'},
@@ -874,7 +874,7 @@ async function equipeLancer(req, res, url) {
   histo(cmd, 'Pièces complètes : plans en préparation'); sauver(cmd);
   repondre(res, 200, vueCmd(cmd, true));
   const u = C.lireUser(cmd.uid);
-  if (u) await envoyerMail(cmd.email, `Dossier ${cmd.ref} : c'est parti`, `Bonjour,\n\nNous avons tout ce qu'il faut. Vos plans sont en préparation : vous recevrez l'aperçu au plus tard le ${ech.toLocaleDateString('fr-FR', {weekday: 'long', day: 'numeric', month: 'long', timeZone: 'Europe/Paris'})}.\n\nSuivre votre dossier : ${C.lienLong(u, '/espace/dossier/?ref=' + cmd.ref)}${signature}`, CONF.mailA);
+  if (u) await envoyerMail(cmd.email, `Dossier ${cmd.ref} : c'est parti`, `Bonjour,\n\nNous avons tout ce qu'il faut. Vos plans sont en préparation : vous serez prévenu dès que le dossier est prêt, au plus tard le ${ech.toLocaleDateString('fr-FR', {weekday: 'long', day: 'numeric', month: 'long', timeZone: 'Europe/Paris'})}.\n\nSuivre votre dossier : ${C.lienLong(u, '/espace/dossier/?ref=' + cmd.ref)}${signature}`, CONF.mailA);
 }
 // Dépôt fait par l'équipe (option « depot ») : on note la date, le numéro d'enregistrement et le guichet, et on prévient le client.
 async function equipeDepot(req, res, url) {
@@ -964,7 +964,7 @@ async function equipeEnvoyerApercu(req, res, url) {
   sauver(cmd); repondre(res, 200, vueCmd(cmd, true));
   const u = C.lireUser(cmd.uid), lien = u ? C.lienLong(u, '/espace/dossier/?ref=' + cmd.ref) : '';
   if (u && regle) await envoyerMail(cmd.email, `Dossier ${cmd.ref} : la version corrigée est prête`, `Bonjour,\n\nVos corrections sont faites. Le dossier à jour est à télécharger dans votre espace :\n${lien}\n\nRelisez-le, et dites-nous si tout est bon.${signature}`, CONF.mailA);
-  else if (u) await envoyerMail(cmd.email, `Dossier ${cmd.ref} : votre dossier est prêt`, `Bonjour,\n\nVotre dossier est prêt. Un aperçu de chaque plan vous attend dans votre espace :\n${lien}\n\n${cmd.solde > 0 ? `Réglez le solde de ${euro(cmd.solde)} pour recevoir tous vos plans en pleine qualité, avec le formulaire rempli.` : 'Validez-le pour recevoir tous vos plans en pleine qualité, avec le formulaire rempli.'}\nVous les relisez ensuite tranquillement : si quelque chose ne va pas, on corrige, c'est compris dans le prix.${signature}`, CONF.mailA);
+  else if (u) await envoyerMail(cmd.email, `Dossier ${cmd.ref} : votre dossier est prêt`, `Bonjour,\n\nVotre dossier est prêt. Un aperçu de chaque plan vous attend dans votre espace :\n${lien}\n\nCet aperçu est volontairement en basse qualité, avec un filigrane : il montre que le dossier est fait, les cotes ne s'y lisent pas.\n${cmd.solde > 0 ? `Réglez le solde de ${euro(cmd.solde)} pour recevoir tous vos plans en pleine qualité, avec le formulaire rempli.` : 'Validez-le pour recevoir tous vos plans en pleine qualité, avec le formulaire rempli.'}\nVous les relisez ensuite tranquillement : si quelque chose ne va pas, on corrige, c'est compris dans le prix.${signature}`, CONF.mailA);
 }
 function equipeZip(req, res, url) {
   const cmd = cmdEquipe(req, res, url); if (!cmd) return;

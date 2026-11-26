@@ -175,7 +175,8 @@
           <label class="opt"><input type="checkbox" data-o="visio" ${S.opt.visio?'checked':''}><span><b>20 minutes en visio avec nous</b><small>Pour parler de votre projet avant qu'on commence</small></span><span class="p">+ 49 €</span></label>
         </div>
         <div class="total"><span>Total TTC</span><b>${euro(total(v))}</b></div>
-        <div class="lines acompte-l"><div><span>Aujourd'hui, acompte de 30 %</span><span>${euro(acompte(v))}</span></div><div><span>Après l'aperçu de vos plans, le solde</span><span>${euro(Math.round((total(v) - acompte(v)) * 100) / 100)}</span></div></div>
+        <div class="lines acompte-l"><div><span>Aujourd'hui, acompte de 30 %</span><span>${euro(acompte(v))}</span></div><div><span>Quand le dossier est prêt, le solde</span><span>${euro(Math.round((total(v) - acompte(v)) * 100) / 100)}</span></div></div>
+        <p class="small-note">Avant le solde, vous voyez un aperçu de vos plans en basse qualité, avec un filigrane. Vous les relisez nets après le paiement, et les corrections sont comprises.</p>
         <p class="small-note">Compris : la vérification des règles de votre mairie, tous les plans et pièces du dossier, le formulaire rempli, la relecture. Si la mairie refuse à cause de nous, on corrige sans frais.</p>
         </div><button class="btn blue-btn" type="button" data-next>Continuer</button>
         <button class="btn ghost" type="button" data-save style="margin-top:10px">Enregistrer dans mon espace</button><p class="small-note" data-saved aria-live="polite"></p>${back}`;

@@ -85,6 +85,7 @@
 .livr-tabs button{flex:none;min-height:40px;padding:0 14px;border-radius:999px;border:1px solid var(--line-2);background:var(--surface);font:500 13px var(--f-body);cursor:pointer;color:var(--ink)}
 .livr-tabs button[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:#fff}
 .page-ap{display:block;width:100%;height:auto;border:1px solid var(--line);border-radius:8px;background:#fff;margin-top:10px}
+.ap-avis{margin:0 0 14px;padding:10px 14px;border-radius:10px;background:var(--accent-soft,#eef1fd);font-size:14px;line-height:1.45}
 .sans-ap{padding:30px 16px;text-align:center;color:var(--muted);border:1px dashed var(--line-2);border-radius:10px;margin-top:10px;font-size:14px}
 /* liseuse plein écran */
 .lis{position:fixed;inset:0;z-index:80;background:#141416;color:#fff;display:flex;flex-direction:column}
