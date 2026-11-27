@@ -21,9 +21,9 @@ EMAIL = 'contact@bonpermis.fr'
 TEL = '01 84 16 65 53'
 TEL_HREF = 'tel:+33184166553'
 # Identifiant Google Ads (AW-XXXXXXXXXX). Vide = aucune balise, aucun bandeau cookies, politique « pas de cookie publicitaire ».
-ADS_ID = 'AW-18568898988'
+ADS_ID = 'AW-18599222268'
 # Libellé de l'action de conversion « Achat » du compte Google Ads (envoyée après un paiement, si le visiteur a accepté).
-ADS_ACHAT = 'aRjrCN3mlMAdEKzTq5ZF'
+ADS_ACHAT = 'jHPMCNCv1cAdEPy35qRF'
 LEGAL = [('mentions-legales', 'Mentions légales'), ('cgv', 'Conditions générales de vente'), ('confidentialite', 'Politique de confidentialité')]
 
 D = json.loads((SRC / 'data.json').read_text(encoding='utf-8'))
