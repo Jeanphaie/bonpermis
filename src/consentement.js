@@ -3,7 +3,8 @@
    - Aucune balise Google n'est chargée avant un clic sur « Accepter » (mode de base).
    - Le choix, accepté ou refusé, est gardé 6 mois (recommandation CNIL), puis redemandé.
    - Un lien portant l'attribut data-cookies (pied de page) rouvre le bandeau à tout moment.
-   - window.lbpAchat(valeur, identifiant, suite) envoie la vente à Google Ads après un paiement (merci.js, plan-masse.js). */
+   - window.lbpAchat(valeur, identifiant, suite) envoie la vente à Google Ads après un paiement (merci.js, plan-masse.js).
+   - window.lbpEtape(nom, suite) signale une étape avant paiement : dossier créé (app.js), aperçu du plan (plan-masse.js). */
 (() => {
   const ID = document.documentElement.dataset.ads;
   if (!ID) return;
@@ -59,6 +60,17 @@
     chargerGoogle();
     gtag('event', 'conversion', {send_to: ID + '/' + LIB, value: valeur, currency: 'EUR', transaction_id: String(id), event_callback: fin});
     setTimeout(fin, 2000);
+  };
+
+  // Étape avant le paiement (« dossier » créé, « apercu » du plan de masse) : conversion secondaire, sans montant,
+  // seulement si le visiteur a accepté. « suite » est toujours appelée, même si rien n'est envoyé.
+  window.lbpEtape = (nom, suite) => {
+    const fin = (() => { let f = false; return () => { if (!f) { f = true; if (suite) suite(); } }; })();
+    const LIB = document.documentElement.dataset['ads' + nom.charAt(0).toUpperCase() + nom.slice(1)];
+    if (!LIB || lire() !== 'oui') return fin();
+    chargerGoogle();
+    gtag('event', 'conversion', {send_to: ID + '/' + LIB, event_callback: fin});
+    setTimeout(fin, 1500);
   };
 
   // Page « Commande reçue » : on ne redemande rien à quelqu'un qui vient de payer.

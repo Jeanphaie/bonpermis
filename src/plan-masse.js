@@ -58,6 +58,7 @@
         etat.plan = plan;
         try { etat.ap = await api('POST', '/api/plan-masse/apercu', {lieu: plan.lieu, plan: {formes: plan.formes}, projet: etat.projet, hauteur: etat.hauteur, adresse: (etat.lieu.label || '').slice(0, 120)}); }
         catch (e) { formulaire(e.message); return true; }
+        if (window.lbpEtape) window.lbpEtape('apercu');
         apercu(); return true;
       }});
   }

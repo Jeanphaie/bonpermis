@@ -24,6 +24,9 @@ TEL_HREF = 'tel:+33184166553'
 ADS_ID = 'AW-18599222268'
 # Libellé de l'action de conversion « Achat » du compte Google Ads (envoyée après un paiement, si le visiteur a accepté).
 ADS_ACHAT = 'jHPMCNCv1cAdEPy35qRF'
+# Étapes intermédiaires (conversions secondaires, pour savoir ce qui avance avant le paiement). Vide = non envoyé.
+ADS_DOSSIER = 'GGCQCMTN3cAdEPy35qRF'
+ADS_APERCU = 'u-XoCMfN3cAdEPy35qRF'
 LEGAL = [('mentions-legales', 'Mentions légales'), ('cgv', 'Conditions générales de vente'), ('confidentialite', 'Politique de confidentialité')]
 
 D = json.loads((SRC / 'data.json').read_text(encoding='utf-8'))
@@ -69,7 +72,7 @@ def head(titre, desc, chemin, base, jsonld):
     url = DOMAINE + '/' + chemin
     ld = '\n'.join(f'<script type="application/ld+json">{json.dumps(j, ensure_ascii=False)}</script>' for j in jsonld)
     return f'''<!DOCTYPE html>
-<html lang="fr" data-base="{base}"{f' data-ads="{ADS_ID}" data-achat="{ADS_ACHAT}"' if ADS_ID else ''}>
+<html lang="fr" data-base="{base}"{f' data-ads="{ADS_ID}" data-achat="{ADS_ACHAT}" data-ads-dossier="{ADS_DOSSIER}" data-ads-apercu="{ADS_APERCU}"' if ADS_ID else ''}>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -633,7 +636,8 @@ def _page_simple(chemin, titre_page, desc, h1, chapo, corps_sections, ld_sup=Non
 
 def page_projets():
     sections = f'''<section class="page-sec chooser" style="padding-top:0">
-  <div class="wrap"><div id="groups">{tuiles_accueil('../')}</div></div>
+  <div class="wrap"><div class="facts" style="margin:0 0 28px"><span><b>Dès 149 €</b>Déclaration préalable, prête en 48 h</span><span><b>Dès 249 €</b>Permis de construire, prêt en 5 jours</span><span><b>Sans frais</b>Si refus de notre fait</span></div>
+  <div id="groups">{tuiles_accueil('../')}</div></div>
 </section>
 <section class="page-sec alt">
   <div class="wrap narrow">

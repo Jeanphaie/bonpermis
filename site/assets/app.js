@@ -358,7 +358,8 @@
           btn.disabled = false; btn.textContent = 'Valider le code et créer mon dossier'; f.code.focus(); return;
         }
         if (!j.url) throw new Error('Réponse inattendue du service.');
-        location.href = j.url;
+        const aller = () => { location.href = j.url; };
+        if (window.lbpEtape) window.lbpEtape('dossier', aller); else aller();
       } catch (x) {
         err.textContent = (x && x.message && !/fetch|network|JSON/i.test(x.message) ? x.message : 'Le service ne répond pas pour le moment.') + (attendCode ? '' : ' Réessayez, ou écrivez-nous à contact@bonpermis.fr.');
         err.hidden = false; btn.disabled = false; btn.textContent = label;
