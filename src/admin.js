@@ -548,9 +548,30 @@
   }
 
   // ---------- suivi des visites ----------
-  let visJours = 30;
+  let visJours = 30, visMinuterie = null;
+  // Bloc « En direct » : en ce moment (signal depuis moins de 5 min), dernière heure, aujourd'hui. Rafraîchi toutes les 30 s.
+  function blocDirect(d) {
+    const nb = n => Number(n || 0).toLocaleString('fr-FR');
+    if (!d) return '<p class="note" style="margin:0">Le direct ne répond pas pour l\'instant.</p>';
+    const h = new Date(d.heure).toLocaleTimeString('fr-FR', {hour: '2-digit', minute: '2-digit', second: '2-digit', timeZone: 'Europe/Paris'});
+    const mn = m => m == null ? '' : m < 1 ? 'arrivé à l\'instant' : `depuis ${m} min`;
+    const liste = d.presents.length ? `<table class="vis-t"><tbody>${d.presents.map(x => `<tr><td>${esc(x.page || '-')}</td><td>${esc(x.source || '-')}</td><td>${mn(x.depuis)} · ${x.vues} page${x.vues > 1 ? 's' : ''}${x.etapes ? ' · simulateur' : ''}</td></tr>`).join('')}</tbody></table>` : '<p class="note" style="margin:0">Personne sur le site en ce moment.</p>';
+    return `<div class="vis-k">
+        <div class="carte"><span>En ce moment</span><b>${nb(d.maintenant)}</b><small>visiteur${d.maintenant > 1 ? 's' : ''} actif${d.maintenant > 1 ? 's' : ''} ces 5 dernières minutes</small></div>
+        <div class="carte"><span>Dernière heure</span><b>${nb(d.derniereHeure)}</b><small>visiteur${d.derniereHeure > 1 ? 's' : ''} vu${d.derniereHeure > 1 ? 's' : ''} depuis 60 min</small></div>
+        <div class="carte"><span>Aujourd'hui</span><b>${nb(d.jour.visiteurs)}</b><small>${nb(d.jour.vues)} pages vues depuis minuit</small></div>
+      </div>
+      <div class="carte" style="margin-top:12px"><h2 class="vis-h">Qui est sur le site</h2>${liste}
+        <p class="note" style="margin:10px 0 0">Mis à jour à ${h}, toutes les 30 secondes. Une page ouverte et visible donne signe de vie chaque minute (30 min au plus). Les visiteurs qui refusent d'être comptés n'apparaissent pas.</p></div>`;
+  }
+  async function majDirect() {
+    const z = el.querySelector('[data-direct]');
+    if (!z || location.hash !== '#visites') { clearInterval(visMinuterie); visMinuterie = null; return; }
+    const r = await api('GET', '/visites/direct');
+    if (r.ok && el.contains(z)) z.innerHTML = blocDirect(r.j);
+  }
   async function vueVisites() {
-    const r = await api('GET', '/visites?jours=' + visJours);
+    const [r, rd] = await Promise.all([api('GET', '/visites?jours=' + visJours), api('GET', '/visites/direct')]);
     if (r.s === 401) return connexion();
     if (!r.ok) { el.innerHTML = cadre('<h1>Visites</h1><p class="form-err">Le service ne répond pas.</p>', 'visites'); brancherCadre(); return; }
     const v = r.j, T = v.total, nb = n => Number(n || 0).toLocaleString('fr-FR');
@@ -563,6 +584,9 @@
     const tunnel = [['Visiteurs', T.visiteurs], ['Simulateur ouvert', E.simu || 0], ['Prix affiché', E.prix || 0], ['Clic sur « Continuer »', E.continuer || 0], ['Dossier créé', T.crees], ['Acompte payé', T.payes]];
     el.innerHTML = cadre(`<div class="rang ecart"><h1>Visites</h1><div class="rang">${[7, 30, 90].map(n => `<button class="btn petit ${n === visJours ? 'blue-btn' : 'ghost'}" type="button" data-vj="${n}">${n} jours</button>`).join('')}</div></div>
       <p class="note" style="margin:8px 0 16px">${v.premier ? `Comptage en place depuis le ${jc(v.premier).replace(/\.$/, '')}.` : 'Aucune visite comptée pour l\'instant : le comptage vient de démarrer.'} Sans cookie, totaux par jour. Un visiteur est compté une fois par jour. Ne sont pas comptés : l'équipe connectée à cet espace, les robots, les navigateurs qui demandent à ne pas être suivis.</p>
+      <h2 class="vis-h" style="margin:4px 0 8px">En direct</h2>
+      <div data-direct>${blocDirect(rd.ok ? rd.j : null)}</div>
+      <h2 class="vis-h" style="margin:22px 0 8px">Sur ${visJours} jours</h2>
       <div class="vis-k">
         <div class="carte"><span>Visiteurs</span><b>${nb(T.visiteurs)}</b><small>${pct(T.mobile, T.visiteurs)} sur téléphone</small></div>
         <div class="carte"><span>Pages vues</span><b>${nb(T.vues)}</b><small>${T.visiteurs ? (Math.round(T.vues / T.visiteurs * 10) / 10).toLocaleString('fr-FR') : '-'} par visiteur</small></div>
@@ -582,6 +606,7 @@
       </div>`, 'visites');
     brancherCadre();
     el.querySelectorAll('[data-vj]').forEach(b => b.addEventListener('click', () => { visJours = +b.dataset.vj; vueVisites(); }));
+    clearInterval(visMinuterie); visMinuterie = setInterval(majDirect, 30000);
   }
 
   // ---------- codes promo ----------

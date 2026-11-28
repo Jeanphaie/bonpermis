@@ -13,6 +13,11 @@
   const q = new URLSearchParams(location.search);
   let r = ''; try { r = document.referrer ? new URL(document.referrer).hostname : ''; } catch (e) {}
   envoyer({p: location.pathname, r, u: q.get('utm_source') || '', c: q.get('utm_campaign') || '', g: q.has('gclid') || q.has('gbraid') || q.has('wbraid') ? 1 : 0});
+  // Présence : un battement par minute tant que la page est visible, 30 min au plus (pour « en ce moment » dans l'espace équipe).
+  let battements = 0;
+  const battre = () => { if (document.visibilityState === 'visible' && battements < 30) { battements++; envoyer({h: 1}); } };
+  setInterval(battre, 60000);
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') battre(); });
 
   // Page Confidentialité : bouton pour s'opposer, ou revenir sur son choix.
   const b = document.querySelector('[data-mesure]');

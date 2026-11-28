@@ -7,7 +7,9 @@
      du navigateur et d'un sel tiré au hasard chaque jour. Les empreintes et le sel du jour sont effacés le lendemain :
      on ne peut ni retrouver une personne, ni la suivre d'un jour à l'autre.
    - Pas comptés : l'équipe connectée, les robots, l'espace équipe, les visiteurs qui s'y sont opposés.
-   - L'espace équipe lit GET /api/admin/visites?jours=30. */
+   - En cours de journée, chaque empreinte garde aussi l'heure du dernier signal et la page en cours (pour « en ce moment »),
+     effacées avec elle le lendemain.
+   - L'espace équipe lit GET /api/admin/visites?jours=30 et GET /api/admin/visites/direct. */
 
 const B = require('./base');
 const C = require('./comptes');
@@ -81,6 +83,8 @@ async function signal(req, res) {
   let v = j.vus[e];
   const hote = String(req.headers.host || '').replace(/^www\./, '').split(':')[0];
 
+  // Battement de présence (page ouverte et visible, toutes les 60 s) : met seulement à jour l'heure du dernier signal.
+  if (d.h) { if (v && v.n <= MAX_PAR_VISITEUR) { v.t = Date.now(); sale = true; } return fin(); }
   if (d.e) { // étape du simulateur : comptée une fois par visiteur et par jour
     if (!ETAPES.includes(d.e) || !v) return fin();
     v.e = v.e || [];
@@ -98,6 +102,7 @@ async function signal(req, res) {
     if (c) plus(j.campagnes, c);
   }
   if (++v.n > MAX_PAR_VISITEUR) return fin();
+  v.t = Date.now(); v.p = p; if (!v.d) v.d = v.t; // dernier signal, page en cours, arrivée (pour « en ce moment »)
   j.vues++; plus(j.pages, p); sale = true;
   fin();
 }
@@ -149,4 +154,29 @@ function lecture(req, res, url) {
   repondre(res, 200, {jours: n, premier, serie, total: T, pages: tri(cumul.pages, 25), entrees: tri(cumul.entrees, 15), sources: tri(cumul.sources, 15), campagnes: tri(cumul.campagnes, 15), etapes: cumul.etapes});
 }
 
-module.exports = {signal, lecture, origine, enregistrer, _page: page, _source: source};
+// ---------- en direct ----------
+// « En ce moment » : dernier signal il y a moins de 5 min (la page envoie un battement toutes les 60 s tant qu'elle est visible).
+// « Dernière heure » : un signal depuis moins de 60 min. Lu dans les visiteurs du jour : juste après minuit, la dernière heure
+// ne compte que depuis minuit. Rien n'identifie une personne : empreinte du jour, page et source seulement.
+const PRESENT = 5 * 60e3, HEURE = 60 * 60e3;
+function direct(req, res) {
+  if (!C.sessionAdmin(req)) return repondre(res, 401, {erreur: 'Connexion équipe requise.'});
+  const j = charger(), t = Date.now();
+  let maintenant = 0, heure = 0, mobile = 0; const pages = {}, sources = {}, liste = [];
+  for (const v of Object.values(j.vus)) {
+    if (!v.t) continue;
+    if (t - v.t < HEURE) heure++;
+    if (t - v.t < PRESENT) {
+      maintenant++;
+      if (v.p) pages[v.p] = (pages[v.p] || 0) + 1;
+      sources[v.s || 'Inconnue'] = (sources[v.s || 'Inconnue'] || 0) + 1;
+      liste.push({page: v.p || '', source: v.s || '', depuis: v.d ? Math.round((t - v.d) / 60e3) : null, vues: v.n || 0, etapes: (v.e || []).length});
+    }
+  }
+  const tri = o => Object.entries(o).sort((a, b) => b[1] - a[1]).map(([nom, n]) => ({nom, n}));
+  liste.sort((a, b) => (b.depuis || 0) - (a.depuis || 0));
+  repondre(res, 200, {heure: new Date(t).toISOString(), maintenant, derniereHeure: heure, jour: {visiteurs: j.visiteurs, vues: j.vues, mobile: j.mobile},
+    pages: tri(pages), sources: tri(sources), presents: liste.slice(0, 30)});
+}
+
+module.exports = {signal, lecture, direct, origine, enregistrer, _page: page, _source: source};

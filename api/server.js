@@ -97,6 +97,7 @@ const ROUTES = {
   // suivi des visites (sans cookie, totaux par jour)
   'POST /api/v': V.signal,
   'GET /api/admin/visites': V.lecture,
+  'GET /api/admin/visites/direct': V.direct,
   // tableau de bord : ventes, clients, demandes de rappel, plans vendus, exports
   'GET /api/admin/bord': BD.bord,
   'GET /api/admin/clients': BD.clients,
