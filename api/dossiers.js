@@ -369,7 +369,8 @@ async function mailsDossierCree(cmd) {
   await envoyerMail(CONF.mailA, `Dossier créé ${cmd.ref} (non payé) : ${cmd.nom}`, `Nouveau dossier, acompte pas encore réglé.\n\nProjet : ${cmd.nom}\nAdresse : ${cmd.adresse}\nClient : ${cmd.email}\nPrix : ${euro(cmd.total)}\n\n${CONF.site}/admin/#${cmd.ref}\n`, cmd.email);
 }
 
-// POST /api/dossier/creer : depuis le simulateur. Sans session : 1er appel = code envoyé à l'e-mail, 2e appel avec le code.
+// POST /api/dossier/creer : depuis le simulateur. Sans session : adresse inconnue = dossier créé tout de suite ;
+// adresse qui a déjà un compte = 1er appel code envoyé à l'e-mail, 2e appel avec le code.
 async function creerDossier(req, res) {
   if (B.tropDeDemandes(req)) return repondre(res, 429, {erreur: 'Trop de demandes. Réessayez dans quelques minutes.'});
   const d = await lireJson(req); if (!d) return repondre(res, 400, {erreur: 'Demande illisible.'});
@@ -380,18 +381,26 @@ async function creerDossier(req, res) {
   if (!u) {
     const email = texte(d.email, 254).toLowerCase(), code = texte(d.code, 12).replace(/\D/g, '');
     if (!MAIL_RE.test(email)) return repondre(res, 400, {erreur: 'Adresse e-mail invalide.', champ: 'mail'});
-    if (!code) {
+    // Adresse inconnue : le dossier est créé tout de suite, sans code (sur téléphone, aller chercher un code dans ses e-mails
+    // fait abandonner). Adresse qui a déjà un compte : le code reste exigé, pour que personne n'entre dans le compte d'un autre.
+    // Le compte créé n'est pas « confirmé » : pour revenir d'un autre appareil, le client se connecte avec un code envoyé à cette adresse.
+    if (!code && !C.userParMail(email)) {
+      if (B.trop('creer-direct:' + B.ip(req), 5)) return repondre(res, 429, {erreur: 'Trop de dossiers créés depuis cette connexion. Réessayez dans quelques minutes.'});
+      u = C.creerUser(email);
+      C.ouvrirSession(res, u, false);
+    } else if (!code) {
       if (B.trop('code:' + email, 5)) return repondre(res, 429, {erreur: 'Trop de codes demandés pour cette adresse. Réessayez dans 10 minutes.'});
       const c = C.nouveauCode('dossier', email, {});
       envoyerMail(email, `${c} : votre code Le Bon Permis`, `Bonjour,\n\nVotre code pour créer votre dossier Le Bon Permis :\n\n${c}\n\nIl est valable 15 minutes. Si vous n'avez rien demandé, ignorez cet e-mail.${signature}`)
         .then(ok => { if (!ok && !CONF.smtp.pass) journal('code dossier (SMTP absent, mode local) :', email, c); });
       return repondre(res, 200, {etape: 'code'});
+    } else {
+      if (B.trop('verif-ip:' + B.ip(req), 30)) return repondre(res, 429, {erreur: 'Trop de tentatives. Réessayez dans 10 minutes.'});
+      if (!C.prendreCode('dossier', email, code)) return repondre(res, 401, {erreur: 'Code incorrect ou expiré. Vérifiez le dernier e-mail reçu.', champ: 'code'});
+      u = C.userParMail(email) || C.creerUser(email);
+      if (!u.confirme) { u.confirme = true; C.ecrireUser(u); }
+      C.ouvrirSession(res, u, true);
     }
-    if (B.trop('verif-ip:' + B.ip(req), 30)) return repondre(res, 429, {erreur: 'Trop de tentatives. Réessayez dans 10 minutes.'});
-    if (!C.prendreCode('dossier', email, code)) return repondre(res, 401, {erreur: 'Code incorrect ou expiré. Vérifiez le dernier e-mail reçu.', champ: 'code'});
-    u = C.userParMail(email) || C.creerUser(email);
-    if (!u.confirme) { u.confirme = true; C.ecrireUser(u); }
-    C.ouvrirSession(res, u, true);
   }
   const cmd = nouveauDossier(x, u, adresse, lieuValide(d.lieu)); noterOrigine(cmd, req);
   repondre(res, 200, {ref: cmd.ref, url: `/espace/dossier/?ref=${cmd.ref}&nouveau=1`});
