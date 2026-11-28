@@ -400,7 +400,7 @@ def page(k):
 MESURE = ("<p id=\"mesure\">Pour savoir combien de personnes visitent le site et d'où elles viennent, nous comptons les pages vues nous-mêmes, "
           "sans cookie et sans service extérieur. Nous ne gardons que des totaux par jour : pages vues, site d'origine, campagne publicitaire. "
           "Votre adresse IP sert seulement à ne pas vous compter deux fois dans la même journée : elle est transformée en une empreinte "
-          "effacée le lendemain, et n'est jamais enregistrée. Si votre navigateur envoie le signal « ne pas me suivre », vos visites ne sont "
+          "effacée le lendemain, et n'est jamais enregistrée. Pendant la journée, cette empreinte garde aussi la dernière page ouverte et l'heure du dernier passage, pour savoir combien de personnes sont sur le site en ce moment ; c'est effacé avec elle. Si votre navigateur envoie le signal « ne pas me suivre », vos visites ne sont "
           "pas comptées. Vous pouvez aussi vous y opposer ici : <button class=\"lien\" type=\"button\" data-mesure>Ne pas compter mes visites</button></p>")
 COOKIES_SANS = ("<p>Le site n'utilise pas de cookie publicitaire. Seuls des cookies techniques servent à garder "
                 "votre session ouverte quand vous vous connectez à votre espace : ils sont indispensables et ne demandent pas d'accord. "
